@@ -1,7 +1,7 @@
 <script lang="ts">
 	// type imports
 	import type { SvelteComponent } from 'svelte';
-
+	
 	// svelte / page imports
 	import { flip } from 'svelte/animate';
 	import { onMount } from 'svelte';
@@ -39,10 +39,9 @@
 		scale: number;
 	}
 
-	interface ComponentBlock {
+	interface LayoutBlock {
 		name: string;
 		component: SvelteComponent | any;
-		icon: SvelteComponent | undefined;
 		data: any;
 	}
 
@@ -57,9 +56,22 @@
 		}
 	};
 
+	let undoStack: any = [];
+	let redoStack: any = [];
+
 	let component_blocks = [
-		{ name: 'Paraghaph', component: BLOCK_Paragraph, icon: Paragraph, data: {} },
-		{ name: 'Heading', component: BLOCK_Heading1, icon: TextH, data: {} },
+		{
+			name: 'Paraghaph',
+			component: BLOCK_Paragraph,
+			icon: Paragraph,
+			data: { content: undefined, class: undefined }
+		},
+		{
+			name: 'Heading',
+			component: BLOCK_Heading1,
+			icon: TextH,
+			data: { content: undefined, class: undefined }
+		},
 		{
 			name: 'Basic Navigation',
 			component: BLOCK_Navigation,
@@ -189,27 +201,66 @@
 		e.preventDefault();
 	};
 
-	const placeComponent = function (e: DragEvent) {
-		console.log('Dropped: ', e);
-		if (client.isDraggingOver == undefined) {
-			console.error('Error');
-		} else {
-			if (client.currentComponent) {
-				const newBlock = {
-					id: client.isDraggingOver + 1,
-					name: structuredClone(component_blocks[Number(client.currentComponent)].name),
-					component: component_blocks[Number(client.currentComponent)].component,
-					data: structuredClone(component_blocks[Number(client.currentComponent)].data),
-					icon: undefined
-				};
+	const recordAction = (action: any) => {
+		undoStack.push(action);
+		redoStack = [];
+	};
 
-				addComponentBlock(component_blocks, client.isDraggingOver, newBlock);
+	const undo = () => {
+		console.log("undo");
+
+		if (undoStack.length > 0) {
+			const lastAction = undoStack.pop();
+			redoStack.push(lastAction);
+			redoStack = redoStack;
+			undoStack = undoStack;
+			layout_blocks = layout_blocks;
+
+			// Revert the action
+			if (lastAction.type === 'add') {
+				layout_blocks.splice(lastAction.index, 1);
+			} else if (lastAction.type === 'delete') {
+				layout_blocks.splice(lastAction.index, 0, lastAction.block);
 			}
 		}
 	};
+
+	const redo = () => {
+		if (redoStack.length > 0) {
+			const lastAction = redoStack.pop();
+			undoStack.push(lastAction);
+			layout_blocks = layout_blocks;
+
+			// Apply the action
+			if (lastAction.type === 'add') {
+				layout_blocks.splice(lastAction.index, 0, lastAction.block);
+			} else if (lastAction.type === 'delete') {
+				layout_blocks.splice(lastAction.index, 1);
+			}
+		}
+	};
+
+	const placeComponent = function (e: DragEvent) {
+		// Your existing code...
+		if (client.currentComponent) {
+			const newBlock = {
+				id: client.isDraggingOver! + 1,
+				component: component_blocks[Number(client.currentComponent)].component,
+				name: structuredClone(component_blocks[Number(client.currentComponent)].name),
+				data: structuredClone(component_blocks[Number(client.currentComponent)].data)
+			};
+
+			// Record the action before adding the component
+			recordAction({ type: 'add', block: newBlock, index: client.isDraggingOver });
+			addComponentBlock(component_blocks, client.isDraggingOver!, newBlock);
+		}
+	};
+
 	const deleteComponent = function (e: MouseEvent, id: number) {
+		// Record the action before deleting the component
+		recordAction({ type: 'delete', block: layout_blocks[id], index: id });
 		layout_blocks.splice(id, 1);
-		layout_blocks = layout_blocks;
+		layout_blocks = layout_blocks
 	};
 	const changeSidebarPage = function (side: string, page: string) {
 		if (side == 'left') {
@@ -285,8 +336,8 @@
 
 		preview!.style.scale = String(scale / 100);
 
-		resizeLeft!.style.marginLeft = `${50 - scale/2}%`;
-		resizeRight!.style.marginRight = `${50 - scale/2}%`;
+		resizeLeft!.style.marginLeft = `${50 - scale / 2}%`;
+		resizeRight!.style.marginRight = `${50 - scale / 2}%`;
 	};
 
 	const handleScroll = async function (e: WheelEvent) {
@@ -302,18 +353,17 @@
 	const hideOverlay = function (e: MouseEvent, id: number) {};
 
 	function addComponentBlock(
-		component_blocks: ComponentBlock[],
+		component_blocks: LayoutBlock[],
 		index: number,
-		newBlock: ComponentBlock
+		newBlock: LayoutBlock
 	): void {
 		if (index < 0 || index > component_blocks.length) {
-			layout_blocks.push(newBlock as ComponentBlock);
+			layout_blocks.push(newBlock);
 			layout_blocks = layout_blocks;
 		} else {
-			layout_blocks.splice(index, 0, newBlock as ComponentBlock);
+			layout_blocks.splice(index, 0, newBlock);
 			layout_blocks = layout_blocks;
 		}
-		// console.log(layout_blocks);
 	}
 	const pageRoutes = [
 		{
@@ -453,13 +503,16 @@
 				</Popover.Root>
 			</div>
 			<div class="flex">
-				<button class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+				<button
+					on:click={() => changeSidebarPage('left', 'add-components')}
+					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
+				>
 					<PlusSquare class="h-8 w-8 fill-slate-400" weight="fill" />
 				</button>
-				<button class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+				<button on:click={undo} class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
 					<ArrowCounterClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
 				</button>
-				<button class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+				<button on:click={redo} class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
 					<ArrowClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
 				</button>
 			</div>
@@ -491,7 +544,7 @@
 									onSelect={(currentValue) => {
 										value = currentValue;
 										closeAndFocusTriggerScale(ids.trigger);
-										setEditorScale(Number(currentValue))
+										setEditorScale(Number(currentValue));
 									}}
 								>
 									<Check class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')} />
@@ -627,18 +680,9 @@
 									id={`${index}`}
 								>
 									<div
-										class="relative flex h-10 min-h-10 w-full cursor-grab items-center justify-between border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+										class="relative flex h-10 min-h-10 w-full items-center justify-between border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
 									>
-										{#if block.icon}
-											<svelte:component
-												this={component.icon}
-												class="fill-slate-900"
-												weight="fill"
-												size={24}
-											/>
-										{:else}
-											<Cube class=" fill-slate-900" weight="fill" size={24} />
-										{/if}
+										<Cube class=" fill-slate-900" weight="fill" size={24} />
 										{block.name}
 									</div>
 								</li>
