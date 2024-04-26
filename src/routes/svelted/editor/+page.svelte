@@ -5,9 +5,18 @@
 	// svelte / page imports
 	import { flip } from 'svelte/animate';
 	import { onMount } from 'svelte';
-	import { tick } from "svelte";
+	import { tick } from 'svelte';
 	import { makeResizableDiv } from '$lib/components/svelted-core/resizeable/resizeable';
-	import { CaretDown, Check, Cube, Paragraph, TextH } from 'phosphor-svelte';
+	import {
+		ArrowClockwise,
+		ArrowCounterClockwise,
+		CaretDown,
+		Check,
+		Cube,
+		Paragraph,
+		PlusSquare,
+		TextH
+	} from 'phosphor-svelte';
 
 	// shadcn ui imports
 	import * as Command from '$lib/components/svelted-core/ui/command/index.js';
@@ -19,8 +28,6 @@
 	import BLOCK_Paragraph from '$lib/components/svelted-core/ui/Paragraph.svelte';
 	import BLOCK_Heading1 from '$lib/components/svelted-core/ui/Heading1.svelte';
 	import BLOCK_Navigation from '$lib/components/custom/Navigation.svelte';
-	
-
 
 	interface Client {
 		x: number;
@@ -28,6 +35,8 @@
 		isDragging: boolean;
 		isDraggingOver: number | undefined;
 		currentComponent: string | undefined;
+		shiftKeyHeld: boolean;
+		scale: number;
 	}
 
 	interface ComponentBlock {
@@ -151,7 +160,9 @@
 		y: 0,
 		currentComponent: undefined,
 		isDragging: false,
-		isDraggingOver: undefined
+		isDraggingOver: undefined,
+		shiftKeyHeld: false,
+		scale: 1
 	};
 
 	function drag(e: DragEvent) {
@@ -211,6 +222,83 @@
 		}
 	};
 
+	const handleKeyDown = function (e: KeyboardEvent) {
+		if (e.shiftKey) {
+			client.shiftKeyHeld = true;
+		}
+	};
+
+	const handleKeyUp = function (e: KeyboardEvent) {
+		if (!e.shiftKey) {
+			client.shiftKeyHeld = false;
+		}
+	};
+
+	const increaseEditorScale = function () {
+		const preview = document.getElementById('editor-preview');
+		const resizeLeft = document.getElementById('resize-left');
+		const resizeRight = document.getElementById('resize-right');
+
+		if (!Number(preview!.style.scale)) {
+			preview!.style.scale = '1';
+		}
+
+		const currentScale = Number(preview!.style.scale);
+
+		if (Number(preview!.style.scale) > 0.2) {
+			client.scale = client.scale - 0.1;
+			selectedScale = `${(client.scale * 100).toFixed()} %`;
+			preview!.style.scale = String(Number(preview!.style.scale) - 0.1);
+			resizeLeft!.style.marginLeft = `${(1 - currentScale + 0.1) * 50}%`;
+			resizeRight!.style.marginRight = `${(1 - currentScale + 0.1) * 50}%`;
+		}
+	};
+
+	const decreaseEditorScale = function () {
+		if (client.shiftKeyHeld) {
+			const preview = document.getElementById('editor-preview');
+			const resizeLeft = document.getElementById('resize-left');
+			const resizeRight = document.getElementById('resize-right');
+
+			if (!Number(preview!.style.scale)) {
+				preview!.style.scale = '1';
+			}
+
+			const currentScale = Number(preview!.style.scale);
+
+			if (currentScale != 1) {
+				client.scale = client.scale + 0.1;
+				selectedScale = `${(client.scale * 100).toFixed()} %`;
+				preview!.style.scale = String(currentScale + 0.1);
+				resizeLeft!.style.marginLeft = `${(1 - currentScale - 0.1) * 50}%`;
+				resizeRight!.style.marginRight = `${(1 - currentScale - 0.1) * 50}%`;
+			}
+		}
+	};
+
+	const setEditorScale = function (scale: number) {
+		client.scale = scale / 100;
+
+		const preview = document.getElementById('editor-preview');
+		const resizeLeft = document.getElementById('resize-left');
+		const resizeRight = document.getElementById('resize-right');
+
+		preview!.style.scale = String(scale / 100);
+
+		resizeLeft!.style.marginLeft = `${50 - scale/2}%`;
+		resizeRight!.style.marginRight = `${50 - scale/2}%`;
+	};
+
+	const handleScroll = async function (e: WheelEvent) {
+		if (e.deltaY > 0) {
+			if (client.shiftKeyHeld) {
+				increaseEditorScale();
+			}
+		} else {
+			decreaseEditorScale();
+		}
+	};
+
 	const hideOverlay = function (e: MouseEvent, id: number) {};
 
 	function addComponentBlock(
@@ -229,35 +317,65 @@
 	}
 	const pageRoutes = [
 		{
-			value: 'sveltekit',
-			label: 'SvelteKit'
+			value: 'home',
+			label: 'Home'
 		},
 		{
-			value: 'next.js',
-			label: 'Next.js'
+			value: 'about',
+			label: 'About'
 		},
 		{
-			value: 'nuxt.js',
-			label: 'Nuxt.js'
+			value: 'blog',
+			label: 'Blog'
+		}
+	];
+
+	const pageScales = [
+		{
+			value: '100',
+			label: '100 %'
 		},
 		{
-			value: 'remix',
-			label: 'Remix'
+			value: '90',
+			label: '90 %'
 		},
 		{
-			value: 'astro',
-			label: 'Astro'
+			value: '80',
+			label: '80 %'
+		},
+		{
+			value: '70',
+			label: '70 %'
+		},
+		{
+			value: '60',
+			label: '60 %'
+		},
+		{
+			value: '50',
+			label: '50 %'
+		},
+		{
+			value: '40',
+			label: '40 %'
+		},
+		{
+			value: '30',
+			label: '30 %'
+		},
+		{
+			value: '20',
+			label: '20 %'
 		}
 	];
 
 	let open = false;
+	let scaleSwitchOpen = false;
 	let value = '';
 
-	$: selectedValue = pageRoutes.find((f) => f.value === value)?.label ?? 'Select a Page...';
+	$: selectedRoute = pageRoutes.find((f) => f.value === value)?.label ?? 'Select a Page...';
+	$: selectedScale = pageScales.find((f) => f.value === value)?.label ?? '100 %';
 
-	// We want to refocus the trigger button when the user selects
-	// an item from the list so users can continue navigating the
-	// rest of the form with the keyboard.
 	function closeAndFocusTrigger(triggerId: string) {
 		open = false;
 		tick().then(() => {
@@ -265,63 +383,132 @@
 		});
 	}
 
+	function closeAndFocusTriggerScale(triggerId: string) {
+		scaleSwitchOpen = false;
+		tick().then(() => {
+			document.getElementById(triggerId)?.focus();
+		});
+	}
+
 	onMount(async () => {
 		makeResizableDiv('#editor-preview');
+		window.addEventListener('wheel', handleScroll);
 	});
 </script>
 
+<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+
 <main class="h-full max-h-screen min-h-screen w-full bg-neutral-900">
-	<nav class="flex h-16 items-center border-b bg-slate-950">
-		<a href="/svelted/dashboard" class="grid h-full w-16 items-center hover:bg-slate-800">
-			<img
-				class="m-auto h-10 w-10 opacity-80 transition-all"
-				src="/static-svelted/svelted-white.svg"
-				alt="Svelted Logo - Back"
-			/>
-		</a>
-		<div class="mx-3 flex flex-col">
-			<h1 class="text-lg font-bold text-neutral-200">Svelted CMS</h1>
-			<span class="-mt-2 text-sm font-medium text-neutral-500">made by Plunzi</span>
+	<nav class="flex h-16 items-center justify-between border-b bg-slate-950">
+		<div class="flex h-full items-center gap-4">
+			<a href="/svelted/dashboard" class="grid h-full w-16 items-center hover:bg-slate-800">
+				<img
+					class="m-auto h-10 w-10 opacity-80 transition-all"
+					src="/static-svelted/svelted-white.svg"
+					alt="Svelted Logo - Back"
+				/>
+			</a>
+			<div class="flex flex-col">
+				<h1 class="text-lg font-bold text-neutral-200">Svelted CMS</h1>
+				<span class="-mt-2 text-sm font-medium text-neutral-500">made by Plunzi</span>
+			</div>
+			<div class="flex h-full w-48 items-center border-x border-slate-600 text-white">
+				<Popover.Root bind:open let:ids>
+					<Popover.Trigger asChild let:builder>
+						<Button
+							builders={[builder]}
+							variant="outline"
+							role="combobox"
+							aria-expanded={open}
+							class="h-full w-48 justify-between rounded-none border-none bg-slate-900 outline-none"
+						>
+							{selectedRoute}
+							<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						</Button>
+					</Popover.Trigger>
+					<Popover.Content class="w-48 rounded-none p-0">
+						<Command.Root>
+							<Command.Input placeholder="Search route..." class="h-12" />
+							<Command.Empty>
+								<button>Create new route</button>
+							</Command.Empty>
+							<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
+								{#each pageRoutes as route}
+									<Command.Item
+										value={route.value}
+										onSelect={(currentValue) => {
+											value = currentValue;
+											closeAndFocusTrigger(ids.trigger);
+										}}
+									>
+										<Check
+											class={cn('mr-2 h-8 w-4', value !== route.value && 'text-transparent')}
+										/>
+										{route.label}
+									</Command.Item>
+								{/each}
+							</Command.Group>
+						</Command.Root>
+					</Popover.Content>
+				</Popover.Root>
+			</div>
+			<div class="flex">
+				<button class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+					<PlusSquare class="h-8 w-8 fill-slate-400" weight="fill" />
+				</button>
+				<button class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+					<ArrowCounterClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
+				</button>
+				<button class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+					<ArrowClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
+				</button>
+			</div>
 		</div>
-		<div class="mx-4 flex h-full w-48 items-center border-x border-slate-600 text-white">
-			<Popover.Root bind:open let:ids>
+		<div class="flex h-full">
+			<Popover.Root bind:open={scaleSwitchOpen} let:ids>
 				<Popover.Trigger asChild let:builder>
 					<Button
 						builders={[builder]}
 						variant="outline"
 						role="combobox"
-						aria-expanded={open}
-						class="w-48 h-full bg-slate-900 outline-none border-none rounded-none justify-between"
+						aria-expanded={scaleSwitchOpen}
+						class="h-full w-48 justify-between rounded-none border-none bg-slate-900 text-white outline-none"
 					>
-						{selectedValue}
+						Scale {selectedScale}
 						<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</Popover.Trigger>
 				<Popover.Content class="w-48 rounded-none p-0">
 					<Command.Root>
-						<Command.Input placeholder="Search framework..." class="h-9" />
+						<Command.Input placeholder="Search scale..." class="h-12" />
 						<Command.Empty>
-							<button>Create new route</button>
+							<button>Scale not found</button>
 						</Command.Empty>
-						<Command.Group class="p-0 max-h-[20rem] overflow-y-auto">
-							{#each pageRoutes as route}
+						<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
+							{#each pageScales as scale}
 								<Command.Item
-									value={route.value}
+									value={scale.value}
 									onSelect={(currentValue) => {
 										value = currentValue;
-										closeAndFocusTrigger(ids.trigger);
+										closeAndFocusTriggerScale(ids.trigger);
+										setEditorScale(Number(currentValue))
 									}}
 								>
-									<Check
-										class={cn('mr-2 h-8 w-4', value !== route.value && 'text-transparent')}
-									/>
-									{route.label}
+									<Check class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')} />
+									{scale.label}
 								</Command.Item>
 							{/each}
 						</Command.Group>
 					</Command.Root>
 				</Popover.Content>
 			</Popover.Root>
+		</div>
+		<div class="flex h-full items-center gap-4">
+			<div
+				class="flex h-full w-48 items-center justify-center rounded-none border-none bg-blue-500 text-lg font-medium text-white outline-none"
+			>
+				Save changes
+			</div>
 		</div>
 	</nav>
 	<div class="flex">
@@ -502,7 +689,7 @@
 		<section
 			class="max-h-editor relative grid flex-1 overflow-y-auto bg-slate-100 bg-[radial-gradient(#dfe2e8_1px,transparent_1px)] py-4 pt-8 [background-size:16px_16px]"
 		>
-			<div class="max-w-editor relative mx-auto">
+			<div class="max-w-editor relative mx-auto flex" id="editor-wrapper" style="max-width: 100%">
 				<div
 					class="resize-item absolute bottom-0 left-0 top-0 z-20 grid w-1 cursor-w-resize items-center hover:bg-slate-300"
 					id="resize-left"
@@ -568,7 +755,7 @@
 									role="listitem"
 								>
 									<button
-										class="absolute left-0 right-0 z-10 flex h-1 w-full items-center justify-center bg-gradient-to-r from-transparent via-brand-500 to-transparent transition-all hover:bg-brand-500 hover:h-3"
+										class="absolute left-0 right-0 z-10 flex h-1 w-full items-center justify-center bg-gradient-to-r from-transparent via-brand-500 to-transparent transition-all hover:h-3 hover:bg-brand-500"
 										class:py-2={client.isDragging}
 										class:bg-brand-500={client.isDraggingOver == index}
 									>
@@ -653,7 +840,9 @@
 				</div>
 			</div>
 		</section>
-		<section class="h-full-editor px-4 min-w-[20rem] max-w-[20rem] overflow-y-auto border-l bg-white">
+		<section
+			class="h-full-editor max-h-editor min-w-[20rem] max-w-[20rem] overflow-auto border-l bg-white px-4"
+		>
 			<ul class="p-2">
 				<li>
 					<div>
@@ -665,7 +854,7 @@
 				<li>4</li>
 				<li>6</li>
 			</ul>
-			<div class="w-full overflow-scroll">
+			<div class="w-full overflow-auto">
 				<code class="">
 					{JSON.stringify(layout_blocks)}
 				</code>
