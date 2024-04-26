@@ -23,6 +23,7 @@
 		"eslint": "^8.56.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.35.1",
+		"phosphor-svelte": "^2.0.1",
 		"postcss": "^8.4.32",
 		"postcss-load-config": "^5.0.2",
 		"prettier": "^3.1.1",
@@ -40,7 +41,10 @@
 	"dependencies": {
 		"@neodrag/svelte": "^2.0.5",
 		"@threlte/core": "^7.3.0",
+		"bits-ui": "^0.21.4",
 		"clsx": "^2.1.0",
+		"cmdk-sv": "^0.0.17",
+		"lucide-svelte": "^0.375.0",
 		"tailwind-merge": "^2.3.0",
 		"tailwind-variants": "^0.2.1",
 		"three": "^0.159.0"
