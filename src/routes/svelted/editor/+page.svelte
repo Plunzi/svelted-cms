@@ -7,18 +7,7 @@
 	import { onMount } from 'svelte';
 	import { tick } from 'svelte';
 	import { makeResizableDiv } from '$lib/components/svelted-core/resizeable/resizeable';
-	import {
-		AlignCenterHorizontalSimple,
-		ArrowClockwise,
-		ArrowCounterClockwise,
-		CaretDown,
-		Check,
-		Columns,
-		Cube,
-		Paragraph,
-		PlusSquare,
-		TextH
-	} from 'phosphor-svelte';
+	import * as icons from 'phosphor-svelte';
 
 	// shadcn ui imports
 	import * as Command from '$lib/components/svelted-core/ui/command/index.js';
@@ -27,11 +16,9 @@
 	import { cn } from '$lib/components/svelted-core/utils.js';
 
 	// layout component imports
-	import BLOCK_Paragraph from '$lib/svelted/components/core/Paragraph.svelte';
-	import BLOCK_Heading1 from '$lib/svelted/components/core/Heading1.svelte';
-	import BLOCK_Navigation from '$lib/svelted/components/custom/Navigation.svelte';
-	import BLOCK_OverflowY from '$lib/svelted/components/tests/OverflowYComponent.svelte';
-	import BLOCK_Row from '$lib/svelted/components/tests/Row.svelte';
+	import components from '$lib/svelted/components';
+
+	type IconName = keyof typeof icons;
 
 	interface Client {
 		x: number;
@@ -47,6 +34,7 @@
 		name: string;
 		component: SvelteComponent | any;
 		data: any;
+		icon: string;
 	}
 
 	let sidebar = {
@@ -66,30 +54,30 @@
 	let component_blocks = [
 		{
 			name: 'Testing Overflow Y',
-			component: BLOCK_OverflowY,
-			icon: AlignCenterHorizontalSimple,
-			data: { content: undefined, class: undefined }
+			component: 'BLOCK_OverflowY',
+			icon: 'AlignCenterHorizontalSimple',
+			data: { content: 'undefined', class: undefined }
 		},
 		{
 			name: 'Paraghaph',
-			component: BLOCK_Paragraph,
-			icon: Paragraph,
-			data: { content: undefined, class: undefined }
+			component: 'BLOCK_Paragraph',
+			icon: 'Paragraph',
+			data: { content: 'Example Paragraph', class: undefined }
 		},
 		{
 			name: 'Row',
-			component: BLOCK_Row,
-			icon: Columns,
+			component: 'BLOCK_Row',
+			icon: 'Columns',
 			data: {
 				content: [
 					{
 						name: 'Paraghaph',
-						// component: BLOCK_Paragraph,
+						component: 'BLOCK_Heading1',
 						data: { content: 'test', class: undefined }
 					},
 					{
 						name: 'Paraghaph',
-						// component: BLOCK_Paragraph,
+						component: 'BLOCK_Paragraph',
 						data: { content: 'other test', class: undefined }
 					}
 				],
@@ -98,13 +86,14 @@
 		},
 		{
 			name: 'Heading',
-			component: BLOCK_Heading1,
-			icon: TextH,
-			data: { content: undefined, class: undefined }
+			component: 'BLOCK_Heading1',
+			icon: 'TextH',
+			data: { content: 'Example Heading', class: undefined }
 		},
 		{
+			icon: 'Cube',
 			name: 'Basic Navigation',
-			component: BLOCK_Navigation,
+			component: 'BLOCK_Navigation',
 			data: {
 				class: 'undefined',
 				content: {
@@ -146,8 +135,9 @@
 
 	let layout_blocks = [
 		{
+			icon: 'Cube',
 			name: 'Navigation',
-			component: BLOCK_Navigation,
+			component: 'BLOCK_Navigation',
 			data: {
 				class: 'undefined',
 				content: {
@@ -186,13 +176,15 @@
 			}
 		},
 		{
+			icon: 'Cube',
 			name: 'Heading',
-			component: BLOCK_Heading1,
+			component: 'BLOCK_Heading1',
 			data: { class: 'text-2xl', content: 'Hello World!' }
 		},
 		{
+			icon: 'Cube',
 			name: 'Paragraph',
-			component: BLOCK_Paragraph,
+			component: 'BLOCK_Paragraph',
 			data: { class: 'text-lg', content: 'Message by Lukas :D' }
 		}
 	];
@@ -205,6 +197,20 @@
 		isDraggingOver: undefined,
 		shiftKeyHeld: false,
 		scale: 1
+	};
+
+	const saveData = async function (content: string, route: string) {
+		const formData = new FormData();
+		formData.append('content', content);
+		formData.append('route', route);
+		console.log(formData.get('content'));
+
+		const response = await fetch('/svelted/editor/save', {
+			method: 'POST',
+			body: formData
+		});
+
+		console.log(response.status, response);
 	};
 
 	function drag(e: DragEvent) {
@@ -229,6 +235,14 @@
 	};
 	const dragOver = function (e: DragEvent) {
 		e.preventDefault();
+	};
+	const displayIcon = function (iconName: string): any {
+		const name = iconName as IconName;
+
+		if (icons[name]) {
+			return icons[name];
+		}
+		return icons.Cube;
 	};
 
 	const recordAction = (action: any) => {
@@ -273,10 +287,16 @@
 	const placeComponent = function (e: DragEvent) {
 		// Your existing code...
 		if (client.currentComponent) {
+			// if (component_blocks[Number(client.currentComponent)].name == "Row") {
+			// 	debugger
+			// }
+
+			// debugger;
 			const newBlock = {
 				id: client.isDraggingOver! + 1,
+				icon: component_blocks[Number(client.currentComponent)].icon,
 				component: component_blocks[Number(client.currentComponent)].component,
-				name: structuredClone(component_blocks[Number(client.currentComponent)].name),
+				name: component_blocks[Number(client.currentComponent)].name,
 				data: structuredClone(component_blocks[Number(client.currentComponent)].data)
 			};
 
@@ -284,6 +304,7 @@
 			recordAction({ type: 'add', block: newBlock, index: client.isDraggingOver });
 			addComponentBlock(component_blocks, client.isDraggingOver!, newBlock);
 		}
+		client.isDraggingOver = undefined;
 	};
 
 	const deleteComponent = function (e: MouseEvent, id: number) {
@@ -503,7 +524,7 @@
 							class="h-full w-48 justify-between rounded-none border-none bg-slate-900 outline-none"
 						>
 							{selectedRoute}
-							<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+							<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 						</Button>
 					</Popover.Trigger>
 					<Popover.Content class="w-48 rounded-none p-0">
@@ -521,7 +542,7 @@
 											closeAndFocusTrigger(ids.trigger);
 										}}
 									>
-										<Check
+										<icons.Check
 											class={cn('mr-2 h-8 w-4', value !== route.value && 'text-transparent')}
 										/>
 										{route.label}
@@ -537,19 +558,19 @@
 					on:click={() => changeSidebarPage('left', 'add-components')}
 					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
 				>
-					<PlusSquare class="h-8 w-8 fill-slate-400" weight="fill" />
+					<icons.PlusSquare class="h-8 w-8 fill-slate-400" weight="fill" />
 				</button>
 				<button
 					on:click={undo}
 					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
 				>
-					<ArrowCounterClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
+					<icons.ArrowCounterClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
 				</button>
 				<button
 					on:click={redo}
 					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
 				>
-					<ArrowClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
+					<icons.ArrowClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
 				</button>
 			</div>
 		</div>
@@ -564,7 +585,7 @@
 						class="h-full w-48 justify-between rounded-none border-none bg-slate-900 text-white outline-none"
 					>
 						Scale {selectedScale}
-						<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</Popover.Trigger>
 				<Popover.Content class="w-48 rounded-none p-0">
@@ -583,7 +604,9 @@
 										setEditorScale(Number(currentValue));
 									}}
 								>
-									<Check class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')} />
+									<icons.Check
+										class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')}
+									/>
 									{scale.label}
 								</Command.Item>
 							{/each}
@@ -593,11 +616,11 @@
 			</Popover.Root>
 		</div>
 		<div class="flex h-full items-center gap-4">
-			<div
+			<button on:click={() => saveData(JSON.stringify(layout_blocks), "/route/any")}
 				class="flex h-full w-48 items-center justify-center rounded-none border-none bg-blue-500 text-lg font-medium text-white outline-none"
 			>
 				Save changes
-			</div>
+		</button>
 		</div>
 	</nav>
 	<div class="flex">
@@ -658,13 +681,13 @@
 									>
 										{#if component.icon}
 											<svelte:component
-												this={component.icon}
+												this={displayIcon(component.icon)}
 												class="fill-slate-900"
 												weight="fill"
 												size={24}
 											/>
 										{:else}
-											<Cube class=" fill-slate-900" weight="fill" size={24} />
+											<icons.Cube class=" fill-slate-900" weight="fill" size={24} />
 										{/if}
 										{component.name}
 									</div>
@@ -718,7 +741,13 @@
 									<div
 										class="relative flex h-10 min-h-10 w-full items-center justify-between border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
 									>
-										<Cube class=" fill-slate-900" weight="fill" size={24} />
+										<svelte:component
+											this={displayIcon(block.icon)}
+											class=" fill-slate-900"
+											weight="fill"
+											size={24}
+										/>
+										<icons.Cube class=" fill-slate-900" weight="fill" size={24} />
 										{block.name}
 									</div>
 								</li>
@@ -824,7 +853,7 @@
 						{#each layout_blocks as block, index}
 							<li class="single-component relative w-full">
 								<button id={`${index + 1}`} class="w-full">
-									<svelte:component this={block.component} bind:data={block.data} />
+									<svelte:component this={components[block.component]} bind:data={block.data} />
 								</button>
 								<div
 									class="add-content my-0 flex w-full items-center"
@@ -835,11 +864,17 @@
 									role="listitem"
 								>
 									<button
-										class="absolute left-0 right-0 z-10 flex h-1 w-full items-center justify-center bg-gradient-to-r from-transparent via-brand-500 to-transparent transition-all hover:h-3 hover:bg-brand-500"
-										class:py-2={client.isDragging}
-										class:bg-brand-500={client.isDraggingOver == index}
+										class="absolute left-0 right-0 z-10 -mt-3 flex h-0 w-full items-center justify-center bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-0 transition-all hover:h-3 hover:bg-brand-500"
+										class:p-1={client.isDragging}
+										class:bg-brand-500={(client.isDraggingOver || 0) - 1 == index}
+										class:p-2={(client.isDraggingOver || 0) - 1 == index}
+										class:opacity-100={client.isDragging}
 									>
-										<span class="absolute z-10" class:pointer-events-none={client.isDragging}>
+										<span
+											class="absolute z-10 opacity-0 transition-all"
+											class:pointer-events-none={client.isDragging}
+											class:opacity-100={client.isDragging}
+										>
 											<svg
 												xmlns="http://www.w3.org/2000/svg"
 												width="32"

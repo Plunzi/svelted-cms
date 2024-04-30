@@ -6,7 +6,6 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
-        "vite.config.ts": true,
         ".eslintignore": true,
         ".eslintrc.cjs": true,
         ".npmrc": true,
@@ -19,7 +18,6 @@
         ".prettierrc": true
     },
     "hide-files.files": [
-        "vite.config.ts",
         ".eslintignore",
         ".eslintrc.cjs",
         ".npmrc",
