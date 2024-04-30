@@ -5,7 +5,30 @@
         "**/.hg": true,
         "**/CVS": true,
         "**/.DS_Store": true,
-        "**/Thumbs.db": true
+        "**/Thumbs.db": true,
+        "vite.config.ts": true,
+        ".eslintignore": true,
+        ".eslintrc.cjs": true,
+        ".npmrc": true,
+        ".prettierignore": true,
+        "bun.lockb": true,
+        "node_modules": true,
+        ".vscode": true,
+        ".svelte-kit": true,
+        "postcss.config.cjs": true,
+        ".prettierrc": true
     },
-    "hide-files.files": []
+    "hide-files.files": [
+        "vite.config.ts",
+        ".eslintignore",
+        ".eslintrc.cjs",
+        ".npmrc",
+        ".prettierignore",
+        "bun.lockb",
+        "node_modules",
+        ".vscode",
+        ".svelte-kit",
+        "postcss.config.cjs",
+        ".prettierrc"
+    ]
 }

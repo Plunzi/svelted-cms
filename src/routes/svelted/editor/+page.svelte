@@ -1,18 +1,19 @@
 <script lang="ts">
 	// type imports
 	import type { SvelteComponent } from 'svelte';
-	
+
 	// svelte / page imports
 	import { flip } from 'svelte/animate';
 	import { onMount } from 'svelte';
 	import { tick } from 'svelte';
 	import { makeResizableDiv } from '$lib/components/svelted-core/resizeable/resizeable';
 	import {
-	AlignCenterHorizontalSimple,
+		AlignCenterHorizontalSimple,
 		ArrowClockwise,
 		ArrowCounterClockwise,
 		CaretDown,
 		Check,
+		Columns,
 		Cube,
 		Paragraph,
 		PlusSquare,
@@ -26,11 +27,11 @@
 	import { cn } from '$lib/components/svelted-core/utils.js';
 
 	// layout component imports
-	import BLOCK_Paragraph from '$lib/components/svelted-core/ui/Paragraph.svelte';
-	import BLOCK_Heading1 from '$lib/components/svelted-core/ui/Heading1.svelte';
-	import BLOCK_Navigation from '$lib/components/custom/Navigation.svelte';
-	import BLOCK_OverflowY from '$lib/components/custom/tests/OverflowYComponent.svelte'
-	import OverflowYComponent from '$lib/components/custom/tests/OverflowYComponent.svelte';
+	import BLOCK_Paragraph from '$lib/svelted/components/core/Paragraph.svelte';
+	import BLOCK_Heading1 from '$lib/svelted/components/core/Heading1.svelte';
+	import BLOCK_Navigation from '$lib/svelted/components/custom/Navigation.svelte';
+	import BLOCK_OverflowY from '$lib/svelted/components/tests/OverflowYComponent.svelte';
+	import BLOCK_Row from '$lib/svelted/components/tests/Row.svelte';
 
 	interface Client {
 		x: number;
@@ -65,7 +66,7 @@
 	let component_blocks = [
 		{
 			name: 'Testing Overflow Y',
-			component: OverflowYComponent,
+			component: BLOCK_OverflowY,
 			icon: AlignCenterHorizontalSimple,
 			data: { content: undefined, class: undefined }
 		},
@@ -74,6 +75,26 @@
 			component: BLOCK_Paragraph,
 			icon: Paragraph,
 			data: { content: undefined, class: undefined }
+		},
+		{
+			name: 'Row',
+			component: BLOCK_Row,
+			icon: Columns,
+			data: {
+				content: [
+					{
+						name: 'Paraghaph',
+						// component: BLOCK_Paragraph,
+						data: { content: 'test', class: undefined }
+					},
+					{
+						name: 'Paraghaph',
+						// component: BLOCK_Paragraph,
+						data: { content: 'other test', class: undefined }
+					}
+				],
+				class: undefined
+			}
 		},
 		{
 			name: 'Heading',
@@ -216,7 +237,7 @@
 	};
 
 	const undo = () => {
-		console.log("undo");
+		console.log('undo');
 
 		if (undoStack.length > 0) {
 			const lastAction = undoStack.pop();
@@ -269,7 +290,7 @@
 		// Record the action before deleting the component
 		recordAction({ type: 'delete', block: layout_blocks[id], index: id });
 		layout_blocks.splice(id, 1);
-		layout_blocks = layout_blocks
+		layout_blocks = layout_blocks;
 	};
 	const changeSidebarPage = function (side: string, page: string) {
 		if (side == 'left') {
@@ -518,10 +539,16 @@
 				>
 					<PlusSquare class="h-8 w-8 fill-slate-400" weight="fill" />
 				</button>
-				<button on:click={undo} class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+				<button
+					on:click={undo}
+					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
+				>
 					<ArrowCounterClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
 				</button>
-				<button on:click={redo} class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800">
+				<button
+					on:click={redo}
+					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
+				>
 					<ArrowClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
 				</button>
 			</div>
@@ -796,7 +823,7 @@
 						</li>
 						{#each layout_blocks as block, index}
 							<li class="single-component relative w-full">
-								<button id={`${index} + 1`}>
+								<button id={`${index + 1}`} class="w-full">
 									<svelte:component this={block.component} bind:data={block.data} />
 								</button>
 								<div
