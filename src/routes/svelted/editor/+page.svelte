@@ -8,6 +8,7 @@
 	import { tick } from 'svelte';
 	import { makeResizableDiv } from '$lib/components/svelted-core/resizeable/resizeable';
 	import {
+	AlignCenterHorizontalSimple,
 		ArrowClockwise,
 		ArrowCounterClockwise,
 		CaretDown,
@@ -28,6 +29,8 @@
 	import BLOCK_Paragraph from '$lib/components/svelted-core/ui/Paragraph.svelte';
 	import BLOCK_Heading1 from '$lib/components/svelted-core/ui/Heading1.svelte';
 	import BLOCK_Navigation from '$lib/components/custom/Navigation.svelte';
+	import BLOCK_OverflowY from '$lib/components/custom/tests/OverflowYComponent.svelte'
+	import OverflowYComponent from '$lib/components/custom/tests/OverflowYComponent.svelte';
 
 	interface Client {
 		x: number;
@@ -60,6 +63,12 @@
 	let redoStack: any = [];
 
 	let component_blocks = [
+		{
+			name: 'Testing Overflow Y',
+			component: OverflowYComponent,
+			icon: AlignCenterHorizontalSimple,
+			data: { content: undefined, class: undefined }
+		},
 		{
 			name: 'Paraghaph',
 			component: BLOCK_Paragraph,

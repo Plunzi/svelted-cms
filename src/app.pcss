@@ -76,3 +76,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+::-webkit-scrollbar {
+  width: 20px;
+  background: var(--background-primary);
+}
