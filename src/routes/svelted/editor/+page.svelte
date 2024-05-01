@@ -26,6 +26,8 @@
 		isDragging: boolean;
 		isDraggingOver: number | undefined;
 		currentComponent: string | undefined;
+		isSaving: boolean;
+		savingMessage: string;
 		shiftKeyHeld: boolean;
 		scale: number;
 	}
@@ -73,11 +75,13 @@
 					{
 						name: 'Paraghaph',
 						component: 'BLOCK_Heading1',
+						icon: 'Paragraph',
 						data: { content: 'test', class: undefined }
 					},
 					{
 						name: 'Paraghaph',
 						component: 'BLOCK_Paragraph',
+						icon: 'Paragraph',
 						data: { content: 'other test', class: undefined }
 					}
 				],
@@ -133,7 +137,10 @@
 		}
 	];
 
-	let layout_blocks = [
+	export let data;
+	console.log(JSON.stringify(data));
+
+	let layout_blocks = data.page.content || [
 		{
 			icon: 'Cube',
 			name: 'Navigation',
@@ -179,13 +186,13 @@
 			icon: 'Cube',
 			name: 'Heading',
 			component: 'BLOCK_Heading1',
-			data: { class: 'text-2xl', content: 'Hello World!' }
+			data: { class: 'text-2xl', content: 'Hello User!' }
 		},
 		{
 			icon: 'Cube',
 			name: 'Paragraph',
 			component: 'BLOCK_Paragraph',
-			data: { class: 'text-lg', content: 'Message by Lukas :D' }
+			data: { class: 'text-lg', content: 'Welcome to svelted visual editor!' }
 		}
 	];
 
@@ -195,22 +202,31 @@
 		currentComponent: undefined,
 		isDragging: false,
 		isDraggingOver: undefined,
+		isSaving: false,
+		savingMessage: 'Save changes',
 		shiftKeyHeld: false,
 		scale: 1
 	};
 
-	const saveData = async function (content: string, route: string) {
+	const saveData = async function (content: string, route: string, name: string) {
 		const formData = new FormData();
+		client.isSaving = true;
+		client.savingMessage = 'Loading ...';
+
 		formData.append('content', content);
 		formData.append('route', route);
-		console.log(formData.get('content'));
+		formData.append('name', name);
 
 		const response = await fetch('/svelted/editor/save', {
 			method: 'POST',
 			body: formData
 		});
 
-		console.log(response.status, response);
+		await setTimeout(() => {
+			client.isSaving = false;
+			client.savingMessage = 'Save changes';
+			console.log(response.status, response);
+		}, 500);
 	};
 
 	function drag(e: DragEvent) {
@@ -419,15 +435,18 @@
 	const pageRoutes = [
 		{
 			value: 'home',
-			label: 'Home'
+			label: 'Home',
+			route: '/'
 		},
 		{
 			value: 'about',
-			label: 'About'
+			label: 'About',
+			route: '/about'
 		},
 		{
 			value: 'blog',
-			label: 'Blog'
+			label: 'Blog',
+			route: '/blog'
 		}
 	];
 
@@ -472,9 +491,9 @@
 
 	let open = false;
 	let scaleSwitchOpen = false;
-	let value = '';
+	let value = data.page.name.toLowerCase();
 
-	$: selectedRoute = pageRoutes.find((f) => f.value === value)?.label ?? 'Select a Page...';
+	$: selectedRoute = pageRoutes.find((f) => f.value === value)?.label ?? data.page.name;
 	$: selectedScale = pageScales.find((f) => f.value === value)?.label ?? '100 %';
 
 	function closeAndFocusTrigger(triggerId: string) {
@@ -524,7 +543,7 @@
 							class="h-full w-48 justify-between rounded-none border-none bg-slate-900 outline-none"
 						>
 							{selectedRoute}
-							<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+							<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 						</Button>
 					</Popover.Trigger>
 					<Popover.Content class="w-48 rounded-none p-0">
@@ -542,7 +561,8 @@
 											closeAndFocusTrigger(ids.trigger);
 										}}
 									>
-										<icons.Check
+										<svelte:component
+											this={icons.Check}
 											class={cn('mr-2 h-8 w-4', value !== route.value && 'text-transparent')}
 										/>
 										{route.label}
@@ -558,19 +578,27 @@
 					on:click={() => changeSidebarPage('left', 'add-components')}
 					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
 				>
-					<icons.PlusSquare class="h-8 w-8 fill-slate-400" weight="fill" />
+					<svelte:component this={icons.PlusSquare} class="h-8 w-8 fill-slate-400" weight="fill" />
 				</button>
 				<button
 					on:click={undo}
 					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
 				>
-					<icons.ArrowCounterClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
+					<svelte:component
+						this={icons.ArrowCounterClockwise}
+						class="h-7 w-7 fill-slate-400"
+						weight="bold"
+					/>
 				</button>
 				<button
 					on:click={redo}
 					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
 				>
-					<icons.ArrowClockwise class="h-7 w-7 fill-slate-400" weight="bold" />
+					<svelte:component
+						this={icons.ArrowClockwise}
+						class="h-7 w-7 fill-slate-400"
+						weight="bold"
+					/>
 				</button>
 			</div>
 		</div>
@@ -585,7 +613,7 @@
 						class="h-full w-48 justify-between rounded-none border-none bg-slate-900 text-white outline-none"
 					>
 						Scale {selectedScale}
-						<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</Popover.Trigger>
 				<Popover.Content class="w-48 rounded-none p-0">
@@ -604,7 +632,8 @@
 										setEditorScale(Number(currentValue));
 									}}
 								>
-									<icons.Check
+									<svelte:component
+										this={icons.Check}
 										class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')}
 									/>
 									{scale.label}
@@ -616,11 +645,14 @@
 			</Popover.Root>
 		</div>
 		<div class="flex h-full items-center gap-4">
-			<button on:click={() => saveData(JSON.stringify(layout_blocks), "/route/any")}
+			<button
+				on:click={() => saveData(JSON.stringify(layout_blocks), '/route/any/', selectedRoute)}
 				class="flex h-full w-48 items-center justify-center rounded-none border-none bg-blue-500 text-lg font-medium text-white outline-none"
+				class:bg-slate-700={client.isSaving}
+				class:text-slate-300={client.isSaving}
 			>
-				Save changes
-		</button>
+				{client.savingMessage}
+			</button>
 		</div>
 	</nav>
 	<div class="flex">
@@ -687,7 +719,12 @@
 												size={24}
 											/>
 										{:else}
-											<icons.Cube class=" fill-slate-900" weight="fill" size={24} />
+											<svelte:component
+												this={icons.Cube}
+												class=" fill-slate-900"
+												weight="fill"
+												size={24}
+											/>
 										{/if}
 										{component.name}
 									</div>
@@ -739,7 +776,7 @@
 									id={`${index}`}
 								>
 									<div
-										class="relative flex h-10 min-h-10 w-full items-center justify-between border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+										class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
 									>
 										<svelte:component
 											this={displayIcon(block.icon)}
@@ -747,9 +784,43 @@
 											weight="fill"
 											size={24}
 										/>
-										<icons.Cube class=" fill-slate-900" weight="fill" size={24} />
+										<svelte:component
+											this={icons.Cube}
+											class=" fill-slate-900"
+											weight="fill"
+											size={24}
+										/>
 										{block.name}
 									</div>
+									{#if Array.isArray(block.data.content)}
+										{#each block.data.content as subComponent}
+											<li
+												class="component-block block w-full border-l-2 border-l-black pl-4"
+												id={`${index}`}
+											>
+												<div
+													class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+												>
+													{#if subComponent.icon}
+														<svelte:component
+															this={displayIcon(subComponent.icon)}
+															class=" fill-slate-900"
+															weight="fill"
+															size={24}
+														/>
+													{:else}
+														<svelte:component
+															this={icons.Cube}
+															class=" fill-slate-900"
+															weight="fill"
+															size={24}
+														/>
+													{/if}
+													{subComponent.name}
+												</div>
+											</li>
+										{/each}
+									{/if}
 								</li>
 							{/each}
 						</ul>
@@ -956,19 +1027,25 @@
 			</div>
 		</section>
 		<section
-			class="h-full-editor max-h-editor min-w-[20rem] max-w-[20rem] overflow-auto border-l bg-white px-4"
+			class="h-full-editor max-h-editor min-w-[20rem] max-w-[20rem] overflow-auto border-l bg-white px-4 pt-4"
 		>
+			<h1 class="text-lg font-medium">Attribute editor:</h1>
 			<ul class="p-2">
 				<li>
 					<div>
-						Text:
 						<input bind:value={layout_blocks[0].data.content} />
 					</div>
 				</li>
-				<li>3</li>
-				<li>4</li>
-				<li>6</li>
 			</ul>
+			<hr class="my-2" />
+			<h1 class="text-lg font-medium">Routes:</h1>
+			<div class="w-full overflow-auto">
+				<code class="">
+					{JSON.stringify(data.routes)}
+				</code>
+			</div>
+			<hr class="my-2" />
+			<h1 class="text-lg font-medium">Debug:</h1>
 			<div class="w-full overflow-auto">
 				<code class="">
 					{JSON.stringify(layout_blocks)}
