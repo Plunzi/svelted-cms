@@ -29,11 +29,16 @@ async function getAllRoutes(directory: string, relativePath = '/') {
 }
 
 export const load: PageServerLoad = async () => {
-    let savedData = await fs.promises.readFile('src/lib/svelted/data/page.data.json', { encoding: 'utf8' });
+    // this route will be dynamically picked! for example "/route/any"
+    let savedData = await fs.promises.readFile('src/lib/svelted/data/route/any/page.data.json', { encoding: 'utf8' });
     const data = await JSON.parse(savedData);
 
     const routes = await getAllRoutes('src/lib/svelted/data/');
-    console.log(routes);
+    
+    // console.log("All routes:");
+    // console.log(routes);
+    // console.log("Saved data:");
+    // console.log(data);
 
     return {
         routes: routes,

@@ -61,6 +61,7 @@ export async function POST({ request }): Promise<Response> {
     const saveLocation = `src/lib/svelted/data${route}page.data.json`;
 
     console.log(saveLocation);
+    console.log(newData);
 
     const dirname = path.dirname(saveLocation);
     await fs.promises.mkdir(dirname, { recursive: true });

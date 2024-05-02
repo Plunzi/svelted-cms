@@ -138,7 +138,6 @@
 	];
 
 	export let data;
-	console.log(JSON.stringify(data));
 
 	let layout_blocks = data.page.content || [
 		{
@@ -769,60 +768,65 @@
 							</button>
 						</div>
 						<ul class="relative flex flex-col gap-2 px-4">
-							{#each layout_blocks as block, index (block)}
-								<li
-									class="component-block block w-full"
-									animate:flip={{ duration: 300 }}
-									id={`${index}`}
-								>
-									<div
-										class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+							{#if layout_blocks}
+								{#each layout_blocks as block, index (block)}
+									<li
+										class="component-block block w-full"
+										animate:flip={{ duration: 300 }}
+										id={`${index}`}
 									>
-										<svelte:component
-											this={displayIcon(block.icon)}
-											class=" fill-slate-900"
-											weight="fill"
-											size={24}
-										/>
-										<svelte:component
-											this={icons.Cube}
-											class=" fill-slate-900"
-											weight="fill"
-											size={24}
-										/>
-										{block.name}
-									</div>
-									{#if Array.isArray(block.data.content)}
-										{#each block.data.content as subComponent}
-											<li
-												class="component-block block w-full border-l-2 border-l-black pl-4"
-												id={`${index}`}
-											>
-												<div
-													class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+										<div
+											class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+										>
+											{#if block.icon}
+												<svelte:component
+													this={displayIcon(block.icon)}
+													class=" fill-slate-900"
+													weight="fill"
+													size={24}
+												/>
+											{:else}
+												<svelte:component
+													this={icons.Cube}
+													class=" fill-slate-900"
+													weight="fill"
+													size={24}
+												/>
+											{/if}
+											{block.name}
+										</div>
+										{#if Array.isArray(block.data.content)}
+											{#each block.data.content as subComponent}
+												<li
+													class="component-block block w-full border-l-2 border-l-black pl-4"
+													id={`${index}`}
 												>
-													{#if subComponent.icon}
-														<svelte:component
-															this={displayIcon(subComponent.icon)}
-															class=" fill-slate-900"
-															weight="fill"
-															size={24}
-														/>
-													{:else}
-														<svelte:component
-															this={icons.Cube}
-															class=" fill-slate-900"
-															weight="fill"
-															size={24}
-														/>
-													{/if}
-													{subComponent.name}
-												</div>
-											</li>
-										{/each}
-									{/if}
-								</li>
-							{/each}
+													<div
+														class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+													>
+														{#if subComponent.icon}
+															<svelte:component
+																this={displayIcon(subComponent.icon)}
+																class=" fill-slate-900"
+																weight="fill"
+																size={24}
+															/>
+														{:else}
+															<svelte:component
+																this={icons.Cube}
+																class=" fill-slate-900"
+																weight="fill"
+																size={24}
+															/>
+														{/if}
+														{subComponent.name}
+													</div>
+												</li>
+											{/each}
+										{/if}
+									</li>
+								{/each}
+							{/if}
 						</ul>
 						<div class="px-4">
 							<p class="mt-4 text-sm">
@@ -1030,13 +1034,17 @@
 			class="h-full-editor max-h-editor min-w-[20rem] max-w-[20rem] overflow-auto border-l bg-white px-4 pt-4"
 		>
 			<h1 class="text-lg font-medium">Attribute editor:</h1>
-			<ul class="p-2">
-				<li>
-					<div>
-						<input bind:value={layout_blocks[0].data.content} />
-					</div>
-				</li>
-			</ul>
+			{#if layout_blocks[0]}
+				<ul class="p-2">
+					<li>	
+						<div>
+							<input bind:value={layout_blocks[0].data.content} />
+						</div>
+					</li>
+				</ul>
+			{:else}
+				<p>No elements exist :O</p>
+			{/if}
 			<hr class="my-2" />
 			<h1 class="text-lg font-medium">Routes:</h1>
 			<div class="w-full overflow-auto">
