@@ -1,20 +1,72 @@
 <script lang="ts">
-  import App from '$lib/components/App.svelte'
+	// type imports
+	import type { SvelteComponent } from 'svelte';
+
+	// layout component imports
+	import components from '$lib/svelted/components';
+	export let data;
+
+	let layout_blocks = data.page.content || [
+		{
+			icon: 'Cube',
+			name: 'Navigation',
+			component: 'BLOCK_Navigation',
+			data: {
+				class: 'undefined',
+				content: {
+					title: 'Hello Svelted User!',
+					navigation_links: [
+						{
+							text: 'Home',
+							link: '/'
+						},
+						{
+							text: 'About',
+							link: '/about'
+						},
+						{
+							text: 'Blog',
+							link: '/blog'
+						},
+						{
+							text: 'Contact',
+							link: '/contact'
+						}
+					],
+					primary_buttons: [
+						{
+							text: 'Get Started',
+							link: '/get-startet'
+						}
+					],
+					secondary_buttons: [
+						{
+							text: 'Log In',
+							link: '/login'
+						}
+					]
+				}
+			}
+		},
+		{
+			icon: 'Cube',
+			name: 'Heading',
+			component: 'BLOCK_Heading1',
+			data: { class: 'text-2xl', content: 'Hello User!' }
+		},
+		{
+			icon: 'Cube',
+			name: 'Paragraph',
+			component: 'BLOCK_Paragraph',
+			data: { class: 'text-lg', content: 'Welcome to svelted visual editor!' }
+		}
+	];
 </script>
 
-<div>
-  <App />
-</div>
-
-<style>
-  :global(body) {
-    margin: 0;
-  }
-
-  div {
-    width: 100vw;
-    height: 100vh;
-    background: rgb(13, 19, 32);
-    background: linear-gradient(180deg, rgba(13, 19, 32, 1) 0%, rgba(8, 12, 21, 1) 100%);
-  }
-</style>
+<main>
+	{#each layout_blocks as block, index}
+		<div class="contents">
+			<svelte:component this={components[block.component]} data={block.data} />
+        </div>
+	{/each}
+</main>

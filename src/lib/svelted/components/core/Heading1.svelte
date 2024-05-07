@@ -5,4 +5,4 @@
     }
     export let data: ComponentData;
 </script>
-<h1 contenteditable bind:textContent={data.content} class={`${data.class || "text-black text-2xl"} focus:outline-none`}>{data.content}</h1>
+<h1 contenteditable bind:textContent={data.content} class={`${data.class || "text-black text-2xl"} text-left focus:outline-none`}>{data.content}</h1>

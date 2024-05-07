@@ -33,19 +33,10 @@ export const load: PageServerLoad = async () => {
     let savedData = await fs.promises.readFile('src/lib/svelted/layouts/route/any/page.data.json', { encoding: 'utf8' });
     const data = await JSON.parse(savedData);
 
-    const layouts = await getAllLayouts('src/lib/svelted/layouts/');
-    
-    // console.log("All layouts:");
-    // console.log(layouts);
-    // console.log("Saved data:");
-    // console.log(data);
-
     return {
-        layouts: layouts,
         page: {
             name: data.description.name,
             route: data.description.route,
-            // updated: data.descripton.updated,
             content: data.content
         }
     };

@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import type { RequestHandler } from './$types';
+
 function hasRelativeSymbols(url: string) {
     var pattern = /(\.\.\/|\.\.\\|\.\/|\.\\)/;
     return pattern.test(url);
@@ -15,7 +17,7 @@ function isValidURL(url: string) {
     }
 }
 
-export async function POST({ request }): Promise<Response> {
+export const POST: RequestHandler = async ({ request }) => {
     //
     // get client data
     //
@@ -58,7 +60,7 @@ export async function POST({ request }): Promise<Response> {
     //
 
     const newData = `{"description": { "name": "${name || undefined}","route": "${route || undefined}","updated": ${updated} },"content": ${content}}`
-    const saveLocation = `src/lib/svelted/data${route}page.data.json`;
+    const saveLocation = `src/lib/svelted/layouts${route}page.data.json`;
 
     console.log(saveLocation);
     console.log(newData);
