@@ -1,21 +1,105 @@
 <script lang="ts">
-	import {
-	AddressBookTabs,
-		Blueprint,
-		CaretDown,
-		HardDrive,
-		House,
-		Images,
-		Layout,
-		Plus,
-		PlusSquare,
-		PuzzlePiece,
-		ShieldStar,
-		SquareHalf,
+	import * as Avatar from '$lib/components/svelted-core/ui/avatar/index.js';
+	import Navigation from '$lib/components/svelted-core/ui/Navigation.svelte';
+	import { CaretDown, PuzzlePiece, UserList } from 'phosphor-svelte';
+	import { onMount } from 'svelte';
 
-		UserCircle
+	export let data;
+	const ressources = data.ressources;
 
-	} from 'phosphor-svelte';
+	// console.log(os.hostname, os.cpus, os.platform, os.homedir, os.version, os.uptime);
+
+	let currentTime = new Date();
+
+	let roles = [
+		{
+			name: 'Administrators',
+			users: [
+				{
+					name: 'Plunzi',
+					img: '',
+					status: 'online'
+				}
+			]
+		},
+		{
+			name: 'Developer',
+			users: [
+				{
+					name: 'Matl044',
+					img: '',
+					status: 'busy'
+				}
+			]
+		},
+		{
+			name: 'Users',
+			users: [
+				{
+					name: 'Anja',
+					img: '',
+					status: 'online'
+				},
+				{
+					name: 'Sebi',
+					img: '',
+					status: 'away'
+				}
+			]
+		}
+	];
+
+	interface Client {
+		sidebar: boolean;
+	}
+
+	type TaskList = {
+		todo: string[];
+		done: string[];
+	};
+
+	let tasks: TaskList = {
+		todo: [],
+		done: []
+	};
+
+	function enter(input: any | null) {
+		if (input == null) {
+			return;
+		}
+
+		const addToDo = add(input.value);
+		if (addToDo) {
+			input.value = '';
+		} else {
+			console.log('This ToDo already exists');
+		}
+	}
+
+	function add(todo: string): Boolean {
+		if (!tasks.todo.includes(todo) || !tasks.done.includes(todo)) {
+			tasks.todo = [todo, ...tasks.todo];
+			return true;
+		}
+		return false;
+	}
+	function remove(todo: string) {
+		const index = tasks.todo.indexOf(todo);
+		if (index !== -1) {
+			tasks.todo.splice(index, 1);
+			tasks.todo = [...tasks.todo];
+		}
+	}
+	function check(todo: string) {
+		remove(todo);
+		tasks.done = [...tasks.done, todo];
+	}
+	function clear() {
+		tasks.done = [];
+	}
+	const hoverOver = function (element: string | undefined) {
+		client.hoverOver = element;
+	};
 
 	interface Client {
 		hoverOver: undefined | string;
@@ -27,242 +111,137 @@
 		sidebar: false
 	};
 
-	const hoverOver = function (element: string | undefined) {
-		client.hoverOver = element;
-	};
-
-    const toggleSection = function (element: string) {
-        const target = document.getElementById(element);
-        const button = document.getElementById(element + "-btn")
-
-        if (target!.classList.contains("hide")) {
-            target!.classList.remove("hide");
-            button!.style.transform = "rotate(0deg)";
-        } else {
-            target!.classList.add("hide");
-            button!.style.transform = "rotate(90deg)";
-        }
-    }
+	onMount(async () => {
+		setInterval(function () {
+			currentTime = new Date();
+			console.log('refreshed');
+		}, 1 * 1000);
+	});
 </script>
 
-<main class="h-full max-h-screen min-h-screen w-full bg-neutral-900">
-	<nav class="flex h-16 items-center justify-between border-b border-neutral-800 bg-neutral-950">
-		<div class="flex h-full items-center gap-4">
-			<a href="/svelted/dashboard" class="grid h-full w-16 items-center hover:bg-[#0a2620]">
-				<img
-					class="m-auto h-10 w-10 opacity-80 transition-all"
-					src="/static-svelted/svelted-color.svg"
-					alt="Svelted Logo - Back"
-				/>
-			</a>
-			<div class="flex flex-col">
-				<h1 class="text-gradient text-lg font-bold text-neutral-200">Svelted CMS</h1>
-				<span class="-mt-2 text-sm font-medium text-neutral-500">made by Plunzi</span>
+<Navigation>
+	<div class="flex">
+		<div class="flex w-full flex-col justify-between p-4">
+			<div class="mt-8">
+				<p class="clock mx-auto text-center text-[8rem] font-medium text-white">
+					{`${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`}
+				</p>
+				<div class="-mt-4 flex items-center justify-between">
+					<div class="mx-auto">
+						<h1 class="mx-auto text-center text-3xl font-medium text-neutral-300">
+							Wellcome Carl,
+						</h1>
+						<p class="mx-auto text-center font-light text-neutral-300">to your dashboard!</p>
+					</div>
+				</div>
+			</div>
+
+			<div
+				class="absolute right-64 top-0 mr-2 mt-2 flex h-72 w-48 rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
+			>
+				ToDo
+			</div>
+
+			<div class="flex w-full gap-2 rounded-md border border-neutral-800 bg-neutral-950 p-4">
+				<div
+					class="h-64 w-[50%] rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
+				>
+					OVERVIEW
+					<p>1 / 1 published Layouts</p>
+					<p>1 Page</p>
+					<p>4 Users</p>
+				</div>
+				<div
+					class="h-64 w-[50%] rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
+				>
+					ACTIVITY
+					{#if Number(ressources.cpuUsage) == 0}
+						<p>CPU: {'< 0.01'}%</p>
+					{:else}
+						<p>CPU: {ressources.cpuUsage}%</p>
+					{/if}
+					<p>
+						Memory: <span class="text-[#2da05a]">{ressources.usedMemory}</span> / {ressources.totalMemory}
+					</p>
+				</div>
+				<div
+					class="h-64 w-[50%] rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
+				>
+					Announcements and News
+                    <br>--text: <span class="text-[#e3f7ea]">#e3f7ea</span>;
+                    <br>--background: <span class="text-[#020804]">#020804</span>;
+                    <br>--primary: <span class="text-[#36bf68]">#36bf68</span>;
+					<br>--secondary: <span class="text-[#1e6b61]">#1e6b61</span>;
+                    <br>--accent: <span class="text-[#298e8b]">#298e8b</span>;
+				</div>
 			</div>
 		</div>
-	</nav>
-	<div class="flex">
-		<nav
-			class="h-full-editor {client.sidebar
-				? 'open w-[18rem] max-w-[18rem]'
-				: 'closed'} flex w-16 flex-col justify-between overflow-hidden border-r border-neutral-800 bg-neutral-950 p-2 transition-all"
+		<div
+			class="h-full-editor open flex min-w-64 max-w-64 flex-col justify-between overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
 		>
-			<div class="flex flex-col gap-3">
-				<button class="section-description -mb-2 flex justify-between transition-all" on:click={() => toggleSection("essentials")}>
-					<h2 class="text-neutral-500">Essentials</h2>
-					<CaretDown id="essentials-btn" class="my-auto fill-neutral-500" />
-				</button>
-
-				<div id="essentials" class="transition-all max-h-48">
-					<button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('overview')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'overview'}
-							<House class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-							<p class="text-white">Overview</p>
-						{:else}
-							<House class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Overview</p>
-						{/if}
+			<div id="roles" class="flex flex-col gap-3">
+				{#each roles as role}
+					<button class="section-description -mb-2 flex w-full justify-between transition-all">
+						<h2 class="text-neutral-500">{role.name}</h2>
+						<CaretDown id="extensions-btn" class="my-auto fill-neutral-500" />
 					</button>
-					<button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('layouts')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'layouts'}
-							<Blueprint class="mx-1 my-auto min-h-6 min-w-6  fill-neutral-200" weight="fill" />
-							<p class="text-neutral-300">Layouts</p>
-						{:else}
-							<Blueprint class="mx-1 my-auto min-h-6 min-w-6  fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Layouts</p>
-						{/if}
-					</button>
-					<button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('pages')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'pages'}
-							<Layout class="mx-1 my-auto min-h-6 min-w-6  fill-neutral-200" weight="fill" />
-							<p class="text-neutral-300">Pages</p>
-						{:else}
-							<Layout class="mx-1 my-auto min-h-6 min-w-6  fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Pages</p>
-						{/if}
-					</button>
-				</div>
-
-                <button class="section-description -mb-2 flex justify-between transition-all" on:click={() => toggleSection("content")}>
-					<h2 class="text-neutral-500">Content</h2>
-					<CaretDown id="content-btn" class="my-auto fill-neutral-500" />
-				</button>
-
-                <div id="content" class="transition-all max-h-48">
-					<button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('media')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'media'}
-							<Images class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-							<p class="text-white">Media & Files</p>
-						{:else}
-							<Images class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Media & Files</p>
-						{/if}
-					</button>
-                    <button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('collections')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'collections'}
-							<HardDrive class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-							<p class="text-white">Collections</p>
-						{:else}
-							<HardDrive class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Collections</p>
-						{/if}
-					</button>
-				</div>
-
-                <button class="section-description -mb-2 flex justify-between transition-all" on:click={() => toggleSection("accounts")}>
-					<h2 class="text-neutral-500">User & Roles</h2>
-					<CaretDown id="accounts-btn" class="my-auto fill-neutral-500" />
-				</button>
-
-                <div id="accounts" class="transition-all max-h-48">
-					<button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('users')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'users'}
-							<AddressBookTabs class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-							<p class="text-white">Users</p>
-						{:else}
-							<AddressBookTabs class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Users</p>
-						{/if}
-					</button>
-                    <button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('roles')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'roles'}
-							<ShieldStar class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-							<p class="text-white">Roles</p>
-						{:else}
-							<ShieldStar class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Roles</p>
-						{/if}
-					</button>
-				</div>
-
-				<button class="section-description -mb-2 flex justify-between transition-all" on:click={() => toggleSection("extensions")}>
-					<h2 class="text-neutral-500">Extensions</h2>
-					<CaretDown id="extensions-btn" class="my-auto fill-neutral-500" />
-				</button>
-
-				<div id="extensions" class="transition-all max-h-48">
-					<button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('extensions')}
-						on:mouseleave={() => hoverOver(undefined)}
-					>
-						{#if client.hoverOver == 'extensions'}
-							<PuzzlePiece class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-							<p class="text-white">Extensions</p>
-						{:else}
-							<PuzzlePiece class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Extensions</p>
-						{/if}
-					</button>
-				</div>
+					<div id="admins" class="max-h-48 transition-all">
+						{#each role.users as user}
+							<button
+								class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 pl-3 hover:bg-[#278c4c] hover:outline focus:outline-none"
+							>
+								{#if user.status == 'online'}
+									<div
+										class="absolute h-6 w-6 rounded-full outline outline-[1.5px] outline-offset-2 outline-green-500"
+									/>
+								{:else if user.status == 'away'}
+									<div
+										class="absolute h-6 w-6 rounded-full outline outline-[1.5px] outline-offset-2 outline-yellow-500"
+									/>
+								{:else}
+									<div
+										class="absolute h-6 w-6 rounded-full outline outline-[1.5px] outline-offset-2 outline-red-500"
+									/>
+								{/if}
+								<Avatar.Root class="h-6 w-6">
+									<Avatar.Image src="https://github.com/shadcn.png" alt="@shadcn" />
+									<Avatar.Fallback>CN</Avatar.Fallback>
+								</Avatar.Root>
+								<p class="text-white">{user.name}</p>
+							</button>
+						{/each}
+					</div>
+				{/each}
 			</div>
-
 			<div>
-				<div>
-					<button
-						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline"
-						on:mouseenter={() => hoverOver('sidebar')}
-						on:mouseleave={() => hoverOver(undefined)}
-						on:click={() => (client.sidebar = !client.sidebar)}
-					>
-						{#if client.hoverOver == 'sidebar'}
-							<SquareHalf class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-							<p class="text-white">Close Sidebar</p>
-						{:else}
-							<SquareHalf class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-							<p class="text-neutral-500">Close Sidebar</p>
-						{/if}
-					</button>
-				</div>
+				<button
+					class="flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
+					on:mouseenter={() => hoverOver('users')}
+					on:mouseleave={() => hoverOver(undefined)}
+					on:click={() => (client.sidebar = !client.sidebar)}
+				>
+					{#if client.hoverOver == 'users'}
+						<UserList class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
+						<p class="text-white">Manage Users</p>
+					{:else}
+						<UserList class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
+						<p class="text-neutral-500">Manage Users</p>
+					{/if}
+				</button>
 			</div>
-		</nav>
-		<section
-			class="max-h-editor relative flex-1 overflow-y-auto bg-[#0e0f13] bg-[radial-gradient(#17181c_1px,transparent_1px)] [background-size:16px_16px]"
-		>
-            <!-- <h1 class="text-2xl font-black text-ghost text-red-500">Styleguide</h1>
-			<div class="max-w-editor relative flex" id="editor-wrapper">
-				<p class="text-white">
-					--text: #e3f7ea;<br />
-					--background: #020804;<br />
-					--primary: #36bf68;<br />
-					--secondary: #1e6b61;<br />
-					--accent: #298e8b;
-				</p>
-			</div> -->
-		</section>
+		</div>
 	</div>
-</main>
+</Navigation>
 
 <style>
-	:is(.closed .section-description, .hide) {
-		max-height: 0;
-        opacity: 0;
-		overflow: hidden;
-	}
-
-	:is(.open .section-description) {
-		max-height: 2rem;
-        opacity: 1;
-	}
-
-	.text-gradient {
-		background: linear-gradient(120deg, #36bf68, #1e6b61);
+	.clock {
+		text-shadow: 0px 0px 40px black;
+		background: linear-gradient(black, white);
+		-webkit-text-stroke-width: 1px;
+		-webkit-text-stroke-color: gray;
 		background-clip: text;
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
-	}
-
-	.text-ghost {
-		-webkit-text-stroke-width: 1px;
-		-webkit-text-stroke-color: #e3f7ea;
 		color: transparent;
 	}
 
@@ -270,22 +249,20 @@
 		min-height: calc(100vh - 4rem);
 	}
 
-	:is(#dragged .add-content) {
-		display: none;
+	#roles button:first-of-type {
+		border-top-right-radius: 0.25rem;
+		border-top-left-radius: 0.25rem;
 	}
 
-	.max-w-editor {
-		position: relative;
-		max-width: calc(100vw - 40rem - 2rem);
+	#roles button:last-of-type {
+		border-bottom-right-radius: 0.25rem;
+		border-bottom-left-radius: 0.25rem;
 	}
 
-	.max-h-editor {
-		max-height: calc(100vh - 4rem);
-	}
-
-	.transition-width {
-		transition:
-			min-width ease-out 0.25s,
-			max-width ease-out 0.25s;
+	#roles button:focus-within {
+		fill: white !important;
+		outline: solid 1.5px #36bf68;
+		background: #0a2620;
+		outline-offset: -1.5px;
 	}
 </style>
