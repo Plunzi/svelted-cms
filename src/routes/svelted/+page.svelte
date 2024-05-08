@@ -242,7 +242,7 @@
 		max-height: 0.125rem;
 		border-radius: 0.5rem !important;
 	}
-
+	
 	.btn:focus-within {
 		outline: solid 1.5px #36bf68;
 		background: #0a2620;

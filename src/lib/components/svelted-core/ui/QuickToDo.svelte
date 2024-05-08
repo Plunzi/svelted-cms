@@ -110,11 +110,11 @@
 <style>
 	.overflow-auto::-webkit-scrollbar {
 		width: 2px;
-		background: rgb(158, 158, 158);
+		background: transparent;
 	}
 
 	.overflow-auto::-webkit-scrollbar-thumb {
 		width: 2px;
-		background: transparent;
+		background: #36bf68;
 	}
 </style>

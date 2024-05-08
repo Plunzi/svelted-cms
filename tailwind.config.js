@@ -20,6 +20,14 @@ const config = {
 					500: '#00e8be',
 					800: '#00342a',
 				},
+				'svelted-primary': {
+					500: '#36bf68',
+					700: '#278c4c',
+				},
+				'svelted-gray': {
+					700: '#161616',
+					900: '#0a0a0a',
+				},
 				border: "hsl(var(--border) / <alpha-value>)",
 				input: "hsl(var(--input) / <alpha-value>)",
 				ring: "hsl(var(--ring) / <alpha-value>)",

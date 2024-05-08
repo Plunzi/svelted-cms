@@ -518,20 +518,27 @@
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
 <main class="h-full max-h-screen min-h-screen w-full bg-neutral-900">
-	<nav class="flex h-16 items-center justify-between border-b bg-slate-950">
-		<div class="flex h-full items-center gap-4">
-			<a href="/svelted/dashboard" class="grid h-full w-16 items-center hover:bg-slate-800">
+	<nav
+		class="flex h-16 items-center justify-between border-b border-neutral-800 bg-svelted-gray-900"
+	>
+		<div class="flex h-full items-center gap-3">
+			<a
+				href="/svelted/dashboard"
+				class="grid h-full w-16 items-center hover:bg-[#0a2620] focus:bg-[#0a2620] focus:outline-none"
+			>
 				<img
 					class="m-auto h-10 w-10 opacity-80 transition-all"
-					src="/static-svelted/svelted-white.svg"
+					src="/static-svelted/svelted-color.svg"
 					alt="Svelted Logo - Back"
 				/>
 			</a>
 			<div class="flex flex-col">
-				<h1 class="text-lg font-bold text-neutral-200">Svelted CMS</h1>
+				<h1 class="text-gradient text-lg font-bold text-neutral-200">Svelted CMS</h1>
 				<span class="-mt-2 text-sm font-medium text-neutral-500">made by Plunzi</span>
 			</div>
-			<div class="flex h-full w-48 items-center border-x border-slate-600 text-white">
+			<div class="text-neutral-500">/</div>
+			<div class="text-neutral-500">Editor</div>
+			<div class="flex h-full w-48 items-center text-white">
 				<Popover.Root bind:open let:ids>
 					<Popover.Trigger asChild let:builder>
 						<Button
@@ -539,21 +546,25 @@
 							variant="outline"
 							role="combobox"
 							aria-expanded={open}
-							class="h-full w-48 justify-between rounded-none border-none bg-slate-900 outline-none"
+							class="h-10 w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
 						>
 							{selectedRoute}
 							<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 						</Button>
 					</Popover.Trigger>
-					<Popover.Content class="w-48 rounded-none p-0">
-						<Command.Root>
-							<Command.Input placeholder="Search route..." class="h-12" />
-							<Command.Empty>
+					<Popover.Content class="w-48 border-none bg-transparent p-0">
+						<Command.Root class="bg-svelted-gray-700 text-neutral-400">
+							<Command.Input
+								placeholder="Search route..."
+								class="h-12 rounded-none bg-svelted-gray-700 text-white"
+							/>
+							<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
 								<button>Create new route</button>
 							</Command.Empty>
 							<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
 								{#each pageRoutes as route}
 									<Command.Item
+										class="rounded-none bg-svelted-gray-700 text-neutral-500"
 										value={route.value}
 										onSelect={(currentValue) => {
 											value = currentValue;
@@ -575,27 +586,31 @@
 			<div class="flex">
 				<button
 					on:click={() => changeSidebarPage('left', 'add-components')}
-					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
+					class="toolbar-item my-auto flex h-10 w-10 items-center justify-center rounded-l-sm bg-svelted-gray-700 text-neutral-600 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 				>
-					<svelte:component this={icons.PlusSquare} class="h-8 w-8 fill-slate-400" weight="fill" />
+					<svelte:component
+						this={icons.PlusSquare}
+						class="h-7 w-7 fill-[currentcolor]"
+						weight="fill"
+					/>
 				</button>
 				<button
 					on:click={undo}
-					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
+					class="toolbar-item my-auto flex h-10 w-10 items-center justify-center bg-svelted-gray-700 text-neutral-600 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 				>
 					<svelte:component
 						this={icons.ArrowCounterClockwise}
-						class="h-7 w-7 fill-slate-400"
+						class="h-6 w-6 fill-[currentcolor]"
 						weight="bold"
 					/>
 				</button>
 				<button
 					on:click={redo}
-					class="toolbar-item flex h-12 w-12 items-center justify-center hover:bg-slate-800"
+					class="toolbar-item my-auto flex h-10 w-10 items-center justify-center rounded-r-sm bg-svelted-gray-700 text-neutral-600 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 				>
 					<svelte:component
 						this={icons.ArrowClockwise}
-						class="h-7 w-7 fill-slate-400"
+						class="h-6 w-6 fill-[currentcolor]"
 						weight="bold"
 					/>
 				</button>
@@ -609,21 +624,25 @@
 						variant="outline"
 						role="combobox"
 						aria-expanded={scaleSwitchOpen}
-						class="h-full w-48 justify-between rounded-none border-none bg-slate-900 text-white outline-none"
+						class="my-auto h-10 w-48 justify-between !rounded-md rounded-none border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
 					>
 						Scale {selectedScale}
 						<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</Popover.Trigger>
-				<Popover.Content class="w-48 rounded-none p-0">
-					<Command.Root>
-						<Command.Input placeholder="Search scale..." class="h-12" />
-						<Command.Empty>
+				<Popover.Content class="w-48 border-none bg-transparent p-0">
+					<Command.Root class="bg-svelted-gray-700 text-neutral-400">
+						<Command.Input
+							placeholder="Search route..."
+							class="h-12 rounded-none bg-svelted-gray-700 text-white"
+						/>
+						<Command.Empty class="bg-svelted-gray-700 text-neutral-500">
 							<button>Scale not found</button>
 						</Command.Empty>
 						<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
 							{#each pageScales as scale}
 								<Command.Item
+									class="rounded-none bg-svelted-gray-700 text-neutral-500"
 									value={scale.value}
 									onSelect={(currentValue) => {
 										value = currentValue;
@@ -643,10 +662,10 @@
 				</Popover.Content>
 			</Popover.Root>
 		</div>
-		<div class="flex h-full items-center gap-4">
+		<div class="flex h-full items-center gap-3">
 			<button
 				on:click={() => saveData(JSON.stringify(layout_blocks), '/route/any/', selectedRoute)}
-				class="flex h-full w-48 items-center justify-center rounded-none border-none bg-blue-500 text-lg font-medium text-white outline-none"
+				class="font-regular mr-3 flex h-10 w-36 items-center justify-center rounded-md border border-svelted-primary-500 bg-[#0a2620] text-lg text-svelted-primary-500 outline-none transition-all hover:bg-svelted-primary-500 hover:font-medium hover:text-white focus:font-medium focus:bg-svelted-primary-500 focus:text-white"
 				class:bg-slate-700={client.isSaving}
 				class:text-slate-300={client.isSaving}
 			>
@@ -656,10 +675,10 @@
 	</nav>
 	<div class="flex">
 		<nav
-			class="h-full-editor transition-width flex flex-col overflow-hidden border-r bg-white {sidebar
+			class="h-full-editor transition-width flex flex-col overflow-hidden border-r border-neutral-800 bg-svelted-gray-900 {sidebar
 				.left.expanded
 				? 'min-w-[18rem] max-w-[18rem]'
-				: 'min-w-16 max-w-16 gap-3 p-2 pt-4'}"
+				: 'min-w-16 max-w-16 gap-3 p-2 pt-2'}"
 		>
 			{#if sidebar.left.expanded}
 				{#if sidebar.left.page == 'add-components'}
@@ -667,36 +686,28 @@
 						<div>
 							<button
 								on:click={() => (sidebar.left.expanded = false)}
-								class="mb-4 flex w-full items-center gap-2 bg-neutral-100 px-4 py-4 hover:bg-neutral-200"
+								class="flex w-full items-center p-2"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="16"
-									height="16"
-									fill="currentColor"
-									viewBox="0 0 16 16"
-									style="cursor: default;"
-									class="rotate-180"
+								<div
+									class="flex w-full items-center gap-2 rounded-sm bg-svelted-gray-700 px-4 py-4 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 								>
-									<path
-										fill-rule="evenodd"
-										d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"
-									/>
-								</svg>
-								<h1>Overview</h1>
+									<svelte:component this={icons.ArrowLeft} class="h-5 w-5 fill-[currentcolor]"
+									></svelte:component>
+									<h1>Overview</h1>
+								</div>
 							</button>
 						</div>
-						<div class="mb-4 flex w-full border-b border-b-slate-200">
+						<div class="mb-4 flex w-full px-2 text-neutral-500">
 							<button
-								class="w-full border-b-4 border-b-brand-500 py-1 pl-3 text-left hover:bg-neutral-100"
+								class="w-full rounded-t-sm border-b-4 border-b-svelted-primary-700 py-1 pl-3 text-left hover:bg-[#0a2620]"
 								>Blocks
 							</button>
 							<button
-								class="w-full border-b-4 border-white py-1 pl-3 text-left hover:border-neutral-100 hover:bg-neutral-100"
+								class="w-full rounded-t-sm border-b-4 border-neutral-800 py-1 pl-3 text-left hover:bg-neutral-900"
 								>Patterns
 							</button>
 						</div>
-						<ul class="relative flex flex-col gap-2 px-4">
+						<ul class="relative flex flex-col gap-2 px-2">
 							{#each component_blocks as component, index (component)}
 								<li
 									class="component-block block w-full"
@@ -708,36 +719,36 @@
 									on:dragend={dragEnd}
 								>
 									<div
-										class="relative flex h-10 min-h-10 w-full cursor-grab items-center justify-between border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+										class="relative flex h-10 min-h-10 w-full cursor-move items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-neutral-500 hover:border-svelted-primary-500 hover:bg-neutral-900"
 									>
 										{#if component.icon}
 											<svelte:component
 												this={displayIcon(component.icon)}
-												class="fill-slate-900"
+												class="fill-[currentcolor]"
 												weight="fill"
 												size={24}
 											/>
 										{:else}
 											<svelte:component
 												this={icons.Cube}
-												class=" fill-slate-900"
+												class="fill-[currentcolor]"
 												weight="fill"
 												size={24}
 											/>
 										{/if}
-										{component.name}
+										<span class="text-neutral-500">{component.name}</span>
 									</div>
 								</li>
 							{/each}
 						</ul>
-						<div class="px-4">
-							<p class="mt-4 text-sm">
+						<div class="px-2">
+							<p class="mt-2 text-sm text-neutral-500">
 								Drag and drop layout blocks to your location of choice. Drop locations will be
 								highlited after picking them up.
 							</p>
 						</div>
-						<div class="text-white">
-							<p>{`X: ${client.x} Y: ${client.y}`}</p>
+						<div class="px-2 text-neutral-200">
+							<p>{`DEBUG X: ${client.x} Y: ${client.y}`}</p>
 							<p>{`DraggingComponent: ${client.currentComponent}`}</p>
 							<p>{`DraggingOver: ${client.isDraggingOver}`}</p>
 						</div>
@@ -748,26 +759,18 @@
 						<div>
 							<button
 								on:click={() => (sidebar.left.expanded = false)}
-								class="mb-4 flex w-full items-center gap-2 bg-neutral-100 px-4 py-4 hover:bg-neutral-200"
+								class="flex w-full items-center p-2"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="16"
-									height="16"
-									fill="currentColor"
-									viewBox="0 0 16 16"
-									style="cursor: default;"
-									class="rotate-180"
+								<div
+									class="flex w-full items-center gap-2 rounded-sm bg-svelted-gray-700 px-4 py-4 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 								>
-									<path
-										fill-rule="evenodd"
-										d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"
-									/>
-								</svg>
-								<h1>Overview</h1>
+									<svelte:component this={icons.ArrowLeft} class="h-5 w-5 fill-[currentcolor]"
+									></svelte:component>
+									<h1>Overview</h1>
+								</div>
 							</button>
 						</div>
-						<ul class="relative flex flex-col gap-2 px-4">
+						<ul class="relative flex flex-col gap-2 px-2">
 							{#if layout_blocks}
 								{#each layout_blocks as block, index (block)}
 									<li
@@ -776,19 +779,19 @@
 										id={`${index}`}
 									>
 										<div
-											class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
+											class="relative flex h-10 min-h-10 w-full cursor-grab items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-neutral-500 hover:border-svelted-primary-500 hover:bg-neutral-900 focus:cursor-grabbing"
 										>
 											{#if block.icon}
 												<svelte:component
 													this={displayIcon(block.icon)}
-													class=" fill-slate-900"
+													class="fill-[currentcolor]"
 													weight="fill"
 													size={24}
 												/>
 											{:else}
 												<svelte:component
 													this={icons.Cube}
-													class=" fill-slate-900"
+													class=" fill-[currentcolor]"
 													weight="fill"
 													size={24}
 												/>
@@ -828,60 +831,60 @@
 								{/each}
 							{/if}
 						</ul>
-						<div class="px-4">
-							<p class="mt-4 text-sm">
+						<div class="px-2">
+							<p class="mt-2 text-sm text-neutral-500">
 								This is a list showing all components displayed on this page.
 							</p>
 						</div>
 					</div>
 				{/if}
 			{:else}
-				<button
-					on:click={() => changeSidebarPage('left', 'add-components')}
-					class="grid aspect-square w-12 items-center p-1 hover:border hover:bg-gray-100"
-				>
-					<svg
-						class="m-auto"
-						xmlns="http://www.w3.org/2000/svg"
-						width="32"
-						height="32"
-						fill="#000000"
-						viewBox="0 0 256 256"
-						><path
-							d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"
-						></path></svg
+				<div class="flex flex-col">
+					<button
+						on:click={() => changeSidebarPage('left', 'add-components')}
+						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
-				</button>
-				<button
-					on:click={() => changeSidebarPage('left', 'list-components')}
-					class="grid aspect-square w-12 items-center p-1 hover:border hover:bg-gray-100"
-				>
-					<svg
-						class="m-auto"
-						xmlns="http://www.w3.org/2000/svg"
-						width="32"
-						height="32"
-						fill="#000000"
-						viewBox="0 0 256 256"
-						><path
-							d="M230.91,172A8,8,0,0,1,228,182.91l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,36,169.09l92,53.65,92-53.65A8,8,0,0,1,230.91,172ZM220,121.09l-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09ZM24,80a8,8,0,0,1,4-6.91l96-56a8,8,0,0,1,8.06,0l96,56a8,8,0,0,1,0,13.82l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,24,80Zm23.88,0L128,126.74,208.12,80,128,33.26Z"
-						></path></svg
+						<svelte:component this={icons.Plus} class="h-6 w-6 fill-[currentcolor]"
+						></svelte:component>
+					</button>
+					<button
+						on:click={() => changeSidebarPage('left', 'list-components')}
+						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
-				</button>
+						<svelte:component this={icons.Stack} class="h-6 w-6 fill-[currentcolor]"
+						></svelte:component>
+					</button>
+				</div>
+				<div class="flex flex-col">
+					<button
+						on:click={() => changeSidebarPage('left', 'add-components')}
+						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						<svelte:component this={icons.Plus} class="h-6 w-6 fill-[currentcolor]"
+						></svelte:component>
+					</button>
+					<button
+						on:click={() => changeSidebarPage('left', 'list-components')}
+						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						<svelte:component this={icons.Stack} class="h-6 w-6 fill-[currentcolor]"
+						></svelte:component>
+					</button>
+				</div>
 			{/if}
 		</nav>
 		<section
-			class="max-h-editor relative grid flex-1 overflow-y-auto bg-slate-100 bg-[radial-gradient(#dfe2e8_1px,transparent_1px)] py-4 pt-8 [background-size:16px_16px]"
+			class="max-h-editor relative grid flex-1 overflow-y-auto bg-[#0e0f13] bg-[radial-gradient(#17181c_1px,transparent_1px)] [background-size:16px_16px]"
 		>
 			<div class="max-w-editor relative mx-auto flex" id="editor-wrapper" style="max-width: 100%">
 				<div
-					class="resize-item absolute bottom-0 left-0 top-0 z-20 grid w-1 cursor-w-resize items-center hover:bg-slate-300"
+					class="resize-item absolute bottom-0 left-0 top-0 z-20 grid w-1 cursor-w-resize items-center hover:bg-green-400"
 					id="resize-left"
 				>
 					<div class="h-full max-h-32 w-2 -translate-x-1 rounded-full bg-gray-500" />
 				</div>
 				<div
-					class="resize-item absolute bottom-0 right-0 top-0 z-20 grid w-1 cursor-e-resize items-center hover:bg-slate-300"
+					class="resize-item absolute bottom-0 right-0 top-0 z-20 grid w-1 cursor-e-resize items-center hover:bg-green-400"
 					id="resize-right"
 				>
 					<div class="h-full max-h-32 w-2 rounded-full bg-gray-500" />
@@ -966,12 +969,12 @@
 								</div>
 								<div class="component-outline pointer-events-none" />
 								<div
-									class="component-settings -bottom-7 -left-0.5 z-50 flex w-fit gap-1 bg-[blue] p-1 pb-1.5 pt-0.5 outline-2 outline-[blue]"
+									class="component-settings -bottom-7 -left-0.5 z-50 flex w-fit gap-1 bg-svelted-primary-500 p-1 pb-1.5 pt-0.5 outline-2 outline-svelted-primary-500"
 								>
 									<button on:click={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
-											class="fill-blue-200 hover:fill-white"
+											class="fill-white hover:fill-white"
 											width="20"
 											height="20"
 											fill="#000000"
@@ -984,7 +987,7 @@
 									<button on:click={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
-											class="fill-blue-200 hover:fill-white"
+											class="fill-white hover:fill-white"
 											width="20"
 											height="20"
 											fill="#000000"
@@ -1000,7 +1003,7 @@
 									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
-											class="fill-blue-200 hover:fill-red-500"
+											class="fill-white hover:fill-red-500"
 											width="20"
 											height="20"
 											fill="#000000"
@@ -1013,7 +1016,7 @@
 									<button on:click={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
-											class="fill-blue-200 hover:fill-white"
+											class="fill-white hover:fill-white"
 											width="20"
 											height="20"
 											fill="#000000"
@@ -1031,30 +1034,33 @@
 			</div>
 		</section>
 		<section
-			class="h-full-editor max-h-editor min-w-[20rem] max-w-[20rem] overflow-auto border-l bg-white px-4 pt-4"
+			class="h-full-editor max-h-editor min-w-[20rem] max-w-[20rem] overflow-auto border-l border-neutral-800 bg-svelted-gray-900 px-2 pt-2"
 		>
-			<h1 class="text-lg font-medium">Attribute editor:</h1>
+			<h1 class="text-lg font-medium text-neutral-500">Attribute editor:</h1>
 			{#if layout_blocks[0]}
-				<ul class="p-2">
-					<li>	
+				<ul class="">
+					<li>
 						<div>
-							<input bind:value={layout_blocks[0].data.content} />
+							<input
+								class="h-10 w-full rounded-sm bg-svelted-gray-700 p-2 text-neutral-500"
+								bind:value={layout_blocks[0].data.content}
+							/>
 						</div>
 					</li>
 				</ul>
 			{:else}
 				<p>No elements exist :O</p>
 			{/if}
-			<hr class="my-2" />
-			<h1 class="text-lg font-medium">Routes:</h1>
-			<div class="w-full overflow-auto">
+			<hr class="my-2 border-neutral-800" />
+			<h1 class="text-lg font-medium text-neutral-500">Routes:</h1>
+			<div class="w-full overflow-auto rounded-sm bg-svelted-gray-700 p-2 text-neutral-500">
 				<code class="">
-					{JSON.stringify(data.routes)}
+					{JSON.stringify(data.layouts)}
 				</code>
 			</div>
-			<hr class="my-2" />
-			<h1 class="text-lg font-medium">Debug:</h1>
-			<div class="w-full overflow-auto">
+			<hr class="my-2 border-neutral-800" />
+			<h1 class="text-lg font-medium text-neutral-500">Debug:</h1>
+			<div class="w-full overflow-auto rounded-sm bg-svelted-gray-700 p-2 text-neutral-500">
 				<code class="">
 					{JSON.stringify(layout_blocks)}
 				</code>
@@ -1093,7 +1099,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		outline: solid 2px blue;
+		outline: solid 2px #31a15f;
 		z-index: 1;
 	}
 
@@ -1106,5 +1112,12 @@
 		transition:
 			min-width ease-out 0.25s,
 			max-width ease-out 0.25s;
+	}
+
+	.text-gradient {
+		background: linear-gradient(120deg, #36bf68, #1e6b61);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
 	}
 </style>
