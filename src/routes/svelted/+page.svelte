@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Avatar from '$lib/components/svelted-core/ui/avatar/index.js';
 	import Navigation from '$lib/components/svelted-core/ui/Navigation.svelte';
-	import { CaretDown, PuzzlePiece, UserList } from 'phosphor-svelte';
+	import { CaretDown, Check, Checks, CheckSquareOffset, PuzzlePiece, UserList } from 'phosphor-svelte';
 	import { onMount } from 'svelte';
 
 	export let data;
@@ -53,50 +53,6 @@
 		sidebar: boolean;
 	}
 
-	type TaskList = {
-		todo: string[];
-		done: string[];
-	};
-
-	let tasks: TaskList = {
-		todo: [],
-		done: []
-	};
-
-	function enter(input: any | null) {
-		if (input == null) {
-			return;
-		}
-
-		const addToDo = add(input.value);
-		if (addToDo) {
-			input.value = '';
-		} else {
-			console.log('This ToDo already exists');
-		}
-	}
-
-	function add(todo: string): Boolean {
-		if (!tasks.todo.includes(todo) || !tasks.done.includes(todo)) {
-			tasks.todo = [todo, ...tasks.todo];
-			return true;
-		}
-		return false;
-	}
-	function remove(todo: string) {
-		const index = tasks.todo.indexOf(todo);
-		if (index !== -1) {
-			tasks.todo.splice(index, 1);
-			tasks.todo = [...tasks.todo];
-		}
-	}
-	function check(todo: string) {
-		remove(todo);
-		tasks.done = [...tasks.done, todo];
-	}
-	function clear() {
-		tasks.done = [];
-	}
 	const hoverOver = function (element: string | undefined) {
 		client.hoverOver = element;
 	};
@@ -111,15 +67,31 @@
 		sidebar: false
 	};
 
+	const toggleSection = function (element: string) {
+		const target = document.getElementById(element);
+		const button = document.getElementById(element + '-btn');
+
+		console.log(target);
+		console.log(button);
+
+		if (target!.classList.contains('hide')) {
+			target!.classList.remove('hide');
+			button!.style.transform = 'rotate(0deg)';
+		} else {
+			target!.classList.add('hide');
+			button!.style.transform = 'rotate(90deg)';
+		}
+	};
+
 	onMount(async () => {
 		setInterval(function () {
 			currentTime = new Date();
-			console.log('refreshed');
+			// console.log('refreshed');
 		}, 1 * 1000);
 	});
 </script>
 
-<Navigation>
+<Navigation overflow={false}>
 	<div class="flex">
 		<div class="flex w-full flex-col justify-between p-4">
 			<div class="mt-8">
@@ -129,7 +101,7 @@
 				<div class="-mt-4 flex items-center justify-between">
 					<div class="mx-auto">
 						<h1 class="mx-auto text-center text-3xl font-medium text-neutral-300">
-							Wellcome Carl,
+							Wellcome Lukas,
 						</h1>
 						<p class="mx-auto text-center font-light text-neutral-300">to your dashboard!</p>
 					</div>
@@ -137,42 +109,65 @@
 			</div>
 
 			<div
-				class="absolute right-64 top-0 mr-2 mt-2 flex h-72 w-48 rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
+				class="absolute right-64 top-0 mr-2 mt-2 flex flex-col h-72 w-48 rounded-sm border border-neutral-800 bg-neutral-950 text-white"
 			>
-				ToDo
+				<p class="bg-[#161616] text-neutral-500 h-10 rounded-t-sm flex gap-1 items-center items-center p-2">
+					<CheckSquareOffset class="fill-[currentcolor]" />
+					<span class="mb-0.5">Quick To Do</span>
+				</p>
 			</div>
 
-			<div class="flex w-full gap-2 rounded-md border border-neutral-800 bg-neutral-950 p-4">
+			<div class="absolute bottom-0 left-0 mb-2 ml-2 text-neutral-500">
+				<p><span class="text-[#2da05a]">4</span> Users</p>
+				<p><span class="text-[#2da05a]">1</span>/1 public Pages</p>
+				<p><span class="text-[#2da05a]">1</span>/1 published Layouts</p>
+			</div>
+
+			<div class="absolute bottom-0 right-64 mb-2 mr-2 text-right text-neutral-500">
+				{#if Number(ressources.cpuUsage) == 0}
+					<p>{'< 0.01'}% CPU</p>
+				{:else}
+					<p>{ressources.cpuUsage}% CPU</p>
+				{/if}
+				<p>
+					<span class="text-[#2da05a]">{ressources.usedMemory}</span>/{ressources.totalMemory} Memory
+				</p>
+			</div>
+
+			<div
+				class="absolute -bottom-60 left-[50%] mx-auto flex w-[50%] -translate-x-[50%] gap-2 rounded-md pr-64 transition-all hover:-bottom-2"
+			>
 				<div
-					class="h-64 w-[50%] rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
+					class="relative flex h-64 w-full flex-col justify-between rounded-sm border border-neutral-800 bg-neutral-950 p-2 pb-4 text-white"
 				>
-					OVERVIEW
-					<p>1 / 1 published Layouts</p>
-					<p>1 Page</p>
-					<p>4 Users</p>
-				</div>
-				<div
-					class="h-64 w-[50%] rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
-				>
-					ACTIVITY
-					{#if Number(ressources.cpuUsage) == 0}
-						<p>CPU: {'< 0.01'}%</p>
-					{:else}
-						<p>CPU: {ressources.cpuUsage}%</p>
-					{/if}
-					<p>
-						Memory: <span class="text-[#2da05a]">{ressources.usedMemory}</span> / {ressources.totalMemory}
+					<p class="absolute -top-7 w-full text-center text-2xl font-medium text-neutral-500">
+						...
 					</p>
-				</div>
-				<div
-					class="h-64 w-[50%] rounded-sm border border-neutral-800 bg-neutral-950 p-2 p-2 text-white"
-				>
-					Announcements and News
-                    <br>--text: <span class="text-[#e3f7ea]">#e3f7ea</span>;
-                    <br>--background: <span class="text-[#020804]">#020804</span>;
-                    <br>--primary: <span class="text-[#36bf68]">#36bf68</span>;
-					<br>--secondary: <span class="text-[#1e6b61]">#1e6b61</span>;
-                    <br>--accent: <span class="text-[#298e8b]">#298e8b</span>;
+					<div class="text-neutral-500">
+						<h2 class="text-neutral-500">Announcements and News</h2>
+						<br />--text: <span class="text-[#e3f7ea]">#e3f7ea</span>;
+						<br />--background: <span class="text-[#020804]">#020804</span>;
+						<br />--primary: <span class="text-[#36bf68]">#36bf68</span>;
+						<br />--secondary: <span class="text-[#1e6b61]">#1e6b61</span>;
+						<br />--accent: <span class="text-[#298e8b]">#298e8b</span>;
+					</div>
+					<div class="flex w-full">
+						<button
+							tabindex="-1"
+							class="h-10 w-full rounded-l-sm bg-[#161616] px-4 text-neutral-500 hover:bg-[#2da05a] hover:text-white"
+							>Meetups</button
+						>
+						<button
+							tabindex="-1"
+							class="h-10 w-full bg-[#161616] px-4 text-neutral-500 hover:bg-[#2da05a] hover:text-white"
+							>Docs</button
+						>
+						<button
+							tabindex="-1"
+							class="h-10 w-full rounded-r-sm bg-[#161616] px-4 text-neutral-500 hover:bg-[#2da05a] hover:text-white"
+							>News</button
+						>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -181,14 +176,17 @@
 		>
 			<div id="roles" class="flex flex-col gap-3">
 				{#each roles as role}
-					<button class="section-description -mb-2 flex w-full justify-between transition-all">
-						<h2 class="text-neutral-500">{role.name}</h2>
-						<CaretDown id="extensions-btn" class="my-auto fill-neutral-500" />
+					<button
+						class="section-description -mb-2 flex w-full justify-between text-neutral-500 transition-all"
+						on:click={() => toggleSection(`${role.name}-role`)}
+					>
+						<h2>{role.name}</h2>
+						<CaretDown id={`${role.name}-role-btn`} class="my-auto fill-[currentcolor]" />
 					</button>
-					<div id="admins" class="max-h-48 transition-all">
+					<div id={`${role.name}-role`} class="max-h-48 transition-all">
 						{#each role.users as user}
 							<button
-								class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 pl-3 hover:bg-[#278c4c] hover:outline focus:outline-none"
+								class="flex text-neutral-500 aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 pl-3 hover:bg-[#278c4c] hover:text-white focus:outline-none"
 							>
 								{#if user.status == 'online'}
 									<div
@@ -205,9 +203,9 @@
 								{/if}
 								<Avatar.Root class="h-6 w-6">
 									<Avatar.Image src="https://github.com/shadcn.png" alt="@shadcn" />
-									<Avatar.Fallback>CN</Avatar.Fallback>
+									<Avatar.Fallback>{user.name.charAt(0)}</Avatar.Fallback>
 								</Avatar.Root>
-								<p class="text-white">{user.name}</p>
+								<p>{user.name}</p>
 							</button>
 						{/each}
 					</div>
@@ -215,7 +213,7 @@
 			</div>
 			<div>
 				<button
-					class="flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
+					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
 					on:mouseenter={() => hoverOver('users')}
 					on:mouseleave={() => hoverOver(undefined)}
 					on:click={() => (client.sidebar = !client.sidebar)}
@@ -234,6 +232,30 @@
 </Navigation>
 
 <style>
+	.section-description:focus-within {
+		background: #36bf68 !important;
+		outline: none;
+		border-radius: 0.5rem;
+		color: #000;
+		padding: 0 0.75rem;
+		margin-bottom: 0.1rem;
+		opacity: 1;
+		min-height: 0.125rem;
+		max-height: 0.125rem;
+		border-radius: 0.5rem !important;
+	}
+
+	.btn:focus-within {
+		outline: solid 1.5px #36bf68;
+		background: #0a2620;
+		outline-offset: -1.5px;
+	}
+
+	:is(.open .section-description) {
+		max-height: 2rem;
+		opacity: 1;
+	}
+
 	.clock {
 		text-shadow: 0px 0px 40px black;
 		background: linear-gradient(black, white);
@@ -247,6 +269,12 @@
 
 	.h-full-editor {
 		min-height: calc(100vh - 4rem);
+	}
+
+	:is(.closed .section-description, .hide) {
+		max-height: 0;
+		opacity: 0;
+		overflow: hidden;
 	}
 
 	#roles button:first-of-type {

@@ -17,6 +17,8 @@
 		UserCircle
 	} from 'phosphor-svelte';
 
+	export let overflow;
+
 	interface Client {
 		hoverOver: undefined | string;
 		sidebar: boolean;
@@ -66,9 +68,9 @@
 			<div class="text-neutral-500">Dashboard</div>
 		</div>
 		<div class="flex-grow px-8">
-			<button class="contens absolute focus:bg-[#2da05a] focus:outline-none rounded-l-sm">
+			<button class="contens absolute focus:bg-[#2da05a] focus:outline-none rounded-l-sm text-neutral-500 hover:text-white focus:text-white">
 				<MagnifyingGlass
-					class="h-10 w-11 rounded-l-lg border-r border-neutral-800 fill-white p-2 px-2.5 hover:border-r-[#278c4c] hover:bg-[#278c4c]"
+					class="h-10 w-11 rounded-l-lg border-r border-neutral-800 fill-[currentcolor] p-2 px-2.5 hover:border-r-[#278c4c] hover:bg-[#278c4c]"
 				/>
 			</button>
 			<input
@@ -77,11 +79,11 @@
 			/>
 		</div>
 		<div class="flex pr-4">
-			<button class="flex gap-2 items-center focus:bg-[#2da05a] focus:outline-none focus:ring focus:ring-[#2da05a] pl-3 rounded-sm">
-				<p class="pb-0.5 text-white">Lukas</p>
-				<Code class="h-6 w-6 fill-white" />
+			<button class="flex gap-2 focus:text-white text-neutral-500 hover:text-white items-center focus:bg-[#2da05a] focus:outline-none focus:ring focus:ring-[#2da05a] pl-3 rounded-sm">
+				<p class="pb-0.5">Lukas</p>
+				<Code class="h-6 w-6 fill-[currentcolor]" />
 				<div
-					class="grid min-h-10 min-w-10 items-center justify-center rounded-sm bg-[#161616] pb-0.5 text-xl font-medium text-neutral-600 text-white"
+					class="grid min-h-10 min-w-10 items-center justify-center rounded-sm bg-[#161616] pb-0.5 text-xl font-medium"
 				>
 					U
 				</div>
@@ -96,11 +98,11 @@
 		>
 			<div class="flex flex-col gap-3">
 				<button
-					class="section-description -mb-2 flex justify-between transition-all"
+					class="section-description -mb-2 flex justify-between transition-all text-neutral-500"
 					on:click={() => toggleSection('essentials')}
 				>
-					<h2 class="text-neutral-500">Essentials</h2>
-					<CaretDown id="essentials-btn" class="my-auto fill-neutral-500" />
+					<h2>Essentials</h2>
+					<CaretDown id="essentials-btn" class="my-auto fill-[currentcolor]" />
 				</button>
 
 				<div id="essentials" class="max-h-48 transition-all">
@@ -150,7 +152,7 @@
 					on:click={() => toggleSection('content')}
 				>
 					<h2>Content</h2>
-					<CaretDown id="content-btn" class="my-auto fill-neutral-500" />
+					<CaretDown id="content-btn" class="my-auto fill-[currentcolor]" />
 				</button>
 
 				<div id="content" class="max-h-48 transition-all">
@@ -187,7 +189,7 @@
 					on:click={() => toggleSection('accounts')}
 				>
 					<h2>User & Roles</h2>
-					<CaretDown id="accounts-btn" class="my-auto fill-neutral-500" />
+					<CaretDown id="accounts-btn" class="my-auto fill-[currentcolor]" />
 				</button>
 
 				<div id="accounts" class="max-h-48 transition-all">
@@ -230,7 +232,7 @@
 					on:click={() => toggleSection('extensions')}
 				>
 					<h2>Extensions</h2>
-					<CaretDown id="extensions-btn" class="my-auto fill-neutral-500" />
+					<CaretDown id="extensions-btn" class="my-auto fill-[currentcolor]" />
 				</button>
 
 				<div id="extensions" class="max-h-48 transition-all">
@@ -270,7 +272,7 @@
 			</div>
 		</nav>
 		<section
-			class="max-h-editor relative flex-1 overflow-y-auto bg-[#0e0f13] bg-[radial-gradient(#17181c_1px,transparent_1px)] [background-size:16px_16px]"
+			class="max-h-editor relative flex-1 {overflow ? 'overflow-y-auto' : 'overflow-y-hidden'} bg-[#0e0f13] bg-[radial-gradient(#17181c_1px,transparent_1px)] [background-size:16px_16px]"
 		>
 			<slot/>
 		</section>
