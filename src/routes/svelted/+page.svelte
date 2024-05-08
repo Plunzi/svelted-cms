@@ -109,11 +109,7 @@
 				</div>
 			</div>
 
-			<div
-				class="absolute right-64 top-0 mr-2 mt-2 flex h-72 shadow-sm w-48 flex-col rounded-sm border border-neutral-800 bg-neutral-950 text-white"
-			>
-				<QuickToDo/>
-			</div>
+			<QuickToDo tasks={data.todo.data} />
 
 			<div class="absolute bottom-0 left-0 mb-2 ml-2 text-neutral-500">
 				<p><span class="text-[#2da05a]">4</span> Users</p>
@@ -242,7 +238,7 @@
 		max-height: 0.125rem;
 		border-radius: 0.5rem !important;
 	}
-	
+
 	.btn:focus-within {
 		outline: solid 1.5px #36bf68;
 		background: #0a2620;

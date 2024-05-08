@@ -9,12 +9,9 @@
 		Images,
 		Layout,
 		MagnifyingGlass,
-		Plus,
-		PlusSquare,
 		PuzzlePiece,
 		ShieldStar,
 		SquareHalf,
-		UserCircle
 	} from 'phosphor-svelte';
 
 	export let overflow;
