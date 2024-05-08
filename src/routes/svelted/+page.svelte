@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Avatar from '$lib/components/svelted-core/ui/avatar/index.js';
-	import Navigation from '$lib/components/svelted-core/ui/Navigation.svelte';
-	import QuickToDo from '$lib/components/svelted-core/ui/QuickToDo.svelte';
+	import * as Avatar from '$lib/internal/svelted-core/ui/avatar/index.js';
+	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
+	import QuickToDo from '$lib/internal/svelted-core/ui/QuickToDo.svelte';
 	import { CaretDown, UserList } from 'phosphor-svelte';
 	import { onMount } from 'svelte';
 
@@ -92,7 +92,7 @@
 	});
 </script>
 
-<Navigation overflow={false}>
+<Navigation overflow={false} site={['Dashboard']}>
 	<div class="flex">
 		<div class="flex w-full flex-col justify-between p-4">
 			<div class="mt-8">

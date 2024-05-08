@@ -7,8 +7,8 @@
 		"baseColor": "neutral"
 	},
 	"aliases": {
-		"components": "$lib/components/svelted-core/",
-		"utils": "$lib/components/svelted-core/utils"
+		"components": "$lib/internal/svelted-core/",
+		"utils": "$lib/internal/svelted-core/utils"
 	},
 	"typescript": true
 }
