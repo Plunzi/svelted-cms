@@ -1,7 +1,8 @@
 <script lang="ts">
 	import * as Avatar from '$lib/components/svelted-core/ui/avatar/index.js';
 	import Navigation from '$lib/components/svelted-core/ui/Navigation.svelte';
-	import { CaretDown, Check, Checks, CheckSquareOffset, PuzzlePiece, UserList } from 'phosphor-svelte';
+	import QuickToDo from '$lib/components/svelted-core/ui/QuickToDo.svelte';
+	import { CaretDown, UserList } from 'phosphor-svelte';
 	import { onMount } from 'svelte';
 
 	export let data;
@@ -109,12 +110,9 @@
 			</div>
 
 			<div
-				class="absolute right-64 top-0 mr-2 mt-2 flex flex-col h-72 w-48 rounded-sm border border-neutral-800 bg-neutral-950 text-white"
+				class="absolute right-64 top-0 mr-2 mt-2 flex h-72 shadow-sm w-48 flex-col rounded-sm border border-neutral-800 bg-neutral-950 text-white"
 			>
-				<p class="bg-[#161616] text-neutral-500 h-10 rounded-t-sm flex gap-1 items-center items-center p-2">
-					<CheckSquareOffset class="fill-[currentcolor]" />
-					<span class="mb-0.5">Quick To Do</span>
-				</p>
+				<QuickToDo/>
 			</div>
 
 			<div class="absolute bottom-0 left-0 mb-2 ml-2 text-neutral-500">
@@ -186,7 +184,7 @@
 					<div id={`${role.name}-role`} class="max-h-48 transition-all">
 						{#each role.users as user}
 							<button
-								class="flex text-neutral-500 aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 pl-3 hover:bg-[#278c4c] hover:text-white focus:outline-none"
+								class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 pl-3 text-neutral-500 hover:bg-[#278c4c] hover:text-white focus:outline-none"
 							>
 								{#if user.status == 'online'}
 									<div
