@@ -1,9 +1,20 @@
 <script lang="ts">
 	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
-	import { Blueprint, CaretUp, Funnel, Pen, Plus, Trash, UserList } from 'phosphor-svelte';
+	import {
+		Blueprint,
+		CaretUp,
+		Funnel,
+		Pen,
+		Plus,
+		Rows,
+		SquaresFour,
+		Trash,
+		UserList
+	} from 'phosphor-svelte';
 	import { writable } from 'svelte/store';
 	import formatTime from '$lib/internal/svelted-core/format/time';
 	import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
+	import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
 
 	let searchTerm = '';
 
@@ -18,11 +29,13 @@
 	interface Client {
 		hoverOver: undefined | string;
 		sidebar: boolean;
+		display: string | undefined
 	}
 
 	let client: Client = {
 		hoverOver: undefined,
-		sidebar: false
+		sidebar: false,
+		display: 'table'
 	};
 
 	const toggleSection = function (element: string) {
@@ -126,14 +139,42 @@
 			<QuickToDo tasks={data.todo.data} />
         </div> -->
 		<div class="flex w-full flex-col gap-4 p-3 text-white">
-			<div class="flex h-10 items-center gap-2 rounded bg-svelted-gray-700 px-2">
-				<Blueprint class="h-5 w-5 fill-neutral-500" weight="regular" />
-				<p class="font-medium text-neutral-500">Pages Overview</p>
-				<p class="text-neutral-500">―</p>
-				<p class="text-neutral-500">
-					All {items.length}, Published {items.filter((item) => item.status == 'published').length},
-					Drafts {items.filter((item) => item.status == 'draft').length}
-				</p>
+			<div class="flex justify-between gap-2">
+				<div class="flex h-10 items-center gap-2 px-2">
+					<Blueprint class="mt-0.5 h-6 w-6 fill-neutral-500" weight="regular" />
+					<p class="font-medium text-neutral-500">Pages Overview</p>
+					<p class="text-neutral-500">―</p>
+					<p class="text-neutral-500">
+						All {items.length}, Published {items.filter((item) => item.status == 'published')
+							.length}, Drafts {items.filter((item) => item.status == 'draft').length}
+					</p>
+				</div>
+				<div class="flex gap-2">
+					<button
+						on:click={() => client.display = 'tables'}
+						on:mouseenter={() => hoverOver('display-tables')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'display-tables'}
+							<Rows class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Rows class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+					<button
+						on:click={() => client.display = 'cards'}
+						on:mouseenter={() => hoverOver('display-cards')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
+					>
+						{#if client.hoverOver == 'display-cards'}
+							<SquaresFour class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<SquaresFour class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+				</div>
 			</div>
 			<nav class="flex gap-2">
 				<button
@@ -183,125 +224,268 @@
 					/>
 				</div>
 			</nav>
-			<div class="rounded-lg bg-svelted-gray-700 p-2">
-				<table class="w-full">
-					<thead>
-						<tr class="text-neutral-500">
-							<th>
-								<div class="mb-2 grid h-8 max-w-10 items-center justify-center text-left">
-									<Checkbox class="border-neutral-700" id="pages-checkbox" />
-								</div>
-							</th>
-							<th>
-								<button
-									on:click={() => sortTable('route')}
-									class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-								>
-									<p>Route</p>
-									<CaretUp weight="fill" />
-								</button>
-							</th>
-							<th>
-								<button
-									on:click={() => sortTable('name')}
-									class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-								>
-									<p>Title</p>
-									<CaretUp weight="fill" />
-								</button>
-							</th>
-							<th>
-								<button
-									on:click={() => sortTable('status')}
-									class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-								>
-									<p>Status</p>
-									<CaretUp weight="fill" />
-								</button>
-							</th>
-							<th>
-								<button
-									on:click={() => sortTable('author')}
-									class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-								>
-									<p>Author</p>
-									<CaretUp weight="fill" />
-								</button>
-							</th>
-							<th>
-								<button
-									on:click={() => sortTable('modified')}
-									class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-								>
-									<p>Modified</p>
-									<CaretUp weight="fill" />
-								</button>
-							</th>
-							<th>
-								<button
-									on:click={() => sortTable('created')}
-									class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-								>
-									<p>Created</p>
-									<CaretUp weight="fill" />
-								</button>
-							</th>
-						</tr>
-					</thead>
-					<tbody class="text-neutral-500">
-						<!-- {#each $sortItems as item}
-							<tr>
-								<td>{item.id}</td>
-								<td>{item.maker}</td>
-								<td>{item.type}</td>
-								<td>{item.make}</td>
-							</tr>
-						{/each} -->
-						{#each filteredItems as item, index}
-							<tr class="hover:!bg-[#0a2620] hover:text-white">
-								<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-									<Checkbox class="border-neutral-800" />
-								</td>
-								<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
-								<td class="border-r border-r-neutral-800 px-2 py-2">{item.name}</td>
-								<td class="border-r border-r-neutral-800 px-2 py-2">{item.status}</td>
-								<td class="border-r border-r-neutral-800 px-2 py-2">{item.author}</td>
-								<td class="border-r border-r-neutral-800 px-2 py-2">{formatTime(item.modified)}</td>
-								<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.created)}</td>
-								<td class="w-14">
-									<div class="flex gap-2">
-										<button
-											on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-											on:mouseleave={() => hoverOver(undefined)}
-											class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
-										>
-											{#if client.hoverOver == `pages-edit-${index}`}
-												<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-											{:else}
-												<Pen class="h-5 w-5 fill-[currentcolor]" />
-											{/if}
-										</button>
-										<button
-											on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
-											on:mouseleave={() => hoverOver(undefined)}
-											class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
-										>
-											{#if client.hoverOver == `pages-delete-${index}`}
-												<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-											{:else}
-												<Trash class="h-5 w-5 fill-[currentcolor]" />
-											{/if}
-										</button>
+
+			<hr class="border-neutral-800" />
+
+			<!-- Card Display -->
+			{#if client.display == 'cards'}
+				<div class="rounded-lg bg-svelted-gray-700 p-2">
+					<div class="w-full">
+						<div class="w-full">
+							<div class="flex font-bold text-neutral-500">
+								<div>
+									<div
+										class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
+									>
+										<Checkbox class="border-neutral-700" id="pages-checkbox" />
 									</div>
-								</td>
+								</div>
+								<div class="w-full">
+									<button
+										on:click={() => sortTable('route')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Route</p>
+										<CaretUp weight="fill" />
+									</button>
+								</div>
+								<div class="w-full">
+									<button
+										on:click={() => sortTable('name')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Title</p>
+										<CaretUp weight="fill" />
+									</button>
+								</div>
+								<div class="w-full">
+									<button
+										on:click={() => sortTable('status')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Status</p>
+										<CaretUp weight="fill" />
+									</button>
+								</div>
+								<div class="w-full">
+									<button
+										on:click={() => sortTable('author')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Author</p>
+										<CaretUp weight="fill" />
+									</button>
+								</div>
+								<div class="w-full">
+									<button
+										on:click={() => sortTable('modified')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Modified</p>
+										<CaretUp weight="fill" />
+									</button>
+								</div>
+								<div class="w-full">
+									<button
+										on:click={() => sortTable('created')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Created</p>
+										<CaretUp weight="fill" />
+									</button>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-2 gap-2 text-neutral-500">
+							{#each filteredItems as item, index}
+								<div
+									class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
+								>
+									<div class="flex justify-between gap-2 pb-1">
+										<div class="flex gap-3">
+											<div
+												class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
+											>
+												<Checkbox class="border-[currentcolor]" />
+											</div>
+											<Tooltip.Root>
+												<Tooltip.Trigger>
+													{#if item.status == 'published'}
+														<div class="min-h-3 min-w-3 rounded-full bg-svelted-primary-500" />
+													{:else if item.status == 'draft'}
+														<div class="min-h-3 min-w-3 rounded-full bg-yellow-300" />
+													{:else}
+														<div class="min-h-3 min-w-3 rounded-full bg-neutral-500" />
+													{/if}
+												</Tooltip.Trigger>
+												<Tooltip.Content
+													class="mt-2 border-neutral-800 bg-svelted-gray-700 text-neutral-500"
+												>
+													<p>{item.status}</p>
+												</Tooltip.Content>
+											</Tooltip.Root>
+											<div class="mb-0.5 py-2">
+												{item.name} <span class="text-neutral-800">―</span>
+												{item.route}
+											</div>
+										</div>
+										<div>
+											<div class="flex w-full gap-2">
+												<p class="px-2 py-2">{item.author}</p>
+												<button
+													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
+												>
+													{#if client.hoverOver == `pages-edit-${index}`}
+														<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Pen class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</button>
+												<button
+													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
+												>
+													{#if client.hoverOver == `pages-delete-${index}`}
+														<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Trash class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</button>
+											</div>
+										</div>
+									</div>
+									<div class="flex flex-col rounded-sm bg-red-500 bg-svelted-gray-700 py-2">
+										<p>
+											<span class="border-r border-r-neutral-800 px-2 py-2"
+												>Modified: {formatTime(item.modified)}</span
+											>
+											<span class="px-2 py-2">Created: {formatTime(item.created)}</span>
+										</p>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
+			{:else}
+				<!-- Table Display -->
+				<div class="rounded-lg bg-svelted-gray-700 p-2">
+					<table class="w-full">
+						<thead>
+							<tr class="text-neutral-500">
+								<th>
+									<div class="mb-2 grid h-8 max-w-10 items-center justify-center text-left">
+										<Checkbox class="border-neutral-700" id="pages-checkbox" />
+									</div>
+								</th>
+								<th>
+									<button
+										on:click={() => sortTable('route')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Route</p>
+										<CaretUp weight="fill" />
+									</button>
+								</th>
+								<th>
+									<button
+										on:click={() => sortTable('name')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Title</p>
+										<CaretUp weight="fill" />
+									</button>
+								</th>
+								<th>
+									<button
+										on:click={() => sortTable('status')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Status</p>
+										<CaretUp weight="fill" />
+									</button>
+								</th>
+								<th>
+									<button
+										on:click={() => sortTable('author')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Author</p>
+										<CaretUp weight="fill" />
+									</button>
+								</th>
+								<th>
+									<button
+										on:click={() => sortTable('modified')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Modified</p>
+										<CaretUp weight="fill" />
+									</button>
+								</th>
+								<th>
+									<button
+										on:click={() => sortTable('created')}
+										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Created</p>
+										<CaretUp weight="fill" />
+									</button>
+								</th>
 							</tr>
-							<tr class="spacer">
-								<td></td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+						</thead>
+						<tbody class="text-neutral-500">
+							{#each filteredItems as item, index}
+								<tr class="hover:!bg-[#0a2620] hover:text-white">
+									<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
+										<Checkbox class="border-neutral-800" />
+									</td>
+									<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
+									<td class="border-r border-r-neutral-800 px-2 py-2">{item.name}</td>
+									<td class="border-r border-r-neutral-800 px-2 py-2">{item.status}</td>
+									<td class="border-r border-r-neutral-800 px-2 py-2">{item.author}</td>
+									<td class="border-r border-r-neutral-800 px-2 py-2"
+										>{formatTime(item.modified)}</td
+									>
+									<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.created)}</td>
+									<td class="w-14">
+										<div class="flex gap-2">
+											<button
+												on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
+												on:mouseleave={() => hoverOver(undefined)}
+												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+											>
+												{#if client.hoverOver == `pages-edit-${index}`}
+													<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+												{:else}
+													<Pen class="h-5 w-5 fill-[currentcolor]" />
+												{/if}
+											</button>
+											<button
+												on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
+												on:mouseleave={() => hoverOver(undefined)}
+												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
+											>
+												{#if client.hoverOver == `pages-delete-${index}`}
+													<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+												{:else}
+													<Trash class="h-5 w-5 fill-[currentcolor]" />
+												{/if}
+											</button>
+										</div>
+									</td>
+								</tr>
+								<tr class="spacer">
+									<td></td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
 		</div>
 		<div
 			class="h-full-editor open flex min-w-64 max-w-64 flex-col justify-between overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
@@ -328,6 +512,14 @@
 </Navigation>
 
 <style>
+	.card:hover > div div span {
+		color: #737373;
+	}
+
+	.card:hover > div div {
+		color: #737373;
+	}
+
 	.btn:focus-within {
 		outline: solid 1.5px #36bf68;
 		background: #0a2620;
