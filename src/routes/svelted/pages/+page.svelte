@@ -44,9 +44,6 @@
 		const target = document.getElementById(element);
 		const button = document.getElementById(element + '-btn');
 
-		console.log(target);
-		console.log(button);
-
 		if (target!.classList.contains('hide')) {
 			target!.classList.remove('hide');
 			button!.style.transform = 'rotate(0deg)';

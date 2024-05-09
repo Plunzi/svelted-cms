@@ -61,7 +61,7 @@
 	const checkEntry = (index: number, status: string) => {
 		if (status == 'todo') {
 			const entry = tasks.todo.at(index);
-			console.log(entry, index);
+			// console.log(entry, index);
 
 			if (entry) {
 				tasks.done.push(entry);
@@ -70,7 +70,7 @@
 			}
 		} else {
 			const entry = tasks.done.at(index);
-			console.log(entry);
+			// console.log(entry);
 
 			if (entry) {
 				tasks.todo.push(entry);

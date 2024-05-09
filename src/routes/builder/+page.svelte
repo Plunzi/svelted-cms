@@ -7,14 +7,10 @@
 		component_blocks = e.detail.items;
 	}
 	function layoutBlocksFinalize(e) {
-        console.log("Hello World");
-
 		layout_blocks = e.detail.items;
 	}
 
 	function layoutBlocksConsider(e) {
-        console.log(":O")
-
 			layout_blocks[0].moved = true;
 
 		layout_blocks = e.detail.items;

@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const saveLocation = `src/lib/svelted/simple-todo/todo.data.json`;
 
-    console.log(saveLocation);
+    // console.log(saveLocation);
 
     const dirname = path.dirname(saveLocation);
     await fs.promises.mkdir(dirname, { recursive: true });

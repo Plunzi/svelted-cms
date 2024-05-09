@@ -1,7 +1,6 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import type { RequestHandler } from './$types';
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 function hasRelativeSymbols(url: string) {
     var pattern = /(\.\.\/|\.\.\\|\.\/|\.\\)/;
@@ -49,8 +48,6 @@ export const POST: RequestHandler = async ({ request }) => {
         return new Response("Not saved!", { status: 422, statusText: "Entered URL contains relative paths" });
     }
 
-    console.log(route);
-
     if (!isValidURL(String(route))) {
         return new Response("Not saved!", { status: 422, statusText: "Entered URL is not a valid url" });
     }
@@ -65,10 +62,11 @@ export const POST: RequestHandler = async ({ request }) => {
     // console.log(saveLocation);
     // console.log(newData);
     // console.log(route);
+    // console.log(name);
 
     const dirname = path.dirname(saveLocation);
-    await fs.promises.mkdir(dirname, { recursive: true });
-    await fs.promises.writeFile(saveLocation, newData, { flag: "w" })
+    await fs.mkdir(dirname, { recursive: true });
+    await fs.writeFile(saveLocation, newData, { flag: "w" })
 
     return new Response("Saved!", { status: 201 });
 }

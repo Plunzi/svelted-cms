@@ -17,6 +17,7 @@
 
 	// layout component imports
 	import components from '$lib/svelted/components';
+	import { page } from '$app/stores';
 
 	type IconName = keyof typeof icons;
 
@@ -30,7 +31,16 @@
 		savingMessage: string;
 		shiftKeyHeld: boolean;
 		scale: number;
+		layout: string;
 	}
+
+	type PageLayout = {
+		value: string;
+		label: string;
+		route: string;
+	};
+
+	type PageLayouts = PageLayout[];
 
 	interface LayoutBlock {
 		name: string;
@@ -204,13 +214,18 @@
 		isSaving: false,
 		savingMessage: 'Save changes',
 		shiftKeyHeld: false,
-		scale: 1
+		scale: 1,
+		layout: data.page.route,
 	};
 
 	const saveData = async function (content: string, route: string, name: string) {
 		const formData = new FormData();
 		client.isSaving = true;
 		client.savingMessage = 'Loading ...';
+
+		// console.log(content);
+		// console.log(route);
+		// console.log(name);
 
 		formData.append('content', content);
 		formData.append('route', route);
@@ -224,8 +239,29 @@
 		await setTimeout(() => {
 			client.isSaving = false;
 			client.savingMessage = 'Save changes';
-			console.log(response.status, response);
+			// console.log(response.status, response);
 		}, 500);
+	};
+
+	const changeEditorPage = async function (route: string) {
+		const formData = new FormData();
+		formData.append('route', route);
+
+		// Use await with fetch to wait for the response
+		const response = await fetch('/svelted/editor/changelayout', {
+			method: 'POST',
+			body: formData
+		});
+
+		// Check if the request was successful
+		if (!response.ok) {
+			throw new Error(`HTTP error status: ${response.status}`);
+		}
+
+		// Read the response as text
+		const responseData = await response.json();
+		client.layout = route;
+		layout_blocks = responseData.layout;
 	};
 
 	function drag(e: DragEvent) {
@@ -266,8 +302,6 @@
 	};
 
 	const undo = () => {
-		console.log('undo');
-
 		if (undoStack.length > 0) {
 			const lastAction = undoStack.pop();
 			redoStack.push(lastAction);
@@ -431,23 +465,12 @@
 			layout_blocks = layout_blocks;
 		}
 	}
-	const pageRoutes = [
-		{
-			value: 'home',
-			label: 'Home',
-			route: '/'
-		},
-		{
-			value: 'about',
-			label: 'About',
-			route: '/about'
-		},
-		{
-			value: 'blog',
-			label: 'Blog',
-			route: '/blog'
-		}
-	];
+
+	let PageLayouts: PageLayouts = [];
+
+	for (const layout of data.layouts) {
+		PageLayouts.push({ value: layout.description.name.toLowerCase(), label: layout.description.name, route: layout.description.route });
+	}
 
 	const pageScales = [
 		{
@@ -492,7 +515,7 @@
 	let scaleSwitchOpen = false;
 	let value = data.page.name.toLowerCase();
 
-	$: selectedRoute = pageRoutes.find((f) => f.value === value)?.label ?? data.page.name;
+	$: selectedLayout = PageLayouts.find((f) => f.value === value)?.label ?? data.page.name;
 	$: selectedScale = pageScales.find((f) => f.value === value)?.label ?? '100 %';
 
 	function closeAndFocusTrigger(triggerId: string) {
@@ -548,34 +571,35 @@
 							aria-expanded={open}
 							class="h-10 w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
 						>
-							{selectedRoute}
+							{selectedLayout}
 							<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 						</Button>
 					</Popover.Trigger>
 					<Popover.Content class="w-48 border-none bg-transparent p-0">
 						<Command.Root class="bg-svelted-gray-700 text-neutral-400">
 							<Command.Input
-								placeholder="Search route..."
+								placeholder="Search layout..."
 								class="h-12 rounded-none bg-svelted-gray-700 text-white"
 							/>
 							<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
-								<button>Create new route</button>
+								<button>Create new layout</button>
 							</Command.Empty>
 							<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
-								{#each pageRoutes as route}
+								{#each PageLayouts as layout}
 									<Command.Item
 										class="rounded-none bg-svelted-gray-700 text-neutral-500"
-										value={route.value}
+										value={layout.value}
 										onSelect={(currentValue) => {
 											value = currentValue;
+											changeEditorPage(layout.route);
 											closeAndFocusTrigger(ids.trigger);
 										}}
 									>
 										<svelte:component
 											this={icons.Check}
-											class={cn('mr-2 h-8 w-4', value !== route.value && 'text-transparent')}
+											class={cn('mr-2 h-8 w-4', value !== layout.value && 'text-transparent')}
 										/>
-										{route.label}
+										{layout.label}
 									</Command.Item>
 								{/each}
 							</Command.Group>
@@ -624,7 +648,7 @@
 						variant="outline"
 						role="combobox"
 						aria-expanded={scaleSwitchOpen}
-						class="my-auto h-10 w-48 justify-between !rounded-md rounded-none border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
+						class="my-auto h-10 w-48 justify-between rounded-md border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
 					>
 						Scale {selectedScale}
 						<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -664,8 +688,8 @@
 		</div>
 		<div class="flex h-full items-center gap-3">
 			<button
-				on:click={() => saveData(JSON.stringify(layout_blocks), 'landing', selectedRoute)}
-				class="font-regular mr-3 flex h-10 w-36 items-center justify-center rounded-md border border-svelted-primary-500 bg-[#0a2620] text-lg text-svelted-primary-500 outline-none transition-all hover:bg-svelted-primary-500 hover:font-medium hover:text-white focus:font-medium focus:bg-svelted-primary-500 focus:text-white"
+				on:click={() => saveData(JSON.stringify(layout_blocks), client.layout, selectedLayout)}
+				class="font-regular mr-3 flex h-10 w-36 items-center justify-center rounded-md border border-svelted-primary-500 bg-[#0a2620] text-lg text-svelted-primary-500 outline-none transition-all hover:bg-svelted-primary-500 hover:font-medium hover:text-white focus:bg-svelted-primary-500 focus:font-medium focus:text-white"
 				class:bg-slate-700={client.isSaving}
 				class:text-slate-300={client.isSaving}
 			>
@@ -719,7 +743,7 @@
 									on:dragend={dragEnd}
 								>
 									<div
-										class="relative flex h-10 min-h-10 w-full cursor-move items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-neutral-500 hover:border-svelted-primary-500 hover:bg-neutral-900"
+										class="relative flex h-10 min-h-10 w-full cursor-move items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-svelted-primary-500 hover:bg-neutral-900"
 									>
 										{#if component.icon}
 											<svelte:component
@@ -779,7 +803,7 @@
 										id={`${index}`}
 									>
 										<div
-											class="relative flex h-10 min-h-10 w-full cursor-grab items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-neutral-500 hover:border-svelted-primary-500 hover:bg-neutral-900 focus:cursor-grabbing"
+											class="relative flex h-10 min-h-10 w-full cursor-grab items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-svelted-primary-500 hover:bg-neutral-900 focus:cursor-grabbing"
 										>
 											{#if block.icon}
 												<svelte:component
@@ -842,14 +866,14 @@
 				<div class="flex flex-col">
 					<button
 						on:click={() => changeSidebarPage('left', 'add-components')}
-						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+						class="grid aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
 						<svelte:component this={icons.Plus} class="h-6 w-6 fill-[currentcolor]"
 						></svelte:component>
 					</button>
 					<button
 						on:click={() => changeSidebarPage('left', 'list-components')}
-						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+						class="grid aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
 						<svelte:component this={icons.Stack} class="h-6 w-6 fill-[currentcolor]"
 						></svelte:component>
@@ -858,14 +882,14 @@
 				<div class="flex flex-col">
 					<button
 						on:click={() => changeSidebarPage('left', 'add-components')}
-						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+						class="grid aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
 						<svelte:component this={icons.Plus} class="h-6 w-6 fill-[currentcolor]"
 						></svelte:component>
 					</button>
 					<button
 						on:click={() => changeSidebarPage('left', 'list-components')}
-						class="grid focus:z-10 aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+						class="grid aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
 						<svelte:component this={icons.Stack} class="h-6 w-6 fill-[currentcolor]"
 						></svelte:component>
@@ -1052,7 +1076,7 @@
 				<p>No elements exist :O</p>
 			{/if}
 			<hr class="my-2 border-neutral-800" />
-			<h1 class="text-lg font-medium text-neutral-500">Routes:</h1>
+			<h1 class="text-lg font-medium text-neutral-500">Layouts:</h1>
 			<div class="w-full overflow-auto rounded-sm bg-svelted-gray-700 p-2 text-neutral-500">
 				<code class="">
 					{JSON.stringify(data.layouts)}

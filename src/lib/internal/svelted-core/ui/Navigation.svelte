@@ -106,7 +106,7 @@
 				</button>
 
 				<div id="essentials" class="max-h-48 transition-all">
-					<button
+					<a href="/svelted"
 						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
 						on:mouseenter={() => hoverOver('overview')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -118,8 +118,8 @@
 							<House class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
 							<p class="text-neutral-500">Overview</p>
 						{/if}
-					</button>
-					<button
+					</a>
+					<a href="/svelted/layouts"
 						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
 						on:mouseenter={() => hoverOver('layouts')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -131,8 +131,8 @@
 							<Blueprint class="mx-1 my-auto min-h-6 min-w-6  fill-neutral-500" weight="regular" />
 							<p class="text-neutral-500">Layouts</p>
 						{/if}
-					</button>
-					<button
+					</a>
+					<a href="/svelted/pages"
 						class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
 						on:mouseenter={() => hoverOver('pages')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -144,7 +144,7 @@
 							<Layout class="mx-1 my-auto min-h-6 min-w-6  fill-neutral-500" weight="regular" />
 							<p class="text-neutral-500">Pages</p>
 						{/if}
-					</button>
+					</a>
 				</div>
 
 				<button
@@ -300,6 +300,24 @@
 	#accounts button:last-of-type,
 	#extensions button:last-of-type,
 	#settings button:last-of-type {
+		border-bottom-right-radius: 0.25rem;
+		border-bottom-left-radius: 0.25rem;
+	}
+
+	#essentials a:first-of-type,
+	#content a:first-of-type,
+	#accounts a:first-of-type,
+	#extensions a:first-of-type,
+	#settings a:first-of-type {
+		border-top-right-radius: 0.25rem;
+		border-top-left-radius: 0.25rem;
+	}
+
+	#essentials a:last-of-type,
+	#content a:last-of-type,
+	#accounts a:last-of-type,
+	#extensions a:last-of-type,
+	#settings a:last-of-type {
 		border-bottom-right-radius: 0.25rem;
 		border-bottom-left-radius: 0.25rem;
 	}

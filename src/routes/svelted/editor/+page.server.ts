@@ -1,23 +1,21 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from 'node:fs/promises';
 
 import type { PageServerLoad } from './$types';
-import { getAllPages } from '$lib/svelted/pages/pages';
+import { getAllLayouts, getAllLayoutsInformation } from '$lib/svelted/layouts/layouts';
 
 export const load: PageServerLoad = async () => {
     // this route will be dynamically picked! for example "/route/any"
-    let savedData = await fs.promises.readFile('data/layouts/landing/layout.json', { encoding: 'utf8' });
+    // let savedData = await fs.promises.readFile('data/layouts/landing/layout.json', { encoding: 'utf8' });
+    // const data = await JSON.parse(savedData);
+
+    const layouts = await getAllLayouts();
+    const layoutData = await getAllLayoutsInformation(layouts);
+
+    const savedData = await fs.readFile(`data/layouts/${layouts[1]}/layout.json`, { encoding: 'utf8' });
     const data = await JSON.parse(savedData);
 
-    const pages = await getAllPages();
-    
-    // console.log("All layouts:");
-    // console.log(layouts);
-    // console.log("Saved data:");
-    // console.log(data);
-
     return {
-        layouts: pages,
+        layouts: layoutData,
         page: {
             name: data.description.name,
             route: data.description.route,
