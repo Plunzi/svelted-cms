@@ -1,0 +1,9 @@
+{
+    "allowed-roles": ["everyone"],
+    "layout": "examples/greeting",
+    "title": "Testing Page",
+    "status": "published",
+    "author": "Plunzi",
+    "modified": 1344549600,
+    "created": 1344549600
+}

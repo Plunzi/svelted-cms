@@ -16,6 +16,8 @@
 	import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
 	import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
 
+	export let data;
+
 	let searchTerm = '';
 
 	interface Client {
@@ -54,46 +56,7 @@
 		}
 	};
 
-	const now = new Date();
-	const oneHourAgo = new Date(now.getTime() - 1 * 60 * 60 * 1000); // One hour ago
-	const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // One day ago
-	const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // One week ago
-	const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // One month ago
-
-	let items = [
-		{
-			route: '/',
-			name: 'Home',
-			author: 'Plunzi',
-			status: 'published',
-			modified: now.getTime(),
-			created: oneWeekAgo.getTime()
-		},
-		{
-			route: '/about',
-			name: 'About',
-			author: 'Plunzi',
-			status: 'draft',
-			modified: oneHourAgo.getTime(),
-			created: oneDayAgo.getTime()
-		},
-		{
-			route: '/contact',
-			name: 'Contact',
-			status: 'draft',
-			author: 'Jasi',
-			modified: oneDayAgo.getTime(),
-			created: oneMonthAgo.getTime()
-		},
-		{
-			route: '/faq',
-			name: 'FAQ',
-			status: 'published',
-			author: 'Matl044',
-			modified: oneWeekAgo.getTime(),
-			created: oneWeekAgo.getTime()
-		}
-	];
+	let items = data.pages || [];
 
 	const sortKey = writable('route'); // default sort key
 	const sortDirection = writable(1); // default sort direction (ascending)
@@ -129,7 +92,7 @@
 	}
 
 	$: filteredItems = $sortItems.filter(
-		(item) => item.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
+		(item) => item.title.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
 	);
 </script>
 
@@ -251,7 +214,7 @@
 								</div>
 								<div class="w-full">
 									<button
-										on:click={() => sortTable('name')}
+										on:click={() => sortTable('title')}
 										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
 										<p>Title</p>
@@ -325,7 +288,7 @@
 												</Tooltip.Content>
 											</Tooltip.Root>
 											<div class="mb-0.5 py-2">
-												{item.name} <span class="text-neutral-800">―</span>
+												{item.title} <span class="text-neutral-800">―</span>
 												{item.route}
 											</div>
 										</div>
@@ -357,7 +320,7 @@
 											</div>
 										</div>
 									</div>
-									<div class="flex flex-col rounded-sm bg-red-500 bg-svelted-gray-700 py-2">
+									<div class="flex flex-col rounded-sm bg-svelted-gray-700 py-2">
 										<p>
 											<span class="border-r border-r-neutral-800 px-2 py-2"
 												>Modified: {formatTime(item.modified)}</span
@@ -392,7 +355,7 @@
 								</th>
 								<th>
 									<button
-										on:click={() => sortTable('name')}
+										on:click={() => sortTable('title')}
 										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
 										<p>Title</p>
@@ -444,7 +407,7 @@
 										<Checkbox class="border-neutral-800" />
 									</td>
 									<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.name}</td>
+									<td class="border-r border-r-neutral-800 px-2 py-2">{item.title}</td>
 									<td class="border-r border-r-neutral-800 px-2 py-2">{item.status}</td>
 									<td class="border-r border-r-neutral-800 px-2 py-2">{item.author}</td>
 									<td class="border-r border-r-neutral-800 px-2 py-2"

@@ -664,7 +664,7 @@
 		</div>
 		<div class="flex h-full items-center gap-3">
 			<button
-				on:click={() => saveData(JSON.stringify(layout_blocks), '/route/any/', selectedRoute)}
+				on:click={() => saveData(JSON.stringify(layout_blocks), 'landing', selectedRoute)}
 				class="font-regular mr-3 flex h-10 w-36 items-center justify-center rounded-md border border-svelted-primary-500 bg-[#0a2620] text-lg text-svelted-primary-500 outline-none transition-all hover:bg-svelted-primary-500 hover:font-medium hover:text-white focus:font-medium focus:bg-svelted-primary-500 focus:text-white"
 				class:bg-slate-700={client.isSaving}
 				class:text-slate-300={client.isSaving}

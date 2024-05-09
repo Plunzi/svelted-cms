@@ -4,12 +4,29 @@ import path from 'node:path';
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async () => {
+function isValidURL(url: string) {
+    if (url == "/") {
+        return true;
+    } else {
+        var pattern = /[a-zA-Z0-9\-_~:/?#[\]@!$&'()*+,;=.]+$/;
+        return pattern.test(url);
+    }
+}
+
+export const load: PageServerLoad = async ({ params }) => {
+    const navigatedRoute = params.path;
+    
+    if (!isValidURL(navigatedRoute)) {
+        error(404, {
+            message: 'Invalid url',
+        });
+    }
+
     let page;
 
     try {
         // check if page exists
-        const storedPageData = await fs.readFile(`data/pages/page.json`, { encoding: 'utf8' });
+        const storedPageData = await fs.readFile(`data/pages/${navigatedRoute}/page.json`, { encoding: 'utf8' });
         const parsedPageData = await JSON.parse(storedPageData);
 
         if (!parsedPageData) {

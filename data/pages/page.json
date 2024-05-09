@@ -1,0 +1,9 @@
+{
+    "allowed-roles": ["everyone"],
+    "layout": "landing",
+    "title": "Home",
+    "status": "published",
+    "author": "Plunzi",
+    "modified": 1344549600,
+    "created": 1344549600
+}

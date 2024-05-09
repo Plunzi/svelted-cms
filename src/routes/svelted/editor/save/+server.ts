@@ -12,7 +12,7 @@ function isValidURL(url: string) {
     if (url == "/") {
         return true;
     } else {
-        var pattern = /^\/[a-zA-Z0-9\-_~:/?#[\]@!$&'()*+,;=.]+\/$/;
+        var pattern = /^[a-zA-Z0-9\-_~:/?#[\]@!$&'()*+,;=.]+$/;
         return pattern.test(url);
     }
 }
@@ -60,10 +60,11 @@ export const POST: RequestHandler = async ({ request }) => {
     //
 
     const newData = `{"description": { "name": "${name || undefined}","route": "${route || undefined}","updated": ${updated} },"content": ${content}}`
-    const saveLocation = `src/lib/svelted/layouts${route}page.data.json`;
+    const saveLocation = `data/layouts/${route}/layout.json`;
 
-    console.log(saveLocation);
-    console.log(newData);
+    // console.log(saveLocation);
+    // console.log(newData);
+    // console.log(route);
 
     const dirname = path.dirname(saveLocation);
     await fs.promises.mkdir(dirname, { recursive: true });
