@@ -26,7 +26,9 @@ export const POST: RequestHandler = async ({ request }) => {
     const route = data.get('route');
     const content = data.get('content');
     const name = data.get('name');
+    const author = "admin";
     const updated = Math.floor(new Date().getTime() / 1000);
+    const created = data.get('created');
 
     //
     // check for errors (e.g. invalid content)
@@ -56,7 +58,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // handle saving changes for gicen route
     //
 
-    const newData = `{"description": { "name": "${name || undefined}","route": "${route || undefined}","updated": ${updated} },"content": ${content}}`
+    const newData = `{"description": { "name": "${name || undefined}","route": "${route || undefined}","author": "${author}","modified": ${updated},"created": ${created} },"content": ${content}}`
     const saveLocation = `data/layouts/${route}/layout.json`;
 
     // console.log(saveLocation);

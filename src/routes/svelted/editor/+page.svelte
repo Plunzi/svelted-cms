@@ -32,6 +32,7 @@
 		shiftKeyHeld: boolean;
 		scale: number;
 		layout: string;
+		created: string;
 	}
 
 	type PageLayout = {
@@ -216,6 +217,7 @@
 		shiftKeyHeld: false,
 		scale: 1,
 		layout: data.page.route,
+		created: data.page.created,
 	};
 
 	const saveData = async function (content: string, route: string, name: string) {
@@ -227,9 +229,10 @@
 		// console.log(route);
 		// console.log(name);
 
-		formData.append('content', content);
 		formData.append('route', route);
+		formData.append('content', content);
 		formData.append('name', name);
+		formData.append('created', data.page.created);
 
 		const response = await fetch('/svelted/editor/save', {
 			method: 'POST',
@@ -261,6 +264,7 @@
 		// Read the response as text
 		const responseData = await response.json();
 		client.layout = route;
+		client.created = responseData.created;
 		layout_blocks = responseData.layout;
 	};
 

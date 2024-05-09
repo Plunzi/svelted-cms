@@ -159,7 +159,7 @@
 					<p class="mb-1">{task.entry}</p>
 				</button>
 				<button
-					on:click={() => deleteEntry(index, 'done')}
+					on:click={() => deleteEntry(index, 'todo')}
 					class="absolute right-2 grid h-6 w-6 items-center justify-center rounded-sm bg-neutral-900 text-neutral-500 hover:text-red-500"
 				>
 					<Trash class="fill-[currentcolor]" />

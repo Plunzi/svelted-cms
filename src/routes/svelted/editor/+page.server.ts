@@ -19,8 +19,8 @@ export const load: PageServerLoad = async () => {
         page: {
             name: data.description.name,
             route: data.description.route,
-            // updated: data.descripton.updated,
-            content: data.content
+            created: data.description.created,
+            content: data.content,
         }
     };
 };

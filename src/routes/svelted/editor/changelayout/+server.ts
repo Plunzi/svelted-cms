@@ -11,8 +11,6 @@ export const POST: RequestHandler = async ({ request }) => {
     const data = await request.formData();
     const route = data.get('route');
 
-    console.log(route);
-
     //
     // check for errors (e.g. invalid content)
     //
@@ -32,7 +30,5 @@ export const POST: RequestHandler = async ({ request }) => {
         });
     }
 
-    console.log(layout);
-
-    return new Response(JSON.stringify({ name: layout.description.name, layout: layout.content }), { status: 201 });
+    return new Response(JSON.stringify({ name: layout.description.name, created: layout.description.created, layout: layout.content }), { status: 201 });
 }
