@@ -1,107 +1,138 @@
 <script lang="ts">
-import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
-import {
-    Blueprint,
-    CaretDown,
-    CaretUp,
-    Check,
-    Funnel,
-    Pen,
-    Plus,
-    Rows,
-    SquaresFour,
-    Trash,
-    UserList
-} from 'phosphor-svelte';
-import { writable } from 'svelte/store';
-import formatTime from '$lib/internal/svelted-core/format/time';
-import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
-import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
+	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
+	import {
+		Blueprint,
+		CaretDown,
+		CaretUp,
+		Check,
+		Funnel,
+		Pen,
+		Plus,
+		Rows,
+		SquaresFour,
+		Trash,
+		UserList
+	} from 'phosphor-svelte';
+	import { writable } from 'svelte/store';
+	import formatTime from '$lib/internal/svelted-core/format/time';
+	import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
+	import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
+	import { flip } from 'svelte/animate';
 
-export let data;
+	export let data;
 
-let searchTerm = '';
+	let searchTerm = '';
 
-interface Client {
-    sidebar: boolean;
-}
+	interface Client {
+		sidebar: boolean;
+	}
 
-const hoverOver = function (element: string | undefined) {
-    client.hoverOver = element;
-};
+	const hoverOver = function (element: string | undefined) {
+		client.hoverOver = element;
+	};
 
-interface Client {
-    hoverOver: undefined | string;
-    sidebar: boolean;
-    display: string | undefined;
-    dropdowns: {
-        status: {
-            open: boolean;
-            value: string;
-        };
-        layout: {
-            open: boolean;
-            value: string;
-        };
-    };
-}
+	const createLayout = async function () {
+		const formData = new FormData();
+		// client.isSaving = true;
+		// client.savingMessage = 'Loading ...';
 
-let client: Client = {
-    hoverOver: undefined,
-    sidebar: false,
-    display: 'table',
-    dropdowns: {
-        status: {
-            open: false,
-            value: 'draft'
-        },
-        layout: {
-            open: false,
-            value: 'none'
-        }
-    }
-};
+		formData.append('route', client.routeInput);
+		formData.append('name', client.nameInput);
 
-let items = data.layouts || [];
+		const response = await fetch('/svelted/layouts/create', {
+			method: 'POST',
+			body: formData
+		});
 
-const sortKey = writable('route'); // default sort key
-const sortDirection = writable(1); // default sort direction (ascending)
-const sortItems = writable(items.slice()); // make a copy of the items array
+		// client.isSaving = false;
+		// client.savingMessage = 'Save changes';
 
-// Define a function to sort the items
-const sortTable = (key: string) => {
-    // If the same key is clicked, reverse the sort direction
-    if ($sortKey === key) {
-        sortDirection.update(val => -val);
-    } else {
-        sortKey.set(key);
-        sortDirection.set(1);
-    }
-};
+		let result = await response.json();
+		result.route = result.description.route;
+		result.content = undefined;
 
-$: {
-    const key = $sortKey;
-    const direction = $sortDirection;
-    const sorted = [...$sortItems].sort((a, b) => {
-        const aVal = a.description[key];
-        const bVal = b.description[key];
-        if (aVal < bVal) {
-            return -direction;
-        } else if (aVal > bVal) {
-            return direction;
-        }
-        return 0;
-    });
-    sortItems.set(sorted);
-}
+		items.push(result);
+		sortItems.set(items.slice());
 
-$: filteredItems = $sortItems.filter(
-    item =>
-        item.description.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
-);
+		client.nameInput = '';
+		client.routeInput = '';
+	};
+
+	interface Client {
+		hoverOver: undefined | string;
+		sidebar: boolean;
+		display: string | undefined;
+		routeInput: string;
+		nameInput: string;
+		dropdowns: {
+			status: {
+				open: boolean;
+				value: string;
+			};
+			layout: {
+				open: boolean;
+				value: string;
+			};
+		};
+	}
+
+	let client: Client = {
+		hoverOver: undefined,
+		sidebar: false,
+		display: 'table',
+		routeInput: '',
+		nameInput: '',
+		dropdowns: {
+			status: {
+				open: false,
+				value: 'draft'
+			},
+			layout: {
+				open: false,
+				value: 'none'
+			}
+		}
+	};
+
+	let items = data.layouts || [];
+
+	const sortKey = writable('route'); // default sort key
+	const sortDirection = writable(1); // default sort direction (ascending)
+	const sortItems = writable(items.slice()); // make a copy of the items array
+
+	// Define a function to sort the items
+	const sortTable = (key: string) => {
+		// If the same key is clicked, reverse the sort direction
+		if ($sortKey === key) {
+			sortDirection.update((val) => -val);
+		} else {
+			sortKey.set(key);
+			sortDirection.set(1);
+		}
+	};
+
+	$: {
+		const key = $sortKey;
+		const direction = $sortDirection;
+		const sorted = [...$sortItems].sort((a, b) => {
+			const aVal = a.description[key];
+			const bVal = b.description[key];
+			if (aVal < bVal) {
+				return -direction;
+			} else if (aVal > bVal) {
+				return direction;
+			}
+			return 0;
+		});
+		sortItems.set(sorted);
+	}
+
+	$: filteredItems = $sortItems.filter(
+		(item) => item.description.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
+	);
 </script>
 
-<Navigation overflow={false} site={['Layouts']}>
+<Navigation overflow={false} site={['Layouts']} activepage="Layouts">
 	<div class="flex bg-neutral-950">
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
@@ -118,7 +149,7 @@ $: filteredItems = $sortItems.filter(
 				</div>
 				<div class="flex gap-2">
 					<button
-						on:click={() => client.display = 'tables'}
+						on:click={() => (client.display = 'tables')}
 						on:mouseenter={() => hoverOver('display-tables')}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -130,7 +161,7 @@ $: filteredItems = $sortItems.filter(
 						{/if}
 					</button>
 					<button
-						on:click={() => client.display = 'cards'}
+						on:click={() => (client.display = 'cards')}
 						on:mouseenter={() => hoverOver('display-cards')}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
@@ -145,11 +176,11 @@ $: filteredItems = $sortItems.filter(
 			</div>
 			<nav class="flex gap-2">
 				<button
-					on:mouseenter={() => hoverOver('create-page')}
+					on:mouseenter={() => hoverOver('create-layout')}
 					on:mouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 				>
-					{#if client.hoverOver == 'create-page'}
+					{#if client.hoverOver == 'create-layout'}
 						<Plus class="h-5 w-5 fill-[currentcolors]" weight="bold" />
 					{:else}
 						<Plus class="h-5 w-5 fill-[currentcolors]" />
@@ -204,6 +235,7 @@ $: filteredItems = $sortItems.filter(
 							Save Location
 						</label>
 						<input
+							bind:value={client.routeInput}
 							id="enter-layout-locatiom"
 							class="relative h-10 w-full rounded-l-md border-r border-r-neutral-800 bg-neutral-950 p-2 focus:z-30"
 							placeholder="e.g. /contact"
@@ -218,6 +250,7 @@ $: filteredItems = $sortItems.filter(
 						</label>
 
 						<input
+							bind:value={client.nameInput}
 							id="enter-layout-name"
 							class="relative h-10 w-full rounded-r-md bg-neutral-950 p-2 focus:z-10"
 							placeholder="e.g. Contact"
@@ -226,10 +259,11 @@ $: filteredItems = $sortItems.filter(
 				</div>
 				<div class="flex">
 					<button
+						on:click={createLayout}
 						class="mt-auto flex max-h-10 min-h-10 items-center gap-2 rounded-sm bg-neutral-800 pl-3 pr-5 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
 						<Plus class="h-5 w-5 fill-[currentcolor]" />
-						<span class="whitespace-nowrap">Create Page</span>
+						<span class="whitespace-nowrap">Create Layout</span>
 					</button>
 				</div>
 			</div>
@@ -297,8 +331,9 @@ $: filteredItems = $sortItems.filter(
 							</div>
 						</div>
 						<div class="grid grid-cols-2 gap-2 text-neutral-500">
-							{#each filteredItems as item, index}
+							{#each filteredItems as item, index (item)}
 								<div
+									animate:flip={{ duration: 500 }}
 									class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
 								>
 									<div class="flex justify-between gap-2 pb-1">
@@ -316,7 +351,8 @@ $: filteredItems = $sortItems.filter(
 										<div>
 											<div class="flex w-full gap-2">
 												<p class="px-2 py-2">{item.description.author}</p>
-												<a href={`/svelted/editor?currentpage=${item.description.route}`}
+												<a
+													href={`/svelted/editor?currentpage=${item.description.route}`}
 													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
@@ -327,7 +363,8 @@ $: filteredItems = $sortItems.filter(
 														<Pen class="h-5 w-5 fill-[currentcolor]" />
 													{/if}
 												</a>
-												<a href={`/svelted/editor?currentpage=${item.description.route}`}
+												<a
+													href={`/svelted/editor?currentpage=${item.description.route}`}
 													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -356,19 +393,19 @@ $: filteredItems = $sortItems.filter(
 				</div>
 			{:else}
 				<!-- Table Display -->
-				<div class="rounded-lg bg-svelted-gray-700 p-2">
+				<div class="rounded-lg bg-svelted-gray-700 px-2">
 					<table class="w-full">
 						<thead>
 							<tr class="text-neutral-500">
 								<th>
-									<div class="mb-2 grid h-8 max-w-10 items-center justify-center text-left">
+									<div class="grid h-8 max-w-10 items-center justify-center text-left">
 										<Checkbox class="border-neutral-700" id="pages-checkbox" />
 									</div>
 								</th>
 								<th>
 									<button
 										on:click={() => sortTable('route')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
 										<p>Route</p>
 										<CaretUp weight="fill" />
@@ -377,7 +414,7 @@ $: filteredItems = $sortItems.filter(
 								<th>
 									<button
 										on:click={() => sortTable('name')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
 										<p>Name</p>
 										<CaretUp weight="fill" />
@@ -386,7 +423,7 @@ $: filteredItems = $sortItems.filter(
 								<th>
 									<button
 										on:click={() => sortTable('author')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
 										<p>Author</p>
 										<CaretUp weight="fill" />
@@ -395,7 +432,7 @@ $: filteredItems = $sortItems.filter(
 								<th>
 									<button
 										on:click={() => sortTable('modified')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
 										<p>Modified</p>
 										<CaretUp weight="fill" />
@@ -404,7 +441,7 @@ $: filteredItems = $sortItems.filter(
 								<th>
 									<button
 										on:click={() => sortTable('created')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
 										<p>Created</p>
 										<CaretUp weight="fill" />
@@ -413,8 +450,8 @@ $: filteredItems = $sortItems.filter(
 							</tr>
 						</thead>
 						<tbody class="text-neutral-500">
-							{#each filteredItems as item, index}
-								<tr class="hover:!bg-[#0a2620] hover:text-white">
+							{#each filteredItems as item, index (item)}
+								<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 									<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 										<Checkbox class="border-neutral-800" />
 									</td>
@@ -424,10 +461,13 @@ $: filteredItems = $sortItems.filter(
 									<td class="border-r border-r-neutral-800 px-2 py-2"
 										>{formatTime(item.description.modified)}</td
 									>
-									<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.description.created)}</td>
+									<td class="border-r-neutral-800 px-2 py-2"
+										>{formatTime(item.description.created)}</td
+									>
 									<td class="w-14">
 										<div class="flex gap-2">
-											<a href={`/svelted/editor?currentpage=${item.description.route}`}
+											<a
+												href={`/svelted/editor?currentpage=${item.description.route}`}
 												on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 												on:mouseleave={() => hoverOver(undefined)}
 												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -438,7 +478,8 @@ $: filteredItems = $sortItems.filter(
 													<Pen class="h-5 w-5 fill-[currentcolor]" />
 												{/if}
 											</a>
-											<a href={`/svelted/editor?currentpage=${item.description.route}`}
+											<a
+												href={`/svelted/editor?currentpage=${item.description.route}`}
 												on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 												on:mouseleave={() => hoverOver(undefined)}
 												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -451,9 +492,6 @@ $: filteredItems = $sortItems.filter(
 											</a>
 										</div>
 									</td>
-								</tr>
-								<tr class="spacer">
-									<td></td>
 								</tr>
 							{/each}
 						</tbody>
@@ -527,7 +565,12 @@ $: filteredItems = $sortItems.filter(
 		padding-left: 0.5rem;
 	}
 
-	tbody tr:nth-child(odd) {
+	table {
+		border-spacing: 0 0.5rem;
+		border-collapse: separate;
+	}
+
+	tbody tr {
 		background-color: #161616;
 		background-color: #0a0a0a;
 	}

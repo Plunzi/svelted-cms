@@ -136,7 +136,7 @@
 	);
 </script>
 
-<Navigation overflow={false} site={['Pages']}>
+<Navigation overflow={false} site={['Pages']} activepage="Pages">
 	<div class="flex bg-neutral-950">
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
