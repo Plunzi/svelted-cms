@@ -6,5 +6,5 @@ export const load: PageServerLoad = async () => {
     const layoutsData = await getAllLayoutsInformation(layouts);
 
     // this route will be dynamically picked! for example "/route/any"
-    return { pages: layoutsData};
+    return { layouts: layoutsData};
 };

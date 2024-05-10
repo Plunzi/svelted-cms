@@ -2,7 +2,9 @@
 	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
 	import {
 		Blueprint,
+		CaretDown,
 		CaretUp,
+		Check,
 		Funnel,
 		Pen,
 		Plus,
@@ -13,45 +15,74 @@
 	} from 'phosphor-svelte';
 	import { writable } from 'svelte/store';
 	import formatTime from '$lib/internal/svelted-core/format/time';
+
+	// shadcn ui imports
 	import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
 	import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
+	import * as Command from '$lib/internal/svelted-core/ui/command/index.js';
+	import * as Popover from '$lib/internal/svelted-core/ui/popover/index.js';
+	import { Button } from '$lib/internal/svelted-core/ui/button/index.js';
+	import { cn } from '$lib/internal/svelted-core/utils.js';
+	import { tick } from 'svelte';
 
 	export let data;
 
 	let searchTerm = '';
 
-	interface Client {
-		sidebar: boolean;
-	}
-
 	const hoverOver = function (element: string | undefined) {
 		client.hoverOver = element;
 	};
 
+	type DropdownValue = {
+		value: string;
+		label: string;
+		selection: string | undefined;
+	};
+
+	type DropdownValues = DropdownValue[];
+
 	interface Client {
 		hoverOver: undefined | string;
 		sidebar: boolean;
-		display: string | undefined
+		display: string | undefined;
+		dropdowns: {
+			status: {
+				open: boolean;
+				value: string;
+			};
+			layout: {
+				open: boolean;
+				value: string;
+			};
+		};
 	}
 
 	let client: Client = {
 		hoverOver: undefined,
 		sidebar: false,
-		display: 'table'
-	};
-
-	const toggleSection = function (element: string) {
-		const target = document.getElementById(element);
-		const button = document.getElementById(element + '-btn');
-
-		if (target!.classList.contains('hide')) {
-			target!.classList.remove('hide');
-			button!.style.transform = 'rotate(0deg)';
-		} else {
-			target!.classList.add('hide');
-			button!.style.transform = 'rotate(90deg)';
+		display: 'table',
+		dropdowns: {
+			status: {
+				open: false,
+				value: 'draft'
+			},
+			layout: {
+				open: false,
+				value: 'none'
+			}
 		}
 	};
+
+	let pageStatusOptions: DropdownValues = [
+		{ label: 'Draft', value: 'draft', selection: 'draft' },
+		{ label: 'Published', value: 'published', selection: 'published' }
+	];
+
+	let pageLayoutOptions: DropdownValues = [
+		{ label: '404', value: '404', selection: '404' },
+		{ label: 'Example Test', value: 'example test', selection: 'examples/greeting' },
+		{ label: 'None', value: 'none', selection: undefined }
+	];
 
 	let items = data.pages || [];
 
@@ -74,9 +105,7 @@
 		const key = $sortKey;
 		const direction = $sortDirection;
 		const sorted = [...$sortItems].sort((a, b) => {
-			// @ts-ignore
 			const aVal = a[key];
-			// @ts-ignore
 			const bVal = b[key];
 			if (aVal < bVal) {
 				return -direction;
@@ -87,6 +116,20 @@
 		});
 		sortItems.set(sorted);
 	}
+
+	function closeAndFocusTrigger(triggerId: string) {
+		client.dropdowns.status.open = false;
+		tick().then(() => {
+			document.getElementById(triggerId)?.focus();
+		});
+	}
+
+	$: selectedStatus =
+		pageStatusOptions.find((f) => f.value === client.dropdowns.status.value)?.label ??
+		'Select a status';
+	$: selectedLayout =
+		pageLayoutOptions.find((f) => f.value === client.dropdowns.layout.value)?.label ??
+		'Select a layout';
 
 	$: filteredItems = $sortItems.filter(
 		(item) => item.title.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
@@ -111,7 +154,7 @@
 				</div>
 				<div class="flex gap-2">
 					<button
-						on:click={() => client.display = 'tables'}
+						on:click={() => (client.display = 'tables')}
 						on:mouseenter={() => hoverOver('display-tables')}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -123,7 +166,7 @@
 						{/if}
 					</button>
 					<button
-						on:click={() => client.display = 'cards'}
+						on:click={() => (client.display = 'cards')}
 						on:mouseenter={() => hoverOver('display-cards')}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
@@ -184,6 +227,157 @@
 					/>
 				</div>
 			</nav>
+
+			<hr class="border-neutral-800" />
+
+			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2">
+				<div class="mt-5 flex">
+					<div class="relative w-full">
+						<label
+							for="enter-page-route"
+							class="absolute -top-3.5 w-fit -translate-y-2.5 whitespace-nowrap pl-1.5 pr-1.5 text-sm text-neutral-500"
+						>
+							Navigation Route
+						</label>
+						<input
+							id="enter-page-route"
+							class="relative h-10 w-full rounded-l-md border-r border-r-neutral-800 bg-neutral-950 p-2 focus:z-30"
+							placeholder="e.g. /contact"
+						/>
+					</div>
+					<div class="relative w-full">
+						<label
+							for="enter-page-title"
+							class="absolute -top-3.5 w-fit -translate-y-2.5 whitespace-nowrap pl-1.5 pr-1.5 text-sm text-neutral-500"
+						>
+							Page Title
+						</label>
+
+						<input
+							id="enter-page-title"
+							class="relative h-10 w-full rounded-r-md bg-neutral-950 p-2 focus:z-10"
+							placeholder="e.g. Contact"
+						/>
+					</div>
+					<div class="relative w-full">
+						<label
+							for="enter-page-status"
+							class="absolute -top-3.5 w-fit -translate-y-2.5 whitespace-nowrap pl-1.5 pr-1.5 text-sm text-neutral-500"
+						>
+							Page Status
+						</label>
+
+						<Popover.Root bind:open={client.dropdowns.status.open} let:ids>
+							<Popover.Trigger asChild let:builder>
+								<Button
+									id="enter-page-status"
+									builders={[builder]}
+									variant="outline"
+									role="combobox"
+									aria-expanded={client.dropdowns.status.open}
+									class="relative h-10 min-w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700 focus:z-10"
+								>
+									{selectedStatus}
+									<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+								</Button>
+							</Popover.Trigger>
+							<Popover.Content class="w-48 border-none bg-transparent p-0">
+								<Command.Root class="bg-svelted-gray-700 text-neutral-400">
+									<Command.Input
+										placeholder="Search layout..."
+										class="h-12 rounded-none bg-svelted-gray-700 text-white"
+									/>
+									<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
+										<button>Create new layout</button>
+									</Command.Empty>
+									<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
+										{#each pageStatusOptions as status}
+											<Command.Item
+												class="rounded-none bg-svelted-gray-700 text-neutral-500"
+												value={status.value}
+												onSelect={(currentValue) => {
+													client.dropdowns.status.value = currentValue;
+													closeAndFocusTrigger(ids.trigger);
+												}}
+											>
+												<Check
+													class={cn(
+														'mr-2 h-8 w-4',
+														client.dropdowns.status.value !== status.value && 'text-transparent'
+													)}
+												/>
+												{status.label}
+											</Command.Item>
+										{/each}
+									</Command.Group>
+								</Command.Root>
+							</Popover.Content>
+						</Popover.Root>
+					</div>
+					<div class="relative w-full">
+						<label
+							for="enter-page-layout"
+							class="absolute -top-3.5 w-fit -translate-y-2.5 whitespace-nowrap pl-1.5 pr-1.5 text-sm text-neutral-500"
+						>
+							Page Layout
+						</label>
+						<Popover.Root bind:open={client.dropdowns.layout.open} let:ids>
+							<Popover.Trigger asChild let:builder>
+								<Button
+									id="enter-page-layout"
+									builders={[builder]}
+									variant="outline"
+									role="combobox"
+									aria-expanded={client.dropdowns.status.open}
+									class="relative h-10 min-w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700 focus:z-10"
+								>
+									{selectedLayout}
+									<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+								</Button>
+							</Popover.Trigger>
+							<Popover.Content class="w-48 border-none bg-transparent p-0">
+								<Command.Root class="bg-svelted-gray-700 text-neutral-400">
+									<Command.Input
+										placeholder="Search layout..."
+										class="h-12 rounded-none bg-svelted-gray-700 text-white"
+									/>
+									<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
+										<button>Create new layout</button>
+									</Command.Empty>
+									<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
+										{#each pageLayoutOptions as layout}
+											<Command.Item
+												class="rounded-none bg-svelted-gray-700 text-neutral-500"
+												value={layout.value}
+												onSelect={(currentValue) => {
+													client.dropdowns.layout.value = currentValue;
+													closeAndFocusTrigger(ids.trigger);
+												}}
+											>
+												<Check
+													class={cn(
+														'mr-2 h-8 w-4',
+														client.dropdowns.layout.value !== layout.value && 'text-transparent'
+													)}
+												/>
+												{layout.label}
+											</Command.Item>
+										{/each}
+									</Command.Group>
+								</Command.Root>
+							</Popover.Content>
+						</Popover.Root>
+					</div>
+				</div>
+				<div class="flex">
+					<button
+						class="mt-auto flex max-h-10 min-h-10 items-center gap-2 rounded-sm bg-neutral-800 pl-3 pr-5 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						<Plus class="h-5 w-5 fill-[currentcolor]" />
+						<span class="whitespace-nowrap">Create Page</span>
+					</button>
+				</div>
+			</div>
 
 			<hr class="border-neutral-800" />
 

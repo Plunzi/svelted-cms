@@ -550,7 +550,7 @@
 	>
 		<div class="flex h-full items-center gap-3">
 			<a
-				href="/svelted/dashboard"
+				href="/svelted"
 				class="grid h-full w-16 items-center hover:bg-[#0a2620] focus:bg-[#0a2620] focus:outline-none"
 			>
 				<img

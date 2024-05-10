@@ -1,99 +1,107 @@
 <script lang="ts">
-	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
-	import {
-		Blueprint,
-		CaretUp,
-		Funnel,
-		Pen,
-		Plus,
-		Rows,
-		SquaresFour,
-		Trash,
-		UserList
-	} from 'phosphor-svelte';
-	import { writable } from 'svelte/store';
-	import formatTime from '$lib/internal/svelted-core/format/time';
-	import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
-	import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
+import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
+import {
+    Blueprint,
+    CaretDown,
+    CaretUp,
+    Check,
+    Funnel,
+    Pen,
+    Plus,
+    Rows,
+    SquaresFour,
+    Trash,
+    UserList
+} from 'phosphor-svelte';
+import { writable } from 'svelte/store';
+import formatTime from '$lib/internal/svelted-core/format/time';
+import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
+import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
 
-	export let data;
+export let data;
 
-	let searchTerm = '';
+let searchTerm = '';
 
-	interface Client {
-		sidebar: boolean;
-	}
+interface Client {
+    sidebar: boolean;
+}
 
-	const hoverOver = function (element: string | undefined) {
-		client.hoverOver = element;
-	};
+const hoverOver = function (element: string | undefined) {
+    client.hoverOver = element;
+};
 
-	interface Client {
-		hoverOver: undefined | string;
-		sidebar: boolean;
-		display: string | undefined
-	}
+interface Client {
+    hoverOver: undefined | string;
+    sidebar: boolean;
+    display: string | undefined;
+    dropdowns: {
+        status: {
+            open: boolean;
+            value: string;
+        };
+        layout: {
+            open: boolean;
+            value: string;
+        };
+    };
+}
 
-	let client: Client = {
-		hoverOver: undefined,
-		sidebar: false,
-		display: 'table'
-	};
+let client: Client = {
+    hoverOver: undefined,
+    sidebar: false,
+    display: 'table',
+    dropdowns: {
+        status: {
+            open: false,
+            value: 'draft'
+        },
+        layout: {
+            open: false,
+            value: 'none'
+        }
+    }
+};
 
-	const toggleSection = function (element: string) {
-		const target = document.getElementById(element);
-		const button = document.getElementById(element + '-btn');
+let items = data.layouts || [];
 
-		if (target!.classList.contains('hide')) {
-			target!.classList.remove('hide');
-			button!.style.transform = 'rotate(0deg)';
-		} else {
-			target!.classList.add('hide');
-			button!.style.transform = 'rotate(90deg)';
-		}
-	};
+const sortKey = writable('route'); // default sort key
+const sortDirection = writable(1); // default sort direction (ascending)
+const sortItems = writable(items.slice()); // make a copy of the items array
 
-	let items = data.pages || [];
+// Define a function to sort the items
+const sortTable = (key: string) => {
+    // If the same key is clicked, reverse the sort direction
+    if ($sortKey === key) {
+        sortDirection.update(val => -val);
+    } else {
+        sortKey.set(key);
+        sortDirection.set(1);
+    }
+};
 
-	const sortKey = writable('route'); // default sort key
-	const sortDirection = writable(1); // default sort direction (ascending)
-	const sortItems = writable(items.slice()); // make a copy of the items array
+$: {
+    const key = $sortKey;
+    const direction = $sortDirection;
+    const sorted = [...$sortItems].sort((a, b) => {
+        const aVal = a.description[key];
+        const bVal = b.description[key];
+        if (aVal < bVal) {
+            return -direction;
+        } else if (aVal > bVal) {
+            return direction;
+        }
+        return 0;
+    });
+    sortItems.set(sorted);
+}
 
-	// Define a function to sort the items
-	const sortTable = (key: string) => {
-		// If the same key is clicked, reverse the sort direction
-		if ($sortKey === key) {
-			sortDirection.update((val) => -val);
-		} else {
-			sortKey.set(key);
-			sortDirection.set(1);
-		}
-	};
-
-	$: {
-		const key = $sortKey;
-		const direction = $sortDirection;
-		const sorted = [...$sortItems].sort((a, b) => {
-			// @ts-ignore
-			const aVal = a[key];
-			// @ts-ignore
-			const bVal = b[key];
-			if (aVal < bVal) {
-				return -direction;
-			} else if (aVal > bVal) {
-				return direction;
-			}
-			return 0;
-		});
-		sortItems.set(sorted);
-	}
-
-	$: filteredItems = $sortItems.filter(
-		(item) => item.description.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
-	);
+$: filteredItems = $sortItems.filter(
+    item =>
+        item.description.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
+);
 </script>
 
-<Navigation overflow={false} site={['Pages']}>
+<Navigation overflow={false} site={['Layouts']}>
 	<div class="flex bg-neutral-950">
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
@@ -102,8 +110,11 @@
 			<div class="flex justify-between gap-2">
 				<div class="flex h-10 items-center gap-2 px-2">
 					<Blueprint class="mt-0.5 h-6 w-6 fill-neutral-500" weight="regular" />
-					<p class="font-medium text-neutral-500">Pages Overview</p>
+					<p class="font-medium text-neutral-500">Layouts Overview</p>
 					<p class="text-neutral-500">―</p>
+					<p class="text-neutral-500">
+						{items.length} Layouts
+					</p>
 				</div>
 				<div class="flex gap-2">
 					<button
@@ -180,6 +191,48 @@
 					/>
 				</div>
 			</nav>
+
+			<hr class="border-neutral-800" />
+
+			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2">
+				<div class="mt-5 flex">
+					<div class="relative w-full">
+						<label
+							for="enter-layout-locatiom"
+							class="absolute -top-3.5 w-fit -translate-y-2.5 whitespace-nowrap pl-1.5 pr-1.5 text-sm text-neutral-500"
+						>
+							Save Location
+						</label>
+						<input
+							id="enter-layout-locatiom"
+							class="relative h-10 w-full rounded-l-md border-r border-r-neutral-800 bg-neutral-950 p-2 focus:z-30"
+							placeholder="e.g. /contact"
+						/>
+					</div>
+					<div class="relative w-full">
+						<label
+							for="enter-layout-name"
+							class="absolute -top-3.5 w-fit -translate-y-2.5 whitespace-nowrap pl-1.5 pr-1.5 text-sm text-neutral-500"
+						>
+							Layout Name
+						</label>
+
+						<input
+							id="enter-layout-name"
+							class="relative h-10 w-full rounded-r-md bg-neutral-950 p-2 focus:z-10"
+							placeholder="e.g. Contact"
+						/>
+					</div>
+				</div>
+				<div class="flex">
+					<button
+						class="mt-auto flex max-h-10 min-h-10 items-center gap-2 rounded-sm bg-neutral-800 pl-3 pr-5 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						<Plus class="h-5 w-5 fill-[currentcolor]" />
+						<span class="whitespace-nowrap">Create Page</span>
+					</button>
+				</div>
+			</div>
 
 			<hr class="border-neutral-800" />
 
@@ -263,7 +316,7 @@
 										<div>
 											<div class="flex w-full gap-2">
 												<p class="px-2 py-2">{item.description.author}</p>
-												<button
+												<a href={`/svelted/editor?currentpage=${item.description.route}`}
 													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
@@ -273,8 +326,8 @@
 													{:else}
 														<Pen class="h-5 w-5 fill-[currentcolor]" />
 													{/if}
-												</button>
-												<button
+												</a>
+												<a href={`/svelted/editor?currentpage=${item.description.route}`}
 													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -284,7 +337,7 @@
 													{:else}
 														<Trash class="h-5 w-5 fill-[currentcolor]" />
 													{/if}
-												</button>
+												</a>
 											</div>
 										</div>
 									</div>
@@ -323,10 +376,10 @@
 								</th>
 								<th>
 									<button
-										on:click={() => sortTable('title')}
+										on:click={() => sortTable('name')}
 										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 									>
-										<p>Title</p>
+										<p>Name</p>
 										<CaretUp weight="fill" />
 									</button>
 								</th>
@@ -374,7 +427,7 @@
 									<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.description.created)}</td>
 									<td class="w-14">
 										<div class="flex gap-2">
-											<button
+											<a href={`/svelted/editor?currentpage=${item.description.route}`}
 												on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 												on:mouseleave={() => hoverOver(undefined)}
 												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -384,8 +437,8 @@
 												{:else}
 													<Pen class="h-5 w-5 fill-[currentcolor]" />
 												{/if}
-											</button>
-											<button
+											</a>
+											<a href={`/svelted/editor?currentpage=${item.description.route}`}
 												on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 												on:mouseleave={() => hoverOver(undefined)}
 												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -395,7 +448,7 @@
 												{:else}
 													<Trash class="h-5 w-5 fill-[currentcolor]" />
 												{/if}
-											</button>
+											</a>
 										</div>
 									</td>
 								</tr>
