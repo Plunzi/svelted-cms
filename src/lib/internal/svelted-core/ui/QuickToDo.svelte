@@ -150,7 +150,7 @@
 			type="text"
 		/>
 		{#each tasks.todo as task, index}
-			<div class="flex">
+			<div class="flex relative tasks">
 				<button
 					on:click={() => checkEntry(index, 'todo')}
 					class="relative flex items-center gap-2 px-1 text-neutral-500 hover:text-white"
@@ -160,7 +160,7 @@
 				</button>
 				<button
 					on:click={() => deleteEntry(index, 'todo')}
-					class="absolute right-1 grid h-6 w-6 items-center justify-center rounded-sm bg-neutral-900 text-neutral-500 hover:text-red-500"
+					class="btns absolute opacity-0 transition-all right-1 grid h-6 w-6 items-center justify-center rounded-sm bg-neutral-900 text-neutral-500 hover:text-red-500"
 				>
 					<Trash class="fill-[currentcolor]" />
 				</button>
@@ -176,7 +176,7 @@
 		</div>
 
 		{#each tasks.done as task, index}
-			<div class="flex">
+			<div class="flex relative tasks">
 				<button
 					on:click={() => checkEntry(index, 'done')}
 					class="relative flex items-center gap-2 px-1 text-neutral-500 hover:text-white"
@@ -186,7 +186,7 @@
 				</button>
 				<button
 					on:click={() => deleteEntry(index, 'done')}
-					class="absolute right-1 grid h-6 w-6 items-center justify-center rounded-sm bg-neutral-900 text-neutral-500 hover:text-red-500"
+					class="btns absolute opacity-0 transition-all right-1 grid h-6 w-6 items-center justify-center rounded-sm bg-neutral-900 text-neutral-500 hover:text-red-500"
 				>
 					<Trash class="fill-[currentcolor]" />
 				</button>
@@ -204,5 +204,9 @@
 	.overflow-auto::-webkit-scrollbar-thumb {
 		width: 2px;
 		background: #36bf68;
+	}
+
+	.tasks:hover > .btns {
+		opacity: 1 !important;
 	}
 </style>

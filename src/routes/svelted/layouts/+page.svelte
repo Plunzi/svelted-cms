@@ -58,6 +58,34 @@
 		client.routeInput = '';
 	};
 
+	const deleteLayout = async function (route: string) {
+		console.log(route);
+		
+		// /*
+
+		const formData = new FormData();
+		// client.isSaving = true;
+		// client.savingMessage = 'Loading ...';
+
+		formData.append('route', route);
+
+		const response = await fetch('/svelted/layouts/delete', {
+			method: 'POST',
+			body: formData
+		});
+
+		// client.isSaving = false;
+		// client.savingMessage = 'Save changes';
+
+		let result = await response.json();
+		console.log(result.success);
+		console.log(result.affected);
+
+		// items.push(result);
+		// sortItems.set(items.slice());
+		// */
+	};
+
 	interface Client {
 		hoverOver: undefined | string;
 		sidebar: boolean;
@@ -363,8 +391,8 @@
 														<Pen class="h-5 w-5 fill-[currentcolor]" />
 													{/if}
 												</a>
-												<a
-													href={`/svelted/editor?currentpage=${item.description.route}`}
+												<button
+													on:click={() => deleteLayout(item.route)}
 													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -374,7 +402,7 @@
 													{:else}
 														<Trash class="h-5 w-5 fill-[currentcolor]" />
 													{/if}
-												</a>
+												</button>
 											</div>
 										</div>
 									</div>
@@ -478,8 +506,8 @@
 													<Pen class="h-5 w-5 fill-[currentcolor]" />
 												{/if}
 											</a>
-											<a
-												href={`/svelted/editor?currentpage=${item.description.route}`}
+											<button
+												on:click={() => deleteLayout(item.route)}
 												on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 												on:mouseleave={() => hoverOver(undefined)}
 												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -489,7 +517,7 @@
 												{:else}
 													<Trash class="h-5 w-5 fill-[currentcolor]" />
 												{/if}
-											</a>
+											</button>
 										</div>
 									</td>
 								</tr>
