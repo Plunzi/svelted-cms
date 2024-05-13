@@ -61,12 +61,12 @@ export const POST: RequestHandler = async ({ request }) => {
     // (everything is good)
     // handle saving changes for given route
 
-    const filePath = `data/layouts/${route}/layout.json`;
+    const filePath = `data/pages/${route}/page.json`;
     try {
         await deleteFileAndEmptyFolders(filePath);
-        return new Response(`Successfully deleted layout: ${route}`, { status: 201 });
+        return new Response(`Successfully deleted page: ${route}`, { status: 201 });
     } catch (error) {
         console.error("Error deleting file and empty folders:", error);
-        return new Response(`Could not delete layout: ${route}`, { status: 500, statusText: "Internal Server Error" });
+        return new Response(`Could not delete page: ${route}`, { status: 500, statusText: "Internal Server Error" });
     }
 }

@@ -6,18 +6,17 @@
 	import { flip } from 'svelte/animate';
 	import { onMount } from 'svelte';
 	import { tick } from 'svelte';
-	import { makeResizableDiv } from '$lib/internal/svelted-core/resizeable/resizeable';
+	import { makeResizableDiv } from '$lib/svelted/resizeable/resizeable';
 	import * as icons from 'phosphor-svelte';
 
 	// shadcn ui imports
-	import * as Command from '$lib/internal/svelted-core/ui/command/index.js';
-	import * as Popover from '$lib/internal/svelted-core/ui/popover/index.js';
-	import { Button } from '$lib/internal/svelted-core/ui/button/index.js';
-	import { cn } from '$lib/internal/svelted-core/utils.js';
+	import * as Command from '$lib/internal/shadcn/ui/command/index.js';
+	import * as Popover from '$lib/internal/shadcn/ui/popover/index.js';
+	import { Button } from '$lib/internal/shadcn/ui/button/index.js';
+	import { cn } from '$lib/internal/shadcn/utils.js';
 
 	// layout component imports
 	import components from '$lib/svelted/components';
-	import { page } from '$app/stores';
 
 	type IconName = keyof typeof icons;
 

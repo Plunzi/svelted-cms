@@ -3,8 +3,6 @@ import type { RequestHandler } from './$types';
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-
-
 export const POST: RequestHandler = async ({ request }) => {
     //
     // get client data
@@ -13,11 +11,12 @@ export const POST: RequestHandler = async ({ request }) => {
     const data = await request.formData();
 
     const route = data.get('route');
-    const content = data.get('content');
-    const name = data.get('name');
+    const title = data.get('title');
+    const status = data.get('status');
+    const layout = data.get('layout');
     const author = "admin";
-    const updated = Math.floor(new Date().getTime() / 1000);
-    const created = data.get('created');
+    const created = Math.floor(new Date().getTime() / 1000);
+    const updated = created;
 
     //
     // check for errors (e.g. invalid content)
@@ -27,14 +26,18 @@ export const POST: RequestHandler = async ({ request }) => {
         return new Response("Not saved!", { status: 400, statusText: "Parameter route is missing" });
     }
 
-    if (!content) {
-        return new Response("Not saved!", { status: 400, statusText: "Parameter content is missing" });
-    }
-
-    if (!name) {
+    if (!title) {
         return new Response("Not saved!", { status: 400, statusText: "Parameter name is missing" });
     }
-    
+
+    if (!status) {
+        return new Response("Not saved!", { status: 400, statusText: "Parameter route is missing" });
+    }
+
+    if (!layout) {
+        return new Response("Not saved!", { status: 400, statusText: "Parameter name is missing" });
+    }
+
     if (isRelativePath(String(route))) {
         return new Response("Not saved!", { status: 422, statusText: "Relative URL paths could be dangerous" });
     }
@@ -43,22 +46,24 @@ export const POST: RequestHandler = async ({ request }) => {
         return new Response("Not saved!", { status: 422, statusText: "Entered URL is not a valid url" });
     }
 
-    //
-    // (everything is good) -> save changes
-    //
+    if (isInternalPath(String(route))) {
+        return new Response("Not saved!", { status: 422, statusText: "Cannot override internal svelted URL" });
+    }
 
-    const newData = `{"description": { "name": "${name || undefined}","route": "${route || undefined}","author": "${author}","modified": ${updated},"created": ${created} },"content": ${content}}`
-    const saveLocation = `data/layouts/${route}/layout.json`;
+    // (everything is good)
+    // handle saving changes for gicen route
 
-    // DEBUG:
+    const newData = `{"allowed-roles": ["everyone"],"layout": "${layout}","title": "${title}","status": "${status}","author": "${author}","modified": ${updated},"created": ${created}}`
+    const saveLocation = `data/pages/${route}/page.json`;
+
     // console.log(saveLocation);
     // console.log(newData);
     // console.log(route);
-    // console.log(name);
+    // console.log(title);
 
     const dirname = path.dirname(saveLocation);
     await fs.mkdir(dirname, { recursive: true });
     await fs.writeFile(saveLocation, newData, { flag: "w" })
 
-    return new Response("Saved!", { status: 201 });
+    return new Response(`{"route": "${route}", "data": ${newData}}`, { status: 201 });
 }

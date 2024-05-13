@@ -1,7 +1,7 @@
 <script lang="ts">
-	import * as Avatar from '$lib/internal/svelted-core/ui/avatar/index.js';
-	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
-	import QuickToDo from '$lib/internal/svelted-core/ui/QuickToDo.svelte';
+	import * as Avatar from '$lib/internal/shadcn/ui/avatar/index.js';
+	import Navigation from '$lib/svelted/navigation/Navigation.svelte';
+	import QuickToDo from '$lib/svelted/todo/QuickToDo.svelte';
 	import { CaretDown, UserList } from 'phosphor-svelte';
 	import { onMount } from 'svelte';
 
@@ -102,7 +102,7 @@
 				<div class="-mt-4 flex items-center justify-between">
 					<div class="mx-auto">
 						<h1 class="mx-auto text-center text-3xl font-medium text-neutral-300">
-							Wellcome Lukas,
+							Welcome Lukas,
 						</h1>
 						<p class="mx-auto text-center font-light text-neutral-300">to your dashboard!</p>
 					</div>

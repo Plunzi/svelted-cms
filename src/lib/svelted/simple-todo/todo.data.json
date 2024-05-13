@@ -1,1 +1,1 @@
-{"todo":[{"entry":"code display \"saved/error msg\" when creating layouts"},{"entry":"code bulk actions"},{"entry":"prevent creating/deleting svelted routes"},{"entry":"code delete layout table rerender"}],"done":[{"entry":"code delete layout"}]}
+{"todo":[{"entry":"Check if page/layout already exists before creating it"},{"entry":"bulk actions are missing"},{"entry":"loading states for buttons are missing"},{"entry":"create button is not doing anything right now"},{"entry":"display error box for create"},{"entry":"edit functionality is fully missing for Pages"}],"done":[]}

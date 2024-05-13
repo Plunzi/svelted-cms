@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises';
-import path from 'node:path';
 
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
@@ -41,11 +40,24 @@ export const load: PageServerLoad = async ({ params }) => {
             });
         }
 
+        if (parsedPageData.layout == 'none') {
+            const notfoundData = await fs.readFile(`data/layouts/svelted/nolayout/layout.json`, { encoding: 'utf8' });
+            page = await JSON.parse(notfoundData);
+
+            return {
+                page: {
+                    name: page.description.name,
+                    route: page.description.route,
+                    content: page.content
+                }
+            };
+        }
+
         // if exists try loading page layout
         const localData = await fs.readFile(`data/layouts/${parsedPageData.layout}/layout.json`, { encoding: 'utf8' });
         page = await JSON.parse(localData);
     } catch (error) {
-        const notfoundData = await fs.readFile(`data/layouts/404/layout.json`, { encoding: 'utf8' });
+        const notfoundData = await fs.readFile(`data/layouts/svelted/notfound/layout.json`, { encoding: 'utf8' });
         page = await JSON.parse(notfoundData);
     }
 

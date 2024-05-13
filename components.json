@@ -7,8 +7,8 @@
 		"baseColor": "neutral"
 	},
 	"aliases": {
-		"components": "$lib/internal/svelted-core/",
-		"utils": "$lib/internal/svelted-core/utils"
+		"components": "$lib/internal/shadcn/",
+		"utils": "$lib/internal/shadcn/utils"
 	},
 	"typescript": true
 }

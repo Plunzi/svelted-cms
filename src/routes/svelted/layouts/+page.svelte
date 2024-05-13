@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
+	import Navigation from '$lib/svelted/navigation/Navigation.svelte';
 	import {
 		Blueprint,
 		CaretDown,
@@ -14,9 +14,11 @@
 		UserList
 	} from 'phosphor-svelte';
 	import { writable } from 'svelte/store';
-	import formatTime from '$lib/internal/svelted-core/format/time';
-	import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
-	import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
+	import formatTime from '$lib/svelted/format/time';
+	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
+	import { Toaster } from '$lib/internal/shadcn/ui/sonner';
+	import { toast } from 'svelte-sonner';
+	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
 	import { flip } from 'svelte/animate';
 
 	export let data;
@@ -58,10 +60,9 @@
 		client.routeInput = '';
 	};
 
-	const deleteLayout = async function (route: string) {
-		console.log(route);
-		
+	const deleteLayout = async function (route: string, index: number) {
 		// /*
+		toast.loading(`Trying to delete route: ${route}`)
 
 		const formData = new FormData();
 		// client.isSaving = true;
@@ -74,16 +75,26 @@
 			body: formData
 		});
 
+		if (!response.ok) {
+			const error = await response.text();
+			toast.error(error);
+		} else {
+			if (client.hoverOver == `layouts-delete-${index}`) {
+				hoverOver(undefined);
+			}
+
+			const indexToRemove = items.findIndex(item => item.route === route);
+			if (indexToRemove !== -1) {
+				items.splice(indexToRemove, 1);
+				sortItems.set(items.slice());
+			}
+
+			let result = await response.text();
+			toast.success(result);
+		}
+
 		// client.isSaving = false;
 		// client.savingMessage = 'Save changes';
-
-		let result = await response.json();
-		console.log(result.success);
-		console.log(result.affected);
-
-		// items.push(result);
-		// sortItems.set(items.slice());
-		// */
 	};
 
 	interface Client {
@@ -165,8 +176,8 @@
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
         </div> -->
-		<div class="flex w-full flex-col gap-4 p-3 text-white">
-			<div class="flex justify-between gap-2">
+		<div class="relative flex w-full flex-col gap-4 px-3 pt-3 text-white">
+			<div class="relative flex justify-between gap-2">
 				<div class="flex h-10 items-center gap-2 px-2">
 					<Blueprint class="mt-0.5 h-6 w-6 fill-neutral-500" weight="regular" />
 					<p class="font-medium text-neutral-500">Layouts Overview</p>
@@ -244,6 +255,7 @@
 					</button>
 					<input
 						bind:value={searchTerm}
+						name="filter-layouts"
 						placeholder="Filter Pages ..."
 						type="text"
 						class="w-full rounded-lg bg-[#161616] px-3 py-2 pl-14 text-neutral-300 focus:outline-none focus:ring-1 focus:ring-[#36bf68]"
@@ -296,94 +308,216 @@
 				</div>
 			</div>
 
-			<hr class="border-neutral-800" />
+			<div class="border-b border-b-neutral-800 w-full">
+				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
+			</div>
 
-			<!-- Card Display -->
-			{#if client.display == 'cards'}
-				<div class="rounded-lg bg-svelted-gray-700 p-2">
-					<div class="w-full">
+			<div class="max-h-editor flex-grow overflow-y-auto">
+				<!-- Card Display -->
+				{#if client.display == 'cards'}
+					<div class="rounded-lg bg-svelted-gray-700 p-2">
 						<div class="w-full">
-							<div class="flex font-bold text-neutral-500">
-								<div>
-									<div
-										class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
-									>
-										<Checkbox class="border-neutral-700" id="pages-checkbox" />
+							<div class="w-full">
+								<div class="flex font-bold text-neutral-500">
+									<div>
+										<div
+											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
+										>
+											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+										</div>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('route')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Route</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('name')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Name</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('author')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Author</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('modified')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Modified</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('created')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Created</p>
+											<CaretUp weight="fill" />
+										</button>
 									</div>
 								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('route')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Route</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('name')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Name</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('author')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Author</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('modified')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Modified</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('created')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Created</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
 							</div>
-						</div>
-						<div class="grid grid-cols-2 gap-2 text-neutral-500">
-							{#each filteredItems as item, index (item)}
-								<div
-									animate:flip={{ duration: 500 }}
-									class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
-								>
-									<div class="flex justify-between gap-2 pb-1">
-										<div class="flex gap-3">
-											<div
-												class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
-											>
-												<Checkbox class="border-[currentcolor]" />
+							<div class="grid grid-cols-2 gap-2 text-neutral-500">
+								{#each filteredItems as item, index (item)}
+									<div
+										animate:flip={{ duration: 500 }}
+										class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
+									>
+										<div class="flex justify-between gap-2 pb-1">
+											<div class="flex gap-3">
+												<div
+													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
+												>
+													<Checkbox class="border-[currentcolor]" />
+												</div>
+												<div class="mb-0.5 py-2">
+													{item.description.name} <span class="text-neutral-800">―</span>
+													{item.route}
+												</div>
 											</div>
-											<div class="mb-0.5 py-2">
-												{item.description.name} <span class="text-neutral-800">―</span>
-												{item.route}
+											<div>
+												<div class="flex w-full gap-2">
+													<p class="px-2 py-2">{item.description.author}</p>
+													<a
+														href={`/svelted/editor?currentpage=${item.description.route}`}
+														on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
+														on:mouseleave={() => hoverOver(undefined)}
+														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
+													>
+														{#if client.hoverOver == `pages-edit-${index}`}
+															<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+														{:else}
+															<Pen class="h-5 w-5 fill-[currentcolor]" />
+														{/if}
+													</a>
+													<button
+														on:click={() => deleteLayout(item.route, index)}
+														on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
+														on:mouseleave={() => hoverOver(undefined)}
+														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
+													>
+														{#if client.hoverOver == `layouts-delete-${index}`}
+															<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+														{:else}
+															<Trash class="h-5 w-5 fill-[currentcolor]" />
+														{/if}
+													</button>
+												</div>
 											</div>
 										</div>
-										<div>
-											<div class="flex w-full gap-2">
-												<p class="px-2 py-2">{item.description.author}</p>
+										<div class="flex flex-col rounded-sm bg-svelted-gray-700 py-2">
+											<p>
+												<span class="border-r border-r-neutral-800 px-2 py-2"
+													>Modified: {formatTime(item.description.modified)}</span
+												>
+												<span class="px-2 py-2"
+													>Created: {formatTime(item.description.created)}</span
+												>
+											</p>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
+					</div>
+				{:else}
+					<!-- Table Display -->
+					<div class="rounded-lg bg-svelted-gray-700 px-2">
+						<table class="mb-2 w-full pb-1">
+							<thead>
+								<tr class="text-neutral-500">
+									<th>
+										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
+											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+										</div>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('route')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Route</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('name')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Name</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('author')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Author</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('modified')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Modified</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('created')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Created</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+								</tr>
+							</thead>
+							<tbody class="text-neutral-500">
+								{#each filteredItems as item, index (item)}
+									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
+										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
+											<Checkbox class="border-neutral-800" />
+										</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.description.name}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2"
+											>{item.description.author}</td
+										>
+										<td class="border-r border-r-neutral-800 px-2 py-2"
+											>{formatTime(item.description.modified)}</td
+										>
+										<td class="border-r-neutral-800 px-2 py-2"
+											>{formatTime(item.description.created)}</td
+										>
+										<td class="w-14">
+											<div class="flex gap-2">
 												<a
 													href={`/svelted/editor?currentpage=${item.description.route}`}
 													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
-													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 												>
 													{#if client.hoverOver == `pages-edit-${index}`}
 														<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
@@ -392,140 +526,26 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteLayout(item.route)}
-													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
+													on:click={() => deleteLayout(item.route, index)}
+													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
-													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 												>
-													{#if client.hoverOver == `pages-delete-${index}`}
+													{#if client.hoverOver == `layouts-delete-${index}`}
 														<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
 													{:else}
 														<Trash class="h-5 w-5 fill-[currentcolor]" />
 													{/if}
 												</button>
 											</div>
-										</div>
-									</div>
-									<div class="flex flex-col rounded-sm bg-svelted-gray-700 py-2">
-										<p>
-											<span class="border-r border-r-neutral-800 px-2 py-2"
-												>Modified: {formatTime(item.description.modified)}</span
-											>
-											<span class="px-2 py-2">Created: {formatTime(item.description.created)}</span>
-										</p>
-									</div>
-								</div>
-							{/each}
-						</div>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
 					</div>
-				</div>
-			{:else}
-				<!-- Table Display -->
-				<div class="rounded-lg bg-svelted-gray-700 px-2">
-					<table class="w-full">
-						<thead>
-							<tr class="text-neutral-500">
-								<th>
-									<div class="grid h-8 max-w-10 items-center justify-center text-left">
-										<Checkbox class="border-neutral-700" id="pages-checkbox" />
-									</div>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('route')}
-										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Route</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('name')}
-										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Name</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('author')}
-										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Author</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('modified')}
-										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Modified</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('created')}
-										class="flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Created</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-							</tr>
-						</thead>
-						<tbody class="text-neutral-500">
-							{#each filteredItems as item, index (item)}
-								<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
-									<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-										<Checkbox class="border-neutral-800" />
-									</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.description.name}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.description.author}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2"
-										>{formatTime(item.description.modified)}</td
-									>
-									<td class="border-r-neutral-800 px-2 py-2"
-										>{formatTime(item.description.created)}</td
-									>
-									<td class="w-14">
-										<div class="flex gap-2">
-											<a
-												href={`/svelted/editor?currentpage=${item.description.route}`}
-												on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-												on:mouseleave={() => hoverOver(undefined)}
-												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
-											>
-												{#if client.hoverOver == `pages-edit-${index}`}
-													<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-												{:else}
-													<Pen class="h-5 w-5 fill-[currentcolor]" />
-												{/if}
-											</a>
-											<button
-												on:click={() => deleteLayout(item.route)}
-												on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
-												on:mouseleave={() => hoverOver(undefined)}
-												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
-											>
-												{#if client.hoverOver == `pages-delete-${index}`}
-													<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-												{:else}
-													<Trash class="h-5 w-5 fill-[currentcolor]" />
-												{/if}
-											</button>
-										</div>
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			{/if}
+				{/if}
+			</div>
 		</div>
 		<div
 			class="h-full-editor open flex min-w-64 max-w-64 flex-col justify-between overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
@@ -570,10 +590,6 @@
 		border-color: #278c4c !important;
 	}
 
-	tr.spacer td {
-		height: 0.25rem;
-	}
-
 	table tr.spacer:last-of-type td {
 		display: none;
 	}
@@ -594,7 +610,7 @@
 	}
 
 	table {
-		border-spacing: 0 0.5rem;
+		border-spacing: 0 0.25rem;
 		border-collapse: separate;
 	}
 
@@ -616,5 +632,9 @@
 		max-height: 0;
 		opacity: 0;
 		overflow: hidden;
+	}
+
+	.max-h-editor {
+		max-height: calc(100vh - 19.6rem);
 	}
 </style>

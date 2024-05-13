@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Navigation from '$lib/internal/svelted-core/ui/Navigation.svelte';
+	import Navigation from '$lib/svelted/navigation/Navigation.svelte';
 	import {
 		Blueprint,
 		CaretDown,
@@ -14,16 +14,19 @@
 		UserList
 	} from 'phosphor-svelte';
 	import { writable } from 'svelte/store';
-	import formatTime from '$lib/internal/svelted-core/format/time';
+	import formatTime from '$lib/svelted/format/time';
 
 	// shadcn ui imports
-	import Checkbox from '$lib/internal/svelted-core/ui/checkbox/checkbox.svelte';
-	import * as Tooltip from '$lib/internal/svelted-core/ui/tooltip';
-	import * as Command from '$lib/internal/svelted-core/ui/command/index.js';
-	import * as Popover from '$lib/internal/svelted-core/ui/popover/index.js';
-	import { Button } from '$lib/internal/svelted-core/ui/button/index.js';
-	import { cn } from '$lib/internal/svelted-core/utils.js';
+	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
+	import { Toaster } from '$lib/internal/shadcn/ui/sonner';
+	import { toast } from 'svelte-sonner';
+	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
+	import * as Command from '$lib/internal/shadcn/ui/command/index.js';
+	import * as Popover from '$lib/internal/shadcn/ui/popover/index.js';
+	import { Button } from '$lib/internal/shadcn/ui/button/index.js';
+	import { cn } from '$lib/internal/shadcn/utils.js';
 	import { tick } from 'svelte';
+	import { flip } from 'svelte/animate';
 
 	export let data;
 
@@ -45,6 +48,8 @@
 		hoverOver: undefined | string;
 		sidebar: boolean;
 		display: string | undefined;
+		routeInput: string;
+		titleInput: string;
 		dropdowns: {
 			status: {
 				open: boolean;
@@ -53,6 +58,7 @@
 			layout: {
 				open: boolean;
 				value: string;
+				selection: string | undefined;
 			};
 		};
 	}
@@ -61,6 +67,8 @@
 		hoverOver: undefined,
 		sidebar: false,
 		display: 'table',
+		routeInput: '',
+		titleInput: '',
 		dropdowns: {
 			status: {
 				open: false,
@@ -68,7 +76,8 @@
 			},
 			layout: {
 				open: false,
-				value: 'none'
+				value: 'none',
+				selection: undefined
 			}
 		}
 	};
@@ -99,6 +108,73 @@
 			sortKey.set(key);
 			sortDirection.set(1);
 		}
+	};
+
+	const createPage = async function () {
+		const formData = new FormData();
+		// client.isSaving = true;
+		// client.savingMessage = 'Loading ...';
+
+		formData.append('route', client.routeInput);
+		formData.append('title', client.titleInput);
+		formData.append('status', client.dropdowns.status.value);
+		formData.append('layout', client.dropdowns.layout.value);
+
+		const response = await fetch('/svelted/pages/create', {
+			method: 'POST',
+			body: formData
+		});
+
+		// client.isSaving = false;
+		// client.savingMessage = 'Save changes';
+
+		let result = await response.json();
+		result.data.route = result.route;
+
+		items.push(result.data);
+		sortItems.set(items.slice());
+
+		client.titleInput = '';
+		client.routeInput = '';
+		client.dropdowns.layout.value = 'none';
+		client.dropdowns.layout.selection = undefined;
+	};
+
+	const deletePage = async function (route: string, index: number) {
+		// /*
+		toast.loading(`Trying to delete route: ${route}`)
+
+		const formData = new FormData();
+		// client.isSaving = true;
+		// client.savingMessage = 'Loading ...';
+
+		formData.append('route', route);
+
+		const response = await fetch('/svelted/pages/delete', {
+			method: 'POST',
+			body: formData
+		});
+
+		if (!response.ok) {
+			const error = await response.text();
+			toast.error(error);
+		} else {
+			if (client.hoverOver == `pages-delete-${index}`) {
+				hoverOver(undefined);
+			}
+
+			const indexToRemove = items.findIndex(item => item.route === route);
+			if (indexToRemove !== -1) {
+				items.splice(indexToRemove, 1);
+				sortItems.set(items.slice());
+			}
+
+			let result = await response.text();
+			toast.success(result);
+		}
+
+		// client.isSaving = false;
+		// client.savingMessage = 'Save changes';
 	};
 
 	$: {
@@ -141,7 +217,7 @@
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
         </div> -->
-		<div class="flex w-full flex-col gap-4 p-3 text-white">
+		<div class="flex w-full flex-col gap-4 px-3 pt-3 text-white relative">
 			<div class="flex justify-between gap-2">
 				<div class="flex h-10 items-center gap-2 px-2">
 					<Blueprint class="mt-0.5 h-6 w-6 fill-neutral-500" weight="regular" />
@@ -221,6 +297,7 @@
 					</button>
 					<input
 						bind:value={searchTerm}
+						name="filter-pages"
 						placeholder="Filter Pages ..."
 						type="text"
 						class="w-full rounded-lg bg-[#161616] px-3 py-2 pl-14 text-neutral-300 focus:outline-none focus:ring-1 focus:ring-[#36bf68]"
@@ -228,7 +305,9 @@
 				</div>
 			</nav>
 
-			<hr class="border-neutral-800" />
+			<div class="border-b border-b-neutral-800 w-full">
+				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
+			</div>
 
 			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2">
 				<div class="mt-5 flex">
@@ -240,6 +319,7 @@
 							Navigation Route
 						</label>
 						<input
+							bind:value={client.routeInput}
 							id="enter-page-route"
 							class="relative h-10 w-full rounded-l-md border-r border-r-neutral-800 bg-neutral-950 p-2 focus:z-30"
 							placeholder="e.g. /contact"
@@ -254,6 +334,7 @@
 						</label>
 
 						<input
+							bind:value={client.titleInput}
 							id="enter-page-title"
 							class="relative h-10 w-full rounded-r-md bg-neutral-950 p-2 focus:z-10"
 							placeholder="e.g. Contact"
@@ -351,6 +432,7 @@
 												value={layout.value}
 												onSelect={(currentValue) => {
 													client.dropdowns.layout.value = currentValue;
+													client.dropdowns.layout.selection = layout.selection;
 													closeAndFocusTrigger(ids.trigger);
 												}}
 											>
@@ -371,6 +453,7 @@
 				</div>
 				<div class="flex">
 					<button
+						on:click={createPage}
 						class="mt-auto flex max-h-10 min-h-10 items-center gap-2 rounded-sm bg-neutral-800 pl-3 pr-5 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
 						<Plus class="h-5 w-5 fill-[currentcolor]" />
@@ -381,115 +464,257 @@
 
 			<hr class="border-neutral-800" />
 
-			<!-- Card Display -->
-			{#if client.display == 'cards'}
-				<div class="rounded-lg bg-svelted-gray-700 p-2">
-					<div class="w-full">
+			<div class="max-h-editor flex-grow overflow-y-auto">
+				<!-- Card Display -->
+				{#if client.display == 'cards'}
+					<div class="rounded-lg bg-svelted-gray-700 p-2">
 						<div class="w-full">
-							<div class="flex font-bold text-neutral-500">
-								<div>
-									<div
-										class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
-									>
-										<Checkbox class="border-neutral-700" id="pages-checkbox" />
+							<div class="w-full">
+								<div class="flex font-bold text-neutral-500">
+									<div>
+										<div
+											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
+										>
+											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+										</div>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('route')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Route</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('title')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Title</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('status')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Status</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('layout')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Layout</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('author')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Author</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('modified')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Modified</p>
+											<CaretUp weight="fill" />
+										</button>
+									</div>
+									<div class="w-full">
+										<button
+											on:click={() => sortTable('created')}
+											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Created</p>
+											<CaretUp weight="fill" />
+										</button>
 									</div>
 								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('route')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Route</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('title')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Title</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('status')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Status</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('author')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Author</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('modified')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Modified</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
-								<div class="w-full">
-									<button
-										on:click={() => sortTable('created')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Created</p>
-										<CaretUp weight="fill" />
-									</button>
-								</div>
 							</div>
-						</div>
-						<div class="grid grid-cols-2 gap-2 text-neutral-500">
-							{#each filteredItems as item, index}
-								<div
-									class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
-								>
-									<div class="flex justify-between gap-2 pb-1">
-										<div class="flex gap-3">
-											<div
-												class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
-											>
-												<Checkbox class="border-[currentcolor]" />
-											</div>
-											<Tooltip.Root>
-												<Tooltip.Trigger>
-													{#if item.status == 'published'}
-														<div class="min-h-3 min-w-3 rounded-full bg-svelted-primary-500" />
-													{:else if item.status == 'draft'}
-														<div class="min-h-3 min-w-3 rounded-full bg-yellow-300" />
-													{:else}
-														<div class="min-h-3 min-w-3 rounded-full bg-neutral-500" />
-													{/if}
-												</Tooltip.Trigger>
-												<Tooltip.Content
-													class="mt-2 border-neutral-800 bg-svelted-gray-700 text-neutral-500"
+							<div class="grid grid-cols-2 gap-2 text-neutral-500">
+								{#each filteredItems as item, index (item)}
+									<div
+										animate:flip={{ duration: 500 }}
+										class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
+									>
+										<div class="flex justify-between gap-2 pb-1">
+											<div class="flex gap-3">
+												<div
+													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
-													<p>{item.status}</p>
-												</Tooltip.Content>
-											</Tooltip.Root>
-											<div class="mb-0.5 py-2">
-												{item.title} <span class="text-neutral-800">―</span>
-												{item.route}
+													<Checkbox class="border-[currentcolor]" />
+												</div>
+												<Tooltip.Root>
+													<Tooltip.Trigger>
+														{#if item.status == 'published'}
+															<div class="min-h-3 min-w-3 rounded-full bg-svelted-primary-500" />
+														{:else if item.status == 'draft'}
+															<div class="min-h-3 min-w-3 rounded-full bg-yellow-300" />
+														{:else}
+															<div class="min-h-3 min-w-3 rounded-full bg-neutral-500" />
+														{/if}
+													</Tooltip.Trigger>
+													<Tooltip.Content
+														class="mt-2 border-neutral-800 bg-svelted-gray-700 text-neutral-500"
+													>
+														<p>{item.status}</p>
+													</Tooltip.Content>
+												</Tooltip.Root>
+												<div class="mb-0.5 py-2">
+													{item.title} <span class="text-neutral-800">―</span>
+													{item.route}
+												</div>
+											</div>
+											<div>
+												<div class="flex w-full gap-2">
+													<p class="px-2 py-2">{item.author}</p>
+													<button
+														on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
+														on:mouseleave={() => hoverOver(undefined)}
+														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
+													>
+														{#if client.hoverOver == `pages-edit-${index}`}
+															<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+														{:else}
+															<Pen class="h-5 w-5 fill-[currentcolor]" />
+														{/if}
+													</button>
+													<button
+														on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
+														on:mouseleave={() => hoverOver(undefined)}
+														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
+													>
+														{#if client.hoverOver == `pages-delete-${index}`}
+															<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+														{:else}
+															<Trash class="h-5 w-5 fill-[currentcolor]" />
+														{/if}
+													</button>
+												</div>
 											</div>
 										</div>
-										<div>
-											<div class="flex w-full gap-2">
-												<p class="px-2 py-2">{item.author}</p>
+										<div class="flex flex-col rounded-sm bg-svelted-gray-700 py-2">
+											<p>
+												<span class="border-r border-r-neutral-800 px-2 py-2"
+													>Modified: {formatTime(item.modified)}</span
+												>
+												<span class="px-2 py-2">Created: {formatTime(item.created)}</span>
+											</p>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
+					</div>
+				{:else}
+					<!-- Table Display -->
+					<div class="rounded-lg bg-svelted-gray-700 px-2">
+						<table class="mb-2 w-full pb-1">
+							<thead>
+								<tr class="text-neutral-500">
+									<th>
+										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
+											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+										</div>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('route')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Route</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('title')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Title</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('status')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Status</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('layout')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Layout</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('author')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Author</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('modified')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Modified</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('created')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Created</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+								</tr>
+							</thead>
+							<tbody class="text-neutral-500">
+								{#each filteredItems as item, index (item)}
+									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
+										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
+											<Checkbox class="border-neutral-800" />
+										</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.title}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.status}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.layout}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.author}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2"
+											>{formatTime(item.modified)}</td
+										>
+										<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.created)}</td>
+										<td class="w-14">
+											<div class="flex gap-2">
 												<button
 													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
-													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 												>
 													{#if client.hoverOver == `pages-edit-${index}`}
 														<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
@@ -498,9 +723,10 @@
 													{/if}
 												</button>
 												<button
+													on:click={() => deletePage(item.route, index)}
 													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
-													class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 												>
 													{#if client.hoverOver == `pages-delete-${index}`}
 														<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
@@ -509,137 +735,14 @@
 													{/if}
 												</button>
 											</div>
-										</div>
-									</div>
-									<div class="flex flex-col rounded-sm bg-svelted-gray-700 py-2">
-										<p>
-											<span class="border-r border-r-neutral-800 px-2 py-2"
-												>Modified: {formatTime(item.modified)}</span
-											>
-											<span class="px-2 py-2">Created: {formatTime(item.created)}</span>
-										</p>
-									</div>
-								</div>
-							{/each}
-						</div>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
 					</div>
-				</div>
-			{:else}
-				<!-- Table Display -->
-				<div class="rounded-lg bg-svelted-gray-700 p-2">
-					<table class="w-full">
-						<thead>
-							<tr class="text-neutral-500">
-								<th>
-									<div class="mb-2 grid h-8 max-w-10 items-center justify-center text-left">
-										<Checkbox class="border-neutral-700" id="pages-checkbox" />
-									</div>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('route')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Route</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('title')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Title</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('status')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Status</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('author')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Author</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('modified')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Modified</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('created')}
-										class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Created</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-							</tr>
-						</thead>
-						<tbody class="text-neutral-500">
-							{#each filteredItems as item, index}
-								<tr class="hover:!bg-[#0a2620] hover:text-white">
-									<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-										<Checkbox class="border-neutral-800" />
-									</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.title}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.status}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2">{item.author}</td>
-									<td class="border-r border-r-neutral-800 px-2 py-2"
-										>{formatTime(item.modified)}</td
-									>
-									<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.created)}</td>
-									<td class="w-14">
-										<div class="flex gap-2">
-											<button
-												on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-												on:mouseleave={() => hoverOver(undefined)}
-												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
-											>
-												{#if client.hoverOver == `pages-edit-${index}`}
-													<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-												{:else}
-													<Pen class="h-5 w-5 fill-[currentcolor]" />
-												{/if}
-											</button>
-											<button
-												on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
-												on:mouseleave={() => hoverOver(undefined)}
-												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
-											>
-												{#if client.hoverOver == `pages-delete-${index}`}
-													<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-												{:else}
-													<Trash class="h-5 w-5 fill-[currentcolor]" />
-												{/if}
-											</button>
-										</div>
-									</td>
-								</tr>
-								<tr class="spacer">
-									<td></td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			{/if}
+				{/if}
+			</div>
 		</div>
 		<div
 			class="h-full-editor open flex min-w-64 max-w-64 flex-col justify-between overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
@@ -684,10 +787,6 @@
 		border-color: #278c4c !important;
 	}
 
-	tr.spacer td {
-		height: 0.25rem;
-	}
-
 	table tr.spacer:last-of-type td {
 		display: none;
 	}
@@ -707,7 +806,12 @@
 		padding-left: 0.5rem;
 	}
 
-	tbody tr:nth-child(odd) {
+	table {
+		border-spacing: 0 0.25rem;
+		border-collapse: separate;
+	}
+
+	tbody tr {
 		background-color: #161616;
 		background-color: #0a0a0a;
 	}
@@ -725,5 +829,9 @@
 		max-height: 0;
 		opacity: 0;
 		overflow: hidden;
+	}
+
+	.max-h-editor {
+		max-height: calc(100vh - 19.6rem);
 	}
 </style>
