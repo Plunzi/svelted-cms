@@ -27,6 +27,8 @@
 	import { cn } from '$lib/internal/shadcn/utils.js';
 	import { tick } from 'svelte';
 	import { flip } from 'svelte/animate';
+	import AlertDialog from '$lib/svelted/alert-dialog/AlertDialog.svelte';
+	import { closeModal, openModal } from '$lib/svelted/alert-dialog/AlertDialogControls.js';
 
 	export let data;
 
@@ -45,22 +47,31 @@
 	type DropdownValues = DropdownValue[];
 
 	interface Client {
-		hoverOver: undefined | string;
-		sidebar: boolean;
-		display: string | undefined;
-		routeInput: string;
-		titleInput: string;
+		hoverOver: undefined | string
+		sidebar: boolean
+		display: string | undefined
+		routeInput: string
+		titleInput: string
+		currentAction: Promise<any> | Function
+		modal: {
+			title: string | undefined
+			description: string | undefined
+		}
+		delete: {
+			route: string | undefined
+			id: number | undefined
+		}
 		dropdowns: {
 			status: {
-				open: boolean;
-				value: string;
-			};
+				open: boolean
+				value: string
+			}
 			layout: {
-				open: boolean;
-				value: string;
-				selection: string | undefined;
-			};
-		};
+				open: boolean
+				value: string
+				selection: string | undefined
+			}
+		}
 	}
 
 	let client: Client = {
@@ -69,6 +80,15 @@
 		display: 'table',
 		routeInput: '',
 		titleInput: '',
+		currentAction: () => {},
+		modal: {
+			title: undefined,
+			description: undefined
+		},
+		delete: {
+			route: undefined,
+			id: undefined
+		},
 		dropdowns: {
 			status: {
 				open: false,
@@ -140,15 +160,30 @@
 		client.dropdowns.layout.selection = undefined;
 	};
 
-	const deletePage = async function (route: string, index: number) {
+	const deleteModal = function (route: string, id: number) {
+		client.delete.id = id;
+		client.delete.route = route;
+		client.modal.title = `Confirm Deletion <span class="text-svelted-primary-500">${route}</span> Layout?`;
+		client.modal.description = "This action cannot be undone. It will permanently delete the specified layout and remove its associated data from your servers.";
+		openModal();
+	}
+
+	const deletePage = async function (): Promise<void> {
+		const deleteRoute = client.delete.route;
+		const deleteId = client.delete.id;
+		
+		if (!deleteRoute || !deleteId) {
+			return;
+		}
+
 		// /*
-		toast.loading(`Trying to delete route: ${route}`)
+		toast.loading(`Trying to delete route: ${deleteRoute}`);
 
 		const formData = new FormData();
 		// client.isSaving = true;
 		// client.savingMessage = 'Loading ...';
 
-		formData.append('route', route);
+		formData.append('route', deleteRoute);	
 
 		const response = await fetch('/svelted/pages/delete', {
 			method: 'POST',
@@ -159,11 +194,11 @@
 			const error = await response.text();
 			toast.error(error);
 		} else {
-			if (client.hoverOver == `pages-delete-${index}`) {
+			if (client.hoverOver == `pages-delete-${deleteId}`) {
 				hoverOver(undefined);
 			}
 
-			const indexToRemove = items.findIndex(item => item.route === route);
+			const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
 			if (indexToRemove !== -1) {
 				items.splice(indexToRemove, 1);
 				sortItems.set(items.slice());
@@ -172,6 +207,8 @@
 			let result = await response.text();
 			toast.success(result);
 		}
+
+		closeModal();
 
 		// client.isSaving = false;
 		// client.savingMessage = 'Save changes';
@@ -217,7 +254,7 @@
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
         </div> -->
-		<div class="flex w-full flex-col gap-4 px-3 pt-3 text-white relative">
+		<div class="relative flex w-full flex-col gap-4 px-3 pt-3 text-white">
 			<div class="flex justify-between gap-2">
 				<div class="flex h-10 items-center gap-2 px-2">
 					<Blueprint class="mt-0.5 h-6 w-6 fill-neutral-500" weight="regular" />
@@ -305,8 +342,9 @@
 				</div>
 			</nav>
 
-			<div class="border-b border-b-neutral-800 w-full">
+			<div class="w-full border-b border-b-neutral-800">
 				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
+				<AlertDialog title={client.modal.title} description={client.modal.description} action={deletePage}/>
 			</div>
 
 			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2">
@@ -723,7 +761,7 @@
 													{/if}
 												</button>
 												<button
-													on:click={() => deletePage(item.route, index)}
+													on:click={() => deleteModal(item.route, index)}
 													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
