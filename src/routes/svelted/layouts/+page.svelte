@@ -20,6 +20,8 @@
 	import { toast } from 'svelte-sonner';
 	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
 	import { flip } from 'svelte/animate';
+	import AlertDialog from '$lib/svelted/alert-dialog/AlertDialog.svelte';
+	import { closeModal, openModal } from '$lib/svelted/alert-dialog/AlertDialogControls.js';
 
 	export let data;
 
@@ -60,15 +62,33 @@
 		client.routeInput = '';
 	};
 
-	const deleteLayout = async function (route: string, index: number) {
+	const deleteModal = function (route: string, id: number) {
+		client.delete.id = id;
+		client.delete.route = route;
+		client.modal.title = `Confirm Deletion <span class="text-svelted-primary-500">${route}</span> Page?`;
+		client.modal.description = "This action cannot be undone. It will permanently delete the specified page and remove its associated data from your servers.";
+		openModal();
+	}
+
+	const deleteLayout = async function () {
+		const deleteRoute = client.delete.route;
+		const deleteId = client.delete.id;
 		// /*
-		toast.loading(`Trying to delete route: ${route}`)
+
+		console.log(deleteRoute, deleteId);
+
+		if (!deleteRoute || !deleteId && deleteId != 0) {
+			closeModal();
+			return;
+		}
+
+		toast.loading(`Trying to delete route: ${deleteRoute}`)
 
 		const formData = new FormData();
 		// client.isSaving = true;
 		// client.savingMessage = 'Loading ...';
 
-		formData.append('route', route);
+		formData.append('route', deleteRoute);
 
 		const response = await fetch('/svelted/layouts/delete', {
 			method: 'POST',
@@ -79,11 +99,11 @@
 			const error = await response.text();
 			toast.error(error);
 		} else {
-			if (client.hoverOver == `layouts-delete-${index}`) {
+			if (client.hoverOver == `layouts-delete-${deleteId}`) {
 				hoverOver(undefined);
 			}
 
-			const indexToRemove = items.findIndex(item => item.route === route);
+			const indexToRemove = items.findIndex(item => item.route === deleteRoute);
 			if (indexToRemove !== -1) {
 				items.splice(indexToRemove, 1);
 				sortItems.set(items.slice());
@@ -93,26 +113,35 @@
 			toast.success(result);
 		}
 
+		closeModal();
 		// client.isSaving = false;
 		// client.savingMessage = 'Save changes';
 	};
 
 	interface Client {
-		hoverOver: undefined | string;
-		sidebar: boolean;
-		display: string | undefined;
-		routeInput: string;
-		nameInput: string;
+		hoverOver: undefined | string
+		sidebar: boolean
+		display: string | undefined
+		routeInput: string
+		nameInput: string
+		delete: {
+			route: undefined | string,
+			id: undefined | number
+		}
+		modal: {
+			title: undefined | string
+			description: undefined | string
+		}
 		dropdowns: {
 			status: {
-				open: boolean;
-				value: string;
-			};
+				open: boolean
+				value: string
+			}
 			layout: {
-				open: boolean;
-				value: string;
-			};
-		};
+				open: boolean
+				value: string
+			}
+		}
 	}
 
 	let client: Client = {
@@ -121,6 +150,14 @@
 		display: 'table',
 		routeInput: '',
 		nameInput: '',
+		delete: {
+			route: undefined,
+			id: undefined
+		},
+		modal: {
+			title: undefined,
+			description: undefined
+		},
 		dropdowns: {
 			status: {
 				open: false,
@@ -310,6 +347,7 @@
 
 			<div class="border-b border-b-neutral-800 w-full">
 				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
+				<AlertDialog title={client.modal.title} description={client.modal.description} action={deleteLayout}/>
 			</div>
 
 			<div class="max-h-editor flex-grow overflow-y-auto">
@@ -407,7 +445,7 @@
 														{/if}
 													</a>
 													<button
-														on:click={() => deleteLayout(item.route, index)}
+														on:click={() => deleteModal(item.route, index)}
 														on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
 														on:mouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -526,7 +564,7 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteLayout(item.route, index)}
+													on:click={() => deleteModal(item.route, index)}
 													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"

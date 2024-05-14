@@ -47,32 +47,34 @@
 	type DropdownValues = DropdownValue[];
 
 	interface Client {
-		hoverOver: undefined | string
-		sidebar: boolean
-		display: string | undefined
-		routeInput: string
-		titleInput: string
-		currentAction: Promise<any> | Function
+		hoverOver: undefined | string;
+		sidebar: boolean;
+		display: string | undefined;
+		routeInput: string;
+		titleInput: string;
+		currentAction: Promise<any> | Function;
 		modal: {
-			title: string | undefined
-			description: string | undefined
-		}
+			title: string | undefined;
+			description: string | undefined;
+		};
 		delete: {
-			route: string | undefined
-			id: number | undefined
-		}
+			route: string | undefined;
+			id: number | undefined;
+		};
 		dropdowns: {
 			status: {
-				open: boolean
-				value: string
-			}
+				open: boolean;
+				value: string;
+			};
 			layout: {
-				open: boolean
-				value: string
-				selection: string | undefined
-			}
-		}
+				open: boolean;
+				value: string;
+				selection: string | undefined;
+			};
+		};
 	}
+
+	let selectedRows: string[] = [];
 
 	let client: Client = {
 		hoverOver: undefined,
@@ -107,11 +109,7 @@
 		{ label: 'Published', value: 'published', selection: 'published' }
 	];
 
-	let pageLayoutOptions: DropdownValues = [
-		{ label: '404', value: '404', selection: '404' },
-		{ label: 'Example Test', value: 'example test', selection: 'examples/greeting' },
-		{ label: 'None', value: 'none', selection: undefined }
-	];
+	let pageLayoutOptions: DropdownValues = data.layouts;
 
 	let items = data.pages || [];
 
@@ -138,7 +136,7 @@
 		formData.append('route', client.routeInput);
 		formData.append('title', client.titleInput);
 		formData.append('status', client.dropdowns.status.value);
-		formData.append('layout', client.dropdowns.layout.value);
+		formData.append('layout', client.dropdowns.layout.selection || 'none');
 
 		const response = await fetch('/svelted/pages/create', {
 			method: 'POST',
@@ -164,15 +162,43 @@
 		client.delete.id = id;
 		client.delete.route = route;
 		client.modal.title = `Confirm Deletion <span class="text-svelted-primary-500">${route}</span> Layout?`;
-		client.modal.description = "This action cannot be undone. It will permanently delete the specified layout and remove its associated data from your servers.";
+		client.modal.description =
+			'This action cannot be undone. It will permanently delete the specified layout and remove its associated data from your servers.';
+		openModal();
+	};
+
+	const toggleCheckbox = function (input: string) {
+		if (selectedRows.includes(input)) {
+			selectedRows = selectedRows.filter((route) => route !== input);
+			selectedRows = selectedRows;
+		} else {
+			selectedRows.push(input);
+			selectedRows = selectedRows;
+		}
+	};
+
+	const deleteStack = function () {
+		client.modal.title = `Delete <span class="text-svelted-primary-500">${selectedRows.length}</span> ${selectedRows.length == 1 ? 'Layout' : 'Layouts'}?`;
+		client.modal.description = `${selectedRows.map((row, index) => { return `${index == 0 ? '' : '<br>'}Delete Layout: ${row}` })}`;
 		openModal();
 	}
+
+	const checkAllCheckboxes = function () {
+		if (items.length == selectedRows.length) {
+			selectedRows = [];
+		} else {
+			selectedRows = items.map((item) => {
+				return item.route;
+			});
+		}
+	};
 
 	const deletePage = async function (): Promise<void> {
 		const deleteRoute = client.delete.route;
 		const deleteId = client.delete.id;
-		
-		if (!deleteRoute || !deleteId) {
+
+		if (!deleteRoute || (!deleteId && deleteId != 0)) {
+			closeModal();
 			return;
 		}
 
@@ -183,7 +209,7 @@
 		// client.isSaving = true;
 		// client.savingMessage = 'Loading ...';
 
-		formData.append('route', deleteRoute);	
+		formData.append('route', deleteRoute);
 
 		const response = await fetch('/svelted/pages/delete', {
 			method: 'POST',
@@ -305,6 +331,7 @@
 					{/if}
 				</button>
 				<button
+					on:click={deleteStack}
 					on:mouseenter={() => hoverOver('delete-stack')}
 					on:mouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -344,7 +371,11 @@
 
 			<div class="w-full border-b border-b-neutral-800">
 				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
-				<AlertDialog title={client.modal.title} description={client.modal.description} action={deletePage}/>
+				<AlertDialog
+					title={client.modal.title}
+					description={client.modal.description}
+					action={deletePage}
+				/>
 			</div>
 
 			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2">
@@ -407,7 +438,7 @@
 										class="h-12 rounded-none bg-svelted-gray-700 text-white"
 									/>
 									<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
-										<button>Create new layout</button>
+										No status found!
 									</Command.Empty>
 									<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
 										{#each pageStatusOptions as status}
@@ -461,7 +492,13 @@
 										class="h-12 rounded-none bg-svelted-gray-700 text-white"
 									/>
 									<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
-										<button>Create new layout</button>
+										<a
+											class="text-enutral-500 -my-3 mx-auto flex flex h-10 min-h-10 w-fit items-center justify-center gap-2 rounded-sm bg-neutral-800 px-4 pl-3 pr-5 hover:bg-svelted-primary-700 hover:text-white focus:bg-svelted-primary-700 focus:text-white"
+											href="/svelted/layouts"
+										>
+											<Plus class="h-5 w-5 fill-[currentcolor]" />
+											Create new layout
+										</a>
 									</Command.Empty>
 									<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
 										{#each pageLayoutOptions as layout}
@@ -492,7 +529,7 @@
 				<div class="flex">
 					<button
 						on:click={createPage}
-						class="mt-auto flex max-h-10 min-h-10 items-center gap-2 rounded-sm bg-neutral-800 pl-3 pr-5 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+						class="mt-auto flex max-h-10 min-h-10 items-center gap-2 rounded-sm bg-neutral-800 pl-3 pr-5 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:bg-svelted-primary-700 focus:text-white"
 					>
 						<Plus class="h-5 w-5 fill-[currentcolor]" />
 						<span class="whitespace-nowrap">Create Page</span>
@@ -592,7 +629,11 @@
 												<div
 													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
-													<Checkbox class="border-[currentcolor]" />
+													<Checkbox
+														on:click={checkAllCheckboxes}
+														checked={items.length == selectedRows.length}
+														class="border-[currentcolor]"
+													/>
 												</div>
 												<Tooltip.Root>
 													<Tooltip.Trigger>
@@ -664,7 +705,12 @@
 								<tr class="text-neutral-500">
 									<th>
 										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
-											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+											<Checkbox
+												on:click={checkAllCheckboxes}
+												checked={items.length == selectedRows.length}
+												class="border-neutral-700"
+												id="pages-checkbox"
+											/>
 										</div>
 									</th>
 									<th>
@@ -736,7 +782,12 @@
 								{#each filteredItems as item, index (item)}
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-											<Checkbox class="border-neutral-800" />
+											<!-- <Checkbox bind:checked={selectedRows[index]} value="false" class="border-neutral-800" /> -->
+											<Checkbox
+												on:click={() => toggleCheckbox(item.route)}
+												checked={selectedRows.includes(item.route)}
+												class="border-neutral-800"
+											/>
 										</td>
 										<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
 										<td class="border-r border-r-neutral-800 px-2 py-2">{item.title}</td>
@@ -787,6 +838,9 @@
 		>
 			<div id="roles" class="flex flex-col gap-3"></div>
 			<div>
+				<p class="text-white">
+					{JSON.stringify(selectedRows)}
+				</p>
 				<button
 					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
 					on:mouseenter={() => hoverOver('users')}
