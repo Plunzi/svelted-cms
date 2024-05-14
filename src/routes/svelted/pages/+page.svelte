@@ -52,7 +52,6 @@
 		display: string | undefined;
 		routeInput: string;
 		titleInput: string;
-		currentAction: Promise<any> | Function;
 		modal: {
 			title: string | undefined;
 			description: string | undefined;
@@ -82,7 +81,6 @@
 		display: 'table',
 		routeInput: '',
 		titleInput: '',
-		currentAction: () => {},
 		modal: {
 			title: undefined,
 			description: undefined
@@ -128,6 +126,23 @@
 		}
 	};
 
+	const showCreateForm = function () {
+		const createForm = document.getElementById("create-page-form")!;
+		const createFormSpacer = document.getElementById("create-page-form-spacer")!;
+		const editor = document.getElementById("page-editor")!;
+		if (createForm.style.display == "flex") {
+			createForm.style.display = "none";
+			createFormSpacer.style.display = "none";
+			editor.classList.remove("max-h-small-editor");
+		} else {
+			createForm.style.display = "flex";
+			createFormSpacer.style.display = "static";
+			editor.classList.add("max-h-small-editor");
+		}
+
+		// max-height: calc(100vh - 14rem);
+	}
+
 	const createPage = async function () {
 		const formData = new FormData();
 		// client.isSaving = true;
@@ -159,6 +174,7 @@
 	};
 
 	const deleteModal = function (route: string, id: number) {
+		currentAction = deletePage;
 		client.delete.id = id;
 		client.delete.route = route;
 		client.modal.title = `Confirm Deletion <span class="text-svelted-primary-500">${route}</span> Layout?`;
@@ -177,11 +193,57 @@
 		}
 	};
 
-	const deleteStack = function () {
+	const deleteStackModal = function () {
+		currentAction = deleteStack;
 		client.modal.title = `Delete <span class="text-svelted-primary-500">${selectedRows.length}</span> ${selectedRows.length == 1 ? 'Layout' : 'Layouts'}?`;
-		client.modal.description = `${selectedRows.map((row, index) => { return `${index == 0 ? '' : '<br>'}Delete Layout: ${row}` })}`;
+		client.modal.description = `This action cannot be undone. It will permanently delete the specified layout and remove its associated data from your servers.<br><br>${selectedRows.map(
+			(row, index) => {
+				return `${index == 0 ? '' : '<br>'}Delete Layout: ${row}`;
+			}
+		)}`;
 		openModal();
-	}
+	};
+
+	const deleteStack = async function () {
+		selectedRows.map(async (entry) => {
+			const deleteRoute = client.delete.route = entry;
+			const deleteId = items.findIndex((page) => page.route === entry);
+
+			if (!deleteRoute || (!deleteId && deleteId != 0)) {
+				closeModal();
+				return;
+			}
+
+			toast.loading(`Trying to delete route: ${deleteRoute}`);
+
+			const formData = new FormData();
+			formData.append('route', deleteRoute);
+
+			const response = await fetch('/svelted/pages/delete', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				const error = await response.text();
+				toast.error(error);
+			} else {
+				if (client.hoverOver == `pages-delete-${deleteId}`) {
+					hoverOver(undefined);
+				}
+
+				const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
+				if (indexToRemove !== -1) {
+					items.splice(indexToRemove, 1);
+					sortItems.set(items.slice());
+				}
+
+				let result = await response.text();
+				toast.success(result);
+			}
+		});
+		closeModal();
+	};
 
 	const checkAllCheckboxes = function () {
 		if (items.length == selectedRows.length) {
@@ -239,6 +301,8 @@
 		// client.isSaving = false;
 		// client.savingMessage = 'Save changes';
 	};
+
+	let currentAction = deletePage;
 
 	$: {
 		const key = $sortKey;
@@ -320,6 +384,7 @@
 			</div>
 			<nav class="flex gap-2">
 				<button
+					on:click={showCreateForm}
 					on:mouseenter={() => hoverOver('create-page')}
 					on:mouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -331,7 +396,7 @@
 					{/if}
 				</button>
 				<button
-					on:click={deleteStack}
+					on:click={deleteStackModal}
 					on:mouseenter={() => hoverOver('delete-stack')}
 					on:mouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -374,11 +439,11 @@
 				<AlertDialog
 					title={client.modal.title}
 					description={client.modal.description}
-					action={deletePage}
+					action={currentAction}
 				/>
 			</div>
 
-			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2">
+			<div id="create-page-form" class="flex justify-between rounded-lg bg-svelted-gray-700 p-2 hidden">
 				<div class="mt-5 flex">
 					<div class="relative w-full">
 						<label
@@ -537,9 +602,9 @@
 				</div>
 			</div>
 
-			<hr class="border-neutral-800" />
+			<hr class="border-neutral-800 hidden" id="create-page-form-spacer" />
 
-			<div class="max-h-editor flex-grow overflow-y-auto">
+			<div id="page-editor" class="max-h-editor flex-grow overflow-y-auto">
 				<!-- Card Display -->
 				{#if client.display == 'cards'}
 					<div class="rounded-lg bg-svelted-gray-700 p-2">
@@ -827,6 +892,54 @@
 										</td>
 									</tr>
 								{/each}
+								{#each filteredItems as item, index (item)}
+									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
+										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
+											<!-- <Checkbox bind:checked={selectedRows[index]} value="false" class="border-neutral-800" /> -->
+											<Checkbox
+												on:click={() => toggleCheckbox(item.route)}
+												checked={selectedRows.includes(item.route)}
+												class="border-neutral-800"
+											/>
+										</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.title}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.status}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.layout}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2">{item.author}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2"
+											>{formatTime(item.modified)}</td
+										>
+										<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.created)}</td>
+										<td class="w-14">
+											<div class="flex gap-2">
+												<button
+													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+												>
+													{#if client.hoverOver == `pages-edit-${index}`}
+														<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Pen class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</button>
+												<button
+													on:click={() => deleteModal(item.route, index)}
+													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
+												>
+													{#if client.hoverOver == `pages-delete-${index}`}
+														<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Trash class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</button>
+											</div>
+										</td>
+									</tr>
+								{/each}
 							</tbody>
 						</table>
 					</div>
@@ -838,9 +951,6 @@
 		>
 			<div id="roles" class="flex flex-col gap-3"></div>
 			<div>
-				<p class="text-white">
-					{JSON.stringify(selectedRows)}
-				</p>
 				<button
 					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
 					on:mouseenter={() => hoverOver('users')}
@@ -923,7 +1033,11 @@
 		overflow: hidden;
 	}
 
+	:is(.max-h-small-editor) {
+		max-height: calc(100vh - 19.6rem) !important;
+	}
+
 	.max-h-editor {
-		max-height: calc(100vh - 19.6rem);
+		max-height: calc(100vh - 14rem);
 	}
 </style>

@@ -11,7 +11,7 @@
 <div id="popup-modal" class="absolute bottom-0 left-0 right-0 top-0 z-10 hidden opacity-0">
 	<div
 		id="popup-modal-helper"
-		class="mx-auto my-auto flex h-48 w-3/6 flex-col justify-between rounded-lg border border-neutral-800 bg-neutral-950 p-4 shadow-lg transition-transform"
+		class="mx-auto my-auto flex min-h-48 w-3/6 flex-col justify-between rounded-lg border border-neutral-800 bg-neutral-950 p-4 shadow-lg transition-transform"
 	>
 		<div class="flex flex-col space-y-2">
 			<h1 class="text-lg font-semibold text-neutral-200">
