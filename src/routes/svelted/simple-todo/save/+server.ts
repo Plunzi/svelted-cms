@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // handle saving changes for gicen route
     //
 
-    const saveLocation = `src/lib/svelted/simple-todo/todo.data.json`;
+    const saveLocation = `src/lib/svelted/ui/simple-todo/todo.data.json`;
 
     // console.log(saveLocation);
 

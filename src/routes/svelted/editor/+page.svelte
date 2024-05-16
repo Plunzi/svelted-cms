@@ -6,7 +6,7 @@
 	import { flip } from 'svelte/animate';
 	import { onMount } from 'svelte';
 	import { tick } from 'svelte';
-	import { makeResizableDiv } from '$lib/svelted/resizeable/resizeable';
+	import { makeResizableDiv } from '$svelted/functions/resizeable';
 	import * as icons from 'phosphor-svelte';
 
 	// shadcn ui imports
@@ -16,7 +16,7 @@
 	import { cn } from '$lib/internal/shadcn/utils.js';
 
 	// layout component imports
-	import components from '$lib/svelted/components';
+	import components from '$components';
 
 	type IconName = keyof typeof icons;
 
@@ -734,7 +734,7 @@
 								>Patterns
 							</button>
 						</div>
-						<ul class="relative flex flex-col gap-2 px-2">
+						<ul class="relative flex flex-col gap-2 px-2 text-black">
 							{#each component_blocks as component, index (component)}
 								<li
 									class="component-block block w-full"

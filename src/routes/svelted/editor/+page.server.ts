@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 
 import type { PageServerLoad } from './$types';
-import { getAllLayouts, getAllLayoutsInformation } from '$lib/svelted/layouts/layouts';
+import { getAllLayouts, getAllLayoutsInformation } from '$svelted/functions/layouts/layouts';
 
 export const load: PageServerLoad = async ({ url }) => {
     const layouts = await getAllLayouts();

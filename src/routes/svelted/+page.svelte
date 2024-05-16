@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Avatar from '$lib/internal/shadcn/ui/avatar/index.js';
-	import Navigation from '$lib/svelted/navigation/Navigation.svelte';
-	import QuickToDo from '$lib/svelted/todo/QuickToDo.svelte';
+	import Navigation from '$svelted/ui/navigation/Navigation.svelte';
+	import QuickToDo from '$svelted/ui/todo/QuickToDo.svelte';
 	import { CaretDown, UserList } from 'phosphor-svelte';
 	import { onMount } from 'svelte';
 

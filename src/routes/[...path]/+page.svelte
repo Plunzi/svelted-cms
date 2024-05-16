@@ -1,6 +1,6 @@
 <script lang="ts">
 	// layout component imports
-	import components from '$lib/svelted/components';
+	import components from '$components';
 	export let data;
 
 	let layout_blocks = data.page.content || [

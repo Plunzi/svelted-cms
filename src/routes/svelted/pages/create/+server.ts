@@ -1,4 +1,4 @@
-import { isInternalPath, isValidPath, isRelativePath } from '$lib/svelted/tests/Paths';
+import { isInternalPath, isValidPath, isRelativePath } from '$svelted/checks/Paths';
 import type { RequestHandler } from './$types';
 import fs from 'node:fs/promises'
 import path from 'node:path'

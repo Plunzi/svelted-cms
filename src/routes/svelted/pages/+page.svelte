@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Navigation from '$lib/svelted/navigation/Navigation.svelte';
+	import Navigation from '$svelted/ui/navigation/Navigation.svelte';
 	import {
 		Blueprint,
 		CaretDown,
@@ -14,7 +14,7 @@
 		UserList
 	} from 'phosphor-svelte';
 	import { writable } from 'svelte/store';
-	import formatTime from '$lib/svelted/format/time';
+	import formatTime from '$svelted/functions/format/time';
 
 	// shadcn ui imports
 	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
@@ -27,8 +27,8 @@
 	import { cn } from '$lib/internal/shadcn/utils.js';
 	import { tick } from 'svelte';
 	import { flip } from 'svelte/animate';
-	import AlertDialog from '$lib/svelted/alert-dialog/AlertDialog.svelte';
-	import { closeModal, openModal } from '$lib/svelted/alert-dialog/AlertDialogControls.js';
+	import AlertDialog from '$svelted/ui/alert-dialog/AlertDialog.svelte';
+	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
 
 	export let data;
 
@@ -78,7 +78,7 @@
 	let client: Client = {
 		hoverOver: undefined,
 		sidebar: false,
-		display: 'table',
+		display: 'tables',
 		routeInput: '',
 		titleInput: '',
 		modal: {
@@ -354,6 +354,7 @@
 				</div>
 				<div class="flex gap-2">
 					<button
+						class:!bg-neutral-800={client.display == 'tables'}
 						on:click={() => (client.display = 'tables')}
 						on:mouseenter={() => hoverOver('display-tables')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -366,6 +367,7 @@
 						{/if}
 					</button>
 					<button
+						class:!bg-neutral-800={client.display == 'cards'}
 						on:click={() => (client.display = 'cards')}
 						on:mouseenter={() => hoverOver('display-cards')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -405,7 +407,8 @@
 					{/if}
 				</button>
 				<div class="flex-grow">
-					<button
+					<label
+						for="filter-pages"
 						on:mouseenter={() => hoverOver('filter')}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="contens absolute rounded-l-sm text-neutral-500 hover:text-white focus:bg-[#2da05a] focus:text-white focus:outline-none"
@@ -420,10 +423,10 @@
 								class="h-10 w-11 rounded-l-lg border-r border-neutral-800 fill-[currentcolor] p-2 px-2.5 hover:border-r-[#278c4c] hover:bg-[#278c4c]"
 							/>
 						{/if}
-					</button>
+					</label>
 					<input
 						bind:value={searchTerm}
-						name="filter-pages"
+						id="filter-pages"
 						placeholder="Filter Pages ..."
 						type="text"
 						class="w-full rounded-lg bg-[#161616] px-3 py-2 pl-14 text-neutral-300 focus:outline-none focus:ring-1 focus:ring-[#36bf68]"

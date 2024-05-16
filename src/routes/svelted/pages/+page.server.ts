@@ -1,6 +1,6 @@
-import { getAllLayouts, getAllLayoutsInformation } from "$lib/svelted/layouts/layouts";
-import { getAllPages, getAllPagesInformation } from "$lib/svelted/pages/pages";
-import { isInternalPath } from "$lib/svelted/tests/Paths";
+import { getAllLayouts, getAllLayoutsInformation } from "$svelted/functions/layouts/layouts";
+import { getAllPages, getAllPagesInformation } from "$svelted/functions/pages/pages";
+import { isInternalPath } from "$svelted/checks/Paths";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
