@@ -127,21 +127,18 @@
 	};
 
 	const showCreateForm = function () {
-		const createForm = document.getElementById("create-page-form")!;
-		const createFormSpacer = document.getElementById("create-page-form-spacer")!;
-		const editor = document.getElementById("page-editor")!;
-		if (createForm.style.display == "flex") {
-			createForm.style.display = "none";
-			createFormSpacer.style.display = "none";
-			editor.classList.remove("max-h-small-editor");
+		const createForm = document.getElementById('create-page-form')!;
+		const editor = document.getElementById('page-editor')!;
+		if (createForm.style.display == 'flex') {
+			createForm.style.display = 'none';
+			editor.classList.remove('max-h-small-editor');
 		} else {
-			createForm.style.display = "flex";
-			createFormSpacer.style.display = "static";
-			editor.classList.add("max-h-small-editor");
+			createForm.style.display = 'flex';
+			editor.classList.add('max-h-small-editor');
 		}
 
 		// max-height: calc(100vh - 14rem);
-	}
+	};
 
 	const createPage = async function () {
 		const formData = new FormData();
@@ -195,8 +192,8 @@
 
 	const deleteStackModal = function () {
 		currentAction = deleteStack;
-		client.modal.title = `Delete <span class="text-svelted-primary-500">${selectedRows.length}</span> ${selectedRows.length == 1 ? 'Layout' : 'Layouts'}?`;
-		client.modal.description = `This action cannot be undone. It will permanently delete the specified layout and remove its associated data from your servers.<br><br>${selectedRows.map(
+		client.modal.title = `Delete <span class="text-svelted-primary-500">${selectedRows.length}</span> ${selectedRows.length == 1 ? 'Page' : 'Pages'}?`;
+		client.modal.description = `This action cannot be undone. It will permanently delete the specified pages and remove its associated data from your servers.<br><br>${selectedRows.map(
 			(row, index) => {
 				return `${index == 0 ? '' : '<br>'}Delete Layout: ${row}`;
 			}
@@ -206,7 +203,7 @@
 
 	const deleteStack = async function () {
 		selectedRows.map(async (entry) => {
-			const deleteRoute = client.delete.route = entry;
+			const deleteRoute = (client.delete.route = entry);
 			const deleteId = items.findIndex((page) => page.route === entry);
 
 			if (!deleteRoute || (!deleteId && deleteId != 0)) {
@@ -434,16 +431,10 @@
 				</div>
 			</nav>
 
-			<div class="w-full border-b border-b-neutral-800">
-				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
-				<AlertDialog
-					title={client.modal.title}
-					description={client.modal.description}
-					action={currentAction}
-				/>
-			</div>
-
-			<div id="create-page-form" class="flex justify-between rounded-lg bg-svelted-gray-700 p-2 hidden">
+			<div
+				id="create-page-form"
+				class="flex hidden justify-between rounded-lg bg-svelted-gray-700 p-2"
+			>
 				<div class="mt-5 flex">
 					<div class="relative w-full">
 						<label
@@ -602,7 +593,14 @@
 				</div>
 			</div>
 
-			<hr class="border-neutral-800 hidden" id="create-page-form-spacer" />
+			<div class="w-full border-b border-b-neutral-800">
+				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
+				<AlertDialog
+					title={client.modal.title}
+					description={client.modal.description}
+					action={currentAction}
+				/>
+			</div>
 
 			<div id="page-editor" class="max-h-editor flex-grow overflow-y-auto">
 				<!-- Card Display -->
@@ -615,7 +613,11 @@
 										<div
 											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 										>
-											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+											<Checkbox
+												on:click={checkAllCheckboxes}
+												checked={items.length == selectedRows.length}
+												class="border-[currentcolor]"
+											/>
 										</div>
 									</div>
 									<div class="w-full">
@@ -847,55 +849,6 @@
 								{#each filteredItems as item, index (item)}
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-											<!-- <Checkbox bind:checked={selectedRows[index]} value="false" class="border-neutral-800" /> -->
-											<Checkbox
-												on:click={() => toggleCheckbox(item.route)}
-												checked={selectedRows.includes(item.route)}
-												class="border-neutral-800"
-											/>
-										</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{item.title}</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{item.status}</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{item.layout}</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{item.author}</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2"
-											>{formatTime(item.modified)}</td
-										>
-										<td class="border-r-neutral-800 px-2 py-2">{formatTime(item.created)}</td>
-										<td class="w-14">
-											<div class="flex gap-2">
-												<button
-													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
-													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
-												>
-													{#if client.hoverOver == `pages-edit-${index}`}
-														<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-													{:else}
-														<Pen class="h-5 w-5 fill-[currentcolor]" />
-													{/if}
-												</button>
-												<button
-													on:click={() => deleteModal(item.route, index)}
-													on:mouseenter={() => hoverOver(`pages-delete-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
-													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
-												>
-													{#if client.hoverOver == `pages-delete-${index}`}
-														<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-													{:else}
-														<Trash class="h-5 w-5 fill-[currentcolor]" />
-													{/if}
-												</button>
-											</div>
-										</td>
-									</tr>
-								{/each}
-								{#each filteredItems as item, index (item)}
-									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
-										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-											<!-- <Checkbox bind:checked={selectedRows[index]} value="false" class="border-neutral-800" /> -->
 											<Checkbox
 												on:click={() => toggleCheckbox(item.route)}
 												checked={selectedRows.includes(item.route)}

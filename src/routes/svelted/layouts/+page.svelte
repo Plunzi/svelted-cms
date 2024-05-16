@@ -62,13 +62,103 @@
 		client.routeInput = '';
 	};
 
+	const showCreateForm = function () {
+		const createForm = document.getElementById('create-page-form')!;
+		const editor = document.getElementById('page-editor')!;
+		if (createForm.style.display == 'flex') {
+			createForm.style.display = 'none';
+			editor.classList.remove('max-h-small-editor');
+		} else {
+			createForm.style.display = 'flex';
+			editor.classList.add('max-h-small-editor');
+		}
+
+		// max-height: calc(100vh - 14rem);
+	};
+
+	const deleteStackModal = function () {
+		currentAction = deleteStack;
+		client.modal.title = `Delete <span class="text-svelted-primary-500">${selectedRows.length}</span> ${selectedRows.length == 1 ? 'Layout' : 'Layouts'}?`;
+		client.modal.description = `This action cannot be undone. It will permanently delete the specified layouts and remove its associated data from your servers.<br><br>${selectedRows.map(
+			(row, index) => {
+				return `${index == 0 ? '' : '<br>'}Delete Layout: ${row}`;
+			}
+		)}`;
+		openModal();
+	};
+
+	const deleteStack = async function () {
+		selectedRows.map(async (entry) => {
+			const deleteRoute = (client.delete.route = entry);
+			const deleteId = items.findIndex((page) => page.route === entry);
+
+			console.log(deleteRoute, deleteId);
+
+			if (!deleteRoute || (!deleteId && deleteId != 0)) {
+				closeModal();
+				return;
+			}
+
+			toast.loading(`Trying to delete route: ${deleteRoute}`);
+
+			const formData = new FormData();
+			formData.append('route', deleteRoute);
+
+			const response = await fetch('/svelted/layouts/delete', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				const error = await response.text();
+				toast.error(error);
+			} else {
+				if (client.hoverOver == `layouts-delete-${deleteId}`) {
+					hoverOver(undefined);
+				}
+
+				const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
+				if (indexToRemove !== -1) {
+					items.splice(indexToRemove, 1);
+					sortItems.set(items.slice());
+				}
+
+				let result = await response.text();
+				toast.success(result);
+			}
+		});
+		closeModal();
+	};
+
+	const checkAllCheckboxes = function () {
+		if (items.length == selectedRows.length) {
+			selectedRows = [];
+		} else {
+			selectedRows = items.map((item) => {
+				return item.route;
+			});
+		}
+	};
+
+	const toggleCheckbox = function (input: string) {
+		if (selectedRows.includes(input)) {
+			selectedRows = selectedRows.filter((route) => route !== input);
+			selectedRows = selectedRows;
+		} else {
+			selectedRows.push(input);
+			selectedRows = selectedRows;
+		}
+	};
+
 	const deleteModal = function (route: string, id: number) {
+		currentAction = deleteLayout;
 		client.delete.id = id;
 		client.delete.route = route;
 		client.modal.title = `Confirm Deletion <span class="text-svelted-primary-500">${route}</span> Page?`;
-		client.modal.description = "This action cannot be undone. It will permanently delete the specified page and remove its associated data from your servers.";
+		client.modal.description =
+			'This action cannot be undone. It will permanently delete the specified page and remove its associated data from your servers.';
 		openModal();
-	}
+	};
 
 	const deleteLayout = async function () {
 		const deleteRoute = client.delete.route;
@@ -77,12 +167,12 @@
 
 		console.log(deleteRoute, deleteId);
 
-		if (!deleteRoute || !deleteId && deleteId != 0) {
+		if (!deleteRoute || (!deleteId && deleteId != 0)) {
 			closeModal();
 			return;
 		}
 
-		toast.loading(`Trying to delete route: ${deleteRoute}`)
+		toast.loading(`Trying to delete route: ${deleteRoute}`);
 
 		const formData = new FormData();
 		// client.isSaving = true;
@@ -103,7 +193,7 @@
 				hoverOver(undefined);
 			}
 
-			const indexToRemove = items.findIndex(item => item.route === deleteRoute);
+			const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
 			if (indexToRemove !== -1) {
 				items.splice(indexToRemove, 1);
 				sortItems.set(items.slice());
@@ -119,30 +209,32 @@
 	};
 
 	interface Client {
-		hoverOver: undefined | string
-		sidebar: boolean
-		display: string | undefined
-		routeInput: string
-		nameInput: string
+		hoverOver: undefined | string;
+		sidebar: boolean;
+		display: string | undefined;
+		routeInput: string;
+		nameInput: string;
 		delete: {
-			route: undefined | string,
-			id: undefined | number
-		}
+			route: undefined | string;
+			id: undefined | number;
+		};
 		modal: {
-			title: undefined | string
-			description: undefined | string
-		}
+			title: undefined | string;
+			description: undefined | string;
+		};
 		dropdowns: {
 			status: {
-				open: boolean
-				value: string
-			}
+				open: boolean;
+				value: string;
+			};
 			layout: {
-				open: boolean
-				value: string
-			}
-		}
+				open: boolean;
+				value: string;
+			};
+		};
 	}
+
+	let selectedRows: string[] = [];
 
 	let client: Client = {
 		hoverOver: undefined,
@@ -171,6 +263,7 @@
 	};
 
 	let items = data.layouts || [];
+	let currentAction = deleteLayout;
 
 	const sortKey = writable('route'); // default sort key
 	const sortDirection = writable(1); // default sort direction (ascending)
@@ -252,6 +345,7 @@
 			</div>
 			<nav class="flex gap-2">
 				<button
+					on:click={showCreateForm}
 					on:mouseenter={() => hoverOver('create-layout')}
 					on:mouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -263,6 +357,7 @@
 					{/if}
 				</button>
 				<button
+					on:click={deleteStackModal}
 					on:mouseenter={() => hoverOver('delete-stack')}
 					on:mouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -300,9 +395,7 @@
 				</div>
 			</nav>
 
-			<hr class="border-neutral-800" />
-
-			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2">
+			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2 hidden" id="create-page-form">
 				<div class="mt-5 flex">
 					<div class="relative w-full">
 						<label
@@ -345,9 +438,13 @@
 				</div>
 			</div>
 
-			<div class="border-b border-b-neutral-800 w-full">
+			<div class="w-full border-b border-b-neutral-800">
 				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
-				<AlertDialog title={client.modal.title} description={client.modal.description} action={deleteLayout}/>
+				<AlertDialog
+					title={client.modal.title}
+					description={client.modal.description}
+					action={currentAction}
+				/>
 			</div>
 
 			<div class="max-h-editor flex-grow overflow-y-auto">
@@ -361,7 +458,11 @@
 										<div
 											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 										>
-											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+											<Checkbox
+												on:click={checkAllCheckboxes}
+												checked={items.length == selectedRows.length}
+												class="border-[currentcolor]"
+											/>
 										</div>
 									</div>
 									<div class="w-full">
@@ -422,7 +523,11 @@
 												<div
 													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
-													<Checkbox class="border-[currentcolor]" />
+													<Checkbox
+														on:click={() => toggleCheckbox(item.route)}
+														checked={selectedRows.includes(item.route)}
+														class="border-neutral-800"
+													/>
 												</div>
 												<div class="mb-0.5 py-2">
 													{item.description.name} <span class="text-neutral-800">―</span>
@@ -482,7 +587,11 @@
 								<tr class="text-neutral-500">
 									<th>
 										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
-											<Checkbox class="border-neutral-700" id="pages-checkbox" />
+											<Checkbox
+												on:click={checkAllCheckboxes}
+												checked={items.length == selectedRows.length}
+												class="border-[currentcolor]"
+											/>
 										</div>
 									</th>
 									<th>
@@ -536,7 +645,11 @@
 								{#each filteredItems as item, index (item)}
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-											<Checkbox class="border-neutral-800" />
+											<Checkbox
+												on:click={() => toggleCheckbox(item.route)}
+												checked={selectedRows.includes(item.route)}
+												class="border-neutral-800"
+											/>
 										</td>
 										<td class="border-r border-r-neutral-800 px-2 py-2">{item.route}</td>
 										<td class="border-r border-r-neutral-800 px-2 py-2">{item.description.name}</td>
