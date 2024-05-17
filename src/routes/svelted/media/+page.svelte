@@ -2,6 +2,7 @@
 	import Navigation from '$svelted/ui/navigation/Navigation.svelte';
 	import {
 		Blueprint,
+		Folder,
 		CaretDown,
 		CaretUp,
 		Check,
@@ -48,80 +49,118 @@
 
 	const deleteStackModal = function () {
 		currentAction = deleteStack;
-		client.modal.title = `Delete <span class="text-svelted-primary-500">${selectedRows.length}</span> ${selectedRows.length == 1 ? 'Layout' : 'Layouts'}?`;
-		client.modal.description = `This action cannot be undone. It will permanently delete the specified layouts and remove its associated data from your servers.<br><br>${selectedRows.map(
+		client.modal.title = `Delete <span class="text-svelted-primary-500">${selectedFiles.length}</span> ${selectedFiles.length == 1 ? 'File' : 'Files'}?`;
+		client.modal.description = `This action cannot be undone. It will permanently delete the specified files and remove its associated data from your servers.<br><br>Files:<br>${selectedFiles.map(
 			(row, index) => {
-				return `${index == 0 ? '' : '<br>'}Delete Layout: ${row}`;
+				return `${index == 0 ? '' : '<br>'}${row}`;
+			}
+		)}`;
+		if (client.modal.description != '') {
+			client.modal.description += '<br><br>';
+		}
+		client.modal.description += "Folders:<br>"
+		client.modal.description += `${selectedFolders.map(
+			(row, index) => {
+				return `${index == 0 ? '' : '<br>'}${row}`;
 			}
 		)}`;
 		openModal();
 	};
 
 	const deleteStack = async function () {
-		selectedRows.map(async (entry) => {
+		selectedFiles.map(async (entry) => {
 			const deleteRoute = (client.delete.route = entry);
-			const deleteId = items.findIndex((page) => page.route === entry);
+			const deleteId = files.findIndex((file) => file.path === entry);
 
 			console.log(deleteRoute, deleteId);
 
-			if (!deleteRoute || (!deleteId && deleteId != 0)) {
-				closeModal();
-				return;
-			}
+			// if (!deleteRoute || (!deleteId && deleteId != 0)) {
+			// 	closeModal();
+			// 	return;
+			// }
 
-			toast.loading(`Trying to delete route: ${deleteRoute}`);
+			// toast.loading(`Trying to delete route: ${deleteRoute}`);
 
-			const formData = new FormData();
-			formData.append('route', deleteRoute);
+			// const formData = new FormData();
+			// formData.append('route', deleteRoute);
 
-			const response = await fetch('/svelted/layouts/delete', {
-				method: 'POST',
-				body: formData
-			});
+			// const response = await fetch('/svelted/layouts/delete', {
+			// 	method: 'POST',
+			// 	body: formData
+			// });
 
-			if (!response.ok) {
-				const error = await response.text();
-				toast.error(error);
-			} else {
-				if (client.hoverOver == `layouts-delete-${deleteId}`) {
-					hoverOver(undefined);
-				}
+			// if (!response.ok) {
+			// 	const error = await response.text();
+			// 	toast.error(error);
+			// } else {
+			// 	if (client.hoverOver == `layouts-delete-${deleteId}`) {
+			// 		hoverOver(undefined);
+			// 	}
 
-				const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
-				if (indexToRemove !== -1) {
-					items.splice(indexToRemove, 1);
-					sortItems.set(items.slice());
-				}
+			// 	const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
+			// 	if (indexToRemove !== -1) {
+			// 		items.splice(indexToRemove, 1);
+			// 		sortItems.set(items.slice());
+			// 	}
 
-				let result = await response.text();
-				toast.success(result);
-			}
+			// 	let result = await response.text();
+			// 	toast.success(result);
+			// }
+		});
+
+		selectedFolders.map(async (entry) => {
+			const deleteRoute = (client.delete.route = entry);
+			const deleteId = folders.findIndex((folder) => folder.path === entry);
+
+			console.log(deleteRoute, deleteId);
 		});
 		closeModal();
 	};
 
-	const checkAllCheckboxes = function () {
-		if ((files.length) == selectedRows.length) {
-			selectedRows = [];
+	const checkAllFiles = function () {
+		if ((files.length) == selectedFiles.length) {
+			selectedFiles = [];
 		} else {
-			selectedRows = files.map((file) => {
+			selectedFiles = files.map((file) => {
 				return file.path;
 			});
 		}
 	};
 
-	const toggleCheckbox = function (input: string) {
-		if (selectedRows.includes(input)) {
-			selectedRows = selectedRows.filter((route) => route !== input);
-			selectedRows = selectedRows;
+	const checkAllFolders = function () {
+		if ((folders.length) == selectedFolders.length) {
+			selectedFolders = [];
 		} else {
-			selectedRows.push(input);
-			selectedRows = selectedRows;
+			selectedFolders = folders.map((folder) => {
+				return folder.path;
+			});
 		}
 	};
 
+	const toggleCheckboxFiles = function (input: string) {
+		if (selectedFiles.includes(input)) {
+			selectedFiles = selectedFiles.filter((route) => route !== input);
+			selectedFiles = selectedFiles;
+		} else {
+			selectedFiles.push(input);
+			selectedFiles = selectedFiles;
+		}
+	};
+
+	const toggleCheckboxFolders = function (input: string) {
+		if (selectedFolders.includes(input)) {
+			selectedFolders = selectedFolders.filter((route) => route !== input);
+			selectedFolders = selectedFolders;
+		} else {
+			selectedFolders.push(input);
+			selectedFolders = selectedFolders;
+		}
+	};
+
+	const deleteFile = async function () {}
+
 	const deleteModal = function (route: string, id: number) {
-		currentAction = deleteLayout;
+		currentAction = deleteFile;
 		client.delete.id = id;
 		client.delete.route = route;
 		client.modal.title = `Confirm Deletion <span class="text-svelted-primary-500">${route}</span> Page?`;
@@ -204,7 +243,8 @@
 		};
 	}
 
-	let selectedRows: string[] = [];
+	let selectedFiles: string[] = [];
+	let selectedFolders: string[] = [];
 
 	let client: Client = {
 		hoverOver: undefined,
@@ -240,9 +280,12 @@
 	interface File {
 		path: string
 		name: string
+		author: string
 		extension: string
 		size: number
 		description: string | undefined
+		modified: number
+		created: number
 	}
 
 	type FilesItem = Folder | File;
@@ -262,7 +305,7 @@
 		},
 	];
 
-	let files: Files[] = [
+	let files: File[] = [
 		{
 			path: "/public/test.png",
 			name: "Test.png",
@@ -469,11 +512,79 @@
 
 			<div class="max-h-editor flex-grow overflow-y-auto">
 
-				<div class="rounded-lg bg-svelted-gray-700 p-2 mb-3">
-				<p>Folder</p>
-				{#each folders as folder}
-					{folder.name}
-				{/each}
+				<div class="rounded-lg bg-svelted-gray-700 px-2 pt-1 mb-3">
+				<div class="flex flex-col gap-1">
+					<table class="w-full pb-1">
+						<thead>
+							<tr class="text-neutral-500">
+								<th>
+									<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
+										<Checkbox
+											on:click={checkAllFolders}
+											checked={selectedFolders.length === folders.length}
+											class="border-[currentcolor]"
+										/>
+									</div>
+								</th>
+								<th>
+									<button
+										on:click={() => sortTable('name')}
+										class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+									>
+										<p>Name</p>
+										<CaretUp weight="fill" />
+									</button>
+								</th>
+							</tr>
+						</thead>
+						<tbody class="text-neutral-500">
+							{#each folders as folder, index (folder)}
+								<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
+									<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
+										<Checkbox
+											on:click={() => toggleCheckboxFolders(folder.path)}
+											checked={selectedFolders.includes(folder.path)}
+											class="border-neutral-800"
+										/>
+									</td>
+									<td class="px-2 !p-0">
+										<a href={`/svelted/media${folder.path}`} class="flex items-center px-2 w-full h-10">
+											<div class="flex gap-2"><img class="w-6 h-6" src={"/file-icons/folder_dark.svg"} alt={"file-icon-preview"}> {folder.name}<span class="text-neutral-700"> ― {folder.path}</span></div>
+										</a>
+									</td>
+									<td class="w-14">
+										<div class="flex gap-2">
+											<a
+												href={`/svelted/media${folder.path}`}
+												on:mouseenter={() => hoverOver(`folder-edit-${index}`)}
+												on:mouseleave={() => hoverOver(undefined)}
+												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+											>
+												{#if client.hoverOver == `folder-edit-${index}`}
+													<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+												{:else}
+													<Pen class="h-5 w-5 fill-[currentcolor]" />
+												{/if}
+											</a>
+											<button
+												on:click={() => deleteModal(folder.path, index)}
+												on:mouseenter={() => hoverOver(`folder-delete-${index}`)}
+												on:mouseleave={() => hoverOver(undefined)}
+												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
+											>
+												{#if client.hoverOver == `folder-delete-${index}`}
+													<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+												{:else}
+													<Trash class="h-5 w-5 fill-[currentcolor]" />
+												{/if}
+											</button>
+										</div>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 				<!-- Card Display -->
@@ -487,8 +598,8 @@
 											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 										>
 											<Checkbox
-												on:click={checkAllCheckboxes}
-												checked={selectedRows.length === files.length}
+												on:click={checkAllFiles}
+												checked={selectedFiles.length === files.length}
 												class="border-[currentcolor]"
 											/>
 										</div>
@@ -552,13 +663,13 @@
 													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
 													<Checkbox
-													on:click={() => toggleCheckbox(file.path)}
-													checked={selectedRows.includes(file.path)}
+													on:click={() => toggleCheckboxFiles(file.path)}
+													checked={selectedFiles.includes(file.path)}
 														class="border-neutral-800"
 													/>
 												</div>
 												<div class="mb-0.5 py-2 flex gap-1">
-													<div class="flex gap-2"><img class="w-6 h-6" src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} alt={"file-icon-preview"}> {file.name}</div> <span class="text-neutral-800">―</span>
+													<div class="flex gap-2"><img class="min-w-6 min-h-6" src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} alt={"file-icon-preview"}> {file.name}</div> <span class="text-neutral-800">―</span>
 													{file.size}
 												</div>
 											</div>
@@ -567,23 +678,23 @@
 													<p class="px-2 py-2">{file.extension}</p>
 													<a
 														href={`/svelted/media${file.path}`}
-														on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
+														on:mouseenter={() => hoverOver(`file-edit-${index}`)}
 														on:mouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
 													>
-														{#if client.hoverOver == `pages-edit-${index}`}
+														{#if client.hoverOver == `file-edit-${index}`}
 															<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
 														{:else}
 															<Pen class="h-5 w-5 fill-[currentcolor]" />
 														{/if}
 													</a>
 													<button
-														on:click={() => deleteModal(file.path, index)}
-														on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
+														on:click={() => deleteModal(file.name, index)}
+														on:mouseenter={() => hoverOver(`file-delete-${index}`)}
 														on:mouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
 													>
-														{#if client.hoverOver == `layouts-delete-${index}`}
+														{#if client.hoverOver == `file-delete-${index}`}
 															<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
 														{:else}
 															<Trash class="h-5 w-5 fill-[currentcolor]" />
@@ -616,8 +727,8 @@
 									<th>
 										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 											<Checkbox
-												on:click={checkAllCheckboxes}
-												checked={selectedRows.length === files.length}
+												on:click={checkAllFiles}
+												checked={selectedFiles.length === files.length}
 												class="border-[currentcolor]"
 											/>
 										</div>
@@ -674,16 +785,36 @@
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 											<Checkbox
-												on:click={() => toggleCheckbox(file.path)}
-												checked={selectedRows.includes(file.path)}
+												on:click={() => toggleCheckboxFiles(file.path)}
+												checked={selectedFiles.includes(file.path)}
 												class="border-neutral-800"
 											/>
 										</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2"><div class="flex gap-2"><img class="w-6 h-6" src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} alt={"file-icon-preview"}> {file.name}</div></td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{file.extension}</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{file.author}</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2">{formatTime(file.modified)}</td>
-										<td class="px-2 py-2">{formatTime(file.created)}</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
+											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+												<div class="flex gap-2"><img class="w-6 h-6" src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} alt={"file-icon-preview"}> {file.name}</div>
+											</a>
+										</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
+											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+												{file.extension}
+											</a>
+										</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
+											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+												{file.author}
+											</a>
+										</td>
+										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
+											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+												{formatTime(file.modified)}
+											</a>
+										</td>
+										<td class="p-0">
+											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+												{formatTime(file.created)}
+											</a>
+										</td>
 										<td class="w-14">
 											<div class="flex gap-2">
 												<a
@@ -699,7 +830,7 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteModal(file.path, index)}
+													on:click={() => deleteModal(file.name, index)}
 													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
@@ -724,7 +855,10 @@
 			class="h-full-editor open flex min-w-64 max-w-64 flex-col justify-between overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
 		>
 			<div id="roles" class="flex flex-col gap-3"></div>
-			<p class="text-white">{JSON.stringify(selectedRows)}</p>
+			<p>Files:</p>
+			<p class="text-white">{JSON.stringify(selectedFiles)}</p>
+			<p>Folders:</p>
+			<p class="text-white">{JSON.stringify(selectedFolders)}</p>
 			<div>
 				<button
 					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"

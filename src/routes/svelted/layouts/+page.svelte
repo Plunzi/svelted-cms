@@ -2,9 +2,7 @@
 	import Navigation from '$svelted/ui/navigation/Navigation.svelte';
 	import {
 		Blueprint,
-		CaretDown,
 		CaretUp,
-		Check,
 		Funnel,
 		Pen,
 		Plus,
