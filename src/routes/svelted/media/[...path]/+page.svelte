@@ -500,6 +500,8 @@
 													<div class="flex gap-2">
 														<a
 															href={`/svelted/media${folder.path}`}
+															data-sveltekit-replacestate="true"
+															data-sveltekit-reload="true"
 															on:mouseenter={() => hoverOver(`folder-edit-${index}`)}
 															on:mouseleave={() => hoverOver(undefined)}
 															class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -633,6 +635,8 @@
 															<p class="px-2 py-2">{file.extension}</p>
 															<a
 																href={`/svelted/media${file.path}`}
+																data-sveltekit-replacestate="true"
+																data-sveltekit-reload="true"
 																on:mouseenter={() => hoverOver(`file-edit-${index}`)}
 																on:mouseleave={() => hoverOver(undefined)}
 																class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
@@ -751,6 +755,8 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<a
 														href={`/svelted/media${file.path}`}
+														data-sveltekit-replacestate="true"
+														data-sveltekit-reload="true"
 														class="flex h-10 w-full items-center px-2"
 													>
 														<div class="flex gap-2">
@@ -767,6 +773,8 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<a
 														href={`/svelted/media${file.path}`}
+														data-sveltekit-replacestate="true"
+														data-sveltekit-reload="true"
 														class="flex h-10 w-full items-center px-2"
 													>
 														{file.extension}
@@ -775,6 +783,8 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<a
 														href={`/svelted/media${file.path}`}
+														data-sveltekit-replacestate="true"
+														data-sveltekit-reload="true"
 														class="flex h-10 w-full items-center px-2"
 													>
 														{file.author}
@@ -783,6 +793,8 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<a
 														href={`/svelted/media${file.path}`}
+														data-sveltekit-replacestate="true"
+														data-sveltekit-reload="true"
 														class="flex h-10 w-full items-center px-2"
 													>
 														{formatTime(file.modified)}
@@ -791,6 +803,8 @@
 												<td class="p-0">
 													<a
 														href={`/svelted/media${file.path}`}
+														data-sveltekit-replacestate="true"
+														data-sveltekit-reload="true"
 														class="flex h-10 w-full items-center px-2"
 													>
 														{formatTime(file.created)}
@@ -800,6 +814,8 @@
 													<div class="flex gap-2">
 														<a
 															href={`/svelted/media${file.path}`}
+															data-sveltekit-replacestate="true"
+															data-sveltekit-reload="true"
 															on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 															on:mouseleave={() => hoverOver(undefined)}
 															class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -833,103 +849,119 @@
 					{/if}
 					<p>Success</p>
 				{:else if data.status == 'file'}
-						<!-- Table Display -->
-						<div class="rounded-lg bg-svelted-gray-700 px-2 pt-1">
-							<table class="mb-2 w-full pb-1">
-								<tbody class="text-neutral-500">
-									{#each $sortItems as file, index (file)}
-										<tr
-											class="hover:!bg-[#0a2620] hover:text-white"
-											animate:flip={{ duration: 500 }}
-										>
-											<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-												<Checkbox
-													on:click={() => toggleCheckboxFiles(file.path)}
-													checked={selectedFiles.includes(file.path)}
-													class="border-neutral-800"
-												/>
-											</td>
-											<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-												<a
-													href={`/svelted/media${file.path}`}
-													class="flex h-10 w-full items-center px-2"
-												>
-													<div class="flex gap-2">
-														<img
-															class="h-6 w-6"
-															src={`${getSvgPath(file.extension)}.svg` || '/file-icons/unknown.svg'}
-															alt={'file-icon-preview'}
-														/>
-														{file.name}
-													</div>
-												</a>
-											</td>
-											<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-												<a
-													href={`/svelted/media${file.path}`}
-													class="flex h-10 w-full items-center px-2"
-												>
-													{file.extension}
-												</a>
-											</td>
-											<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-												<a
-													href={`/svelted/media${file.path}`}
-													class="flex h-10 w-full items-center px-2"
-												>
-													{file.author}
-												</a>
-											</td>
-											<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-												<a
-													href={`/svelted/media${file.path}`}
-													class="flex h-10 w-full items-center px-2"
-												>
-													{formatTime(file.modified)}
-												</a>
-											</td>
-											<td class="p-0">
-												<a
-													href={`/svelted/media${file.path}`}
-													class="flex h-10 w-full items-center px-2"
-												>
-													{formatTime(file.created)}
-												</a>
-											</td>
-											<td class="w-14">
+					<!-- Table Display -->
+					<div class="rounded-lg bg-svelted-gray-700 px-2 pt-1">
+						<table class="mb-2 w-full pb-1">
+							<tbody class="text-neutral-500">
+								{#each $sortItems as file, index (file)}
+									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
+										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
+											<Checkbox
+												on:click={() => toggleCheckboxFiles(file.path)}
+												checked={selectedFiles.includes(file.path)}
+												class="border-neutral-800"
+											/>
+										</td>
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												data-sveltekit-replacestate="true"
+												data-sveltekit-reload="true"
+												class="flex h-10 w-full items-center px-2"
+											>
 												<div class="flex gap-2">
-													<a
-														href={`/svelted/media${file.path}`}
-														on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
-														class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
-													>
-														{#if client.hoverOver == `pages-edit-${index}`}
-															<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-														{:else}
-															<Pen class="h-5 w-5 fill-[currentcolor]" />
-														{/if}
-													</a>
-													<button
-														on:click={() => deleteModal(file.name, index)}
-														on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
-														class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
-													>
-														{#if client.hoverOver == `layouts-delete-${index}`}
-															<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-														{:else}
-															<Trash class="h-5 w-5 fill-[currentcolor]" />
-														{/if}
-													</button>
+													<img
+														class="h-6 w-6"
+														src={`${getSvgPath(file.extension)}.svg` || '/file-icons/unknown.svg'}
+														alt={'file-icon-preview'}
+													/>
+													{file.name}
 												</div>
-											</td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
-						</div>
+											</a>
+										</td>
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												data-sveltekit-replacestate="true"
+												data-sveltekit-reload="true"
+												class="flex h-10 w-full items-center px-2"
+											>
+												{file.extension}
+											</a>
+										</td>
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												data-sveltekit-replacestate="true"
+												data-sveltekit-reload="true"
+												class="flex h-10 w-full items-center px-2"
+											>
+												{file.author}
+											</a>
+										</td>
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												data-sveltekit-replacestate="true"
+												data-sveltekit-reload="true"
+												class="flex h-10 w-full items-center px-2"
+											>
+												{formatTime(file.modified)}
+											</a>
+										</td>
+										<td class="p-0">
+											<a
+												href={`/svelted/media${file.path}`}
+												data-sveltekit-replacestate="true"
+												data-sveltekit-reload="true"
+												class="flex h-10 w-full items-center px-2"
+											>
+												{formatTime(file.created)}
+											</a>
+										</td>
+										<td class="w-14">
+											<div class="flex gap-2">
+												<a
+													href={`/svelted/media${file.path}`}
+													data-sveltekit-replacestate="true"
+													data-sveltekit-reload="true"
+													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+												>
+													{#if client.hoverOver == `pages-edit-${index}`}
+														<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Pen class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</a>
+												<button
+													on:click={() => deleteModal(file.name, index)}
+													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
+												>
+													{#if client.hoverOver == `layouts-delete-${index}`}
+														<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Trash class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</button>
+											</div>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
 					<p>Single File</p>
+					{#if files[0].extension == 'svg' || files[0].extension == 'png'}
+						<img
+							class="h-6 w-6"
+							src={files[0].path.replace("/public","")}
+							alt={'file-icon-preview'}
+						/>
+					{/if}
 				{:else}
 					<p>Error: {data.status}</p>
 				{/if}

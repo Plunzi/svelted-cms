@@ -70,7 +70,7 @@ export const load: PageServerLoad = async ({ params }) => {
             // Handle the case where the path is a file
             const fileStat = await fs.stat(currentPath);
             files.push({
-                path: currentPath,
+                path: `/${params.path}`,
                 name: path.basename(currentPath),
                 author: 'unknown', // Placeholder, replace with actual author if available
                 extension: path.extname(currentPath).slice(1),
