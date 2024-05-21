@@ -21,9 +21,12 @@
 	import { flip } from 'svelte/animate';
 	import AlertDialog from '$svelted/ui/alert-dialog/AlertDialog.svelte';
 	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
+	import { onMount } from 'svelte';
+	import FileTree from '$svelted/ui/file-tree/FileTree.svelte';
 
 	function getSvgPath(extension: string): string {
 		const fileIcons = getFileIcons();
+		// const svgPath = false;
 		const svgPath = fileIcons[extension];
 		if (!svgPath) {
 			return '/file-icons/unknown';
@@ -42,6 +45,8 @@
 	const hoverOver = function (element: string | undefined) {
 		client.hoverOver = element;
 	};
+
+	const tree = data.media;
 
 	const deleteStackModal = function () {
 		currentAction = deleteStack;
@@ -242,7 +247,7 @@
 
 	let client: Client = {
 		hoverOver: undefined,
-		sidebar: false,
+		sidebar: true,
 		display: 'tables',
 		routeInput: '',
 		nameInput: '',
@@ -339,7 +344,10 @@
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
         </div> -->
-		<div class="relative flex w-full flex-col gap-4 px-3 pt-3 text-white">
+		<div
+			class="h-full-editor relative flex w-full flex-col gap-4 px-3 pt-3 text-white"
+			style={client.sidebar ? "width: calc(100vw - 20rem);" : "width: 100%;"}
+		>
 			<div class="relative flex justify-between gap-2">
 				<div class="flex h-10 items-center gap-2 px-2">
 					<Blueprint class="mt-0.5 h-6 w-6 fill-neutral-500" weight="regular" />
@@ -376,6 +384,21 @@
 							<SquaresFour class="h-5 w-5 fill-[currentcolors]" />
 						{/if}
 					</button>
+					{#if client.sidebar === false}
+						<button
+							class:!bg-neutral-800={client.display == 'cards'}
+							on:click={() => client.sidebar = !client.sidebar}
+							on:mouseenter={() => hoverOver('show-sidebar')}
+							on:mouseleave={() => hoverOver(undefined)}
+							class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
+						>
+							{#if client.hoverOver == 'show-sidebar'}
+								<Tree class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+							{:else}
+								<Tree class="h-5 w-5 fill-[currentcolors]" />
+							{/if}
+						</button>
+					{/if}
 				</div>
 			</div>
 			<nav class="flex gap-2">
@@ -847,7 +870,6 @@
 							</div>
 						{/if}
 					{/if}
-					<p>Success</p>
 				{:else if data.status == 'file'}
 					<!-- Table Display -->
 					<div class="rounded-lg bg-svelted-gray-700 px-2 pt-1">
@@ -956,42 +978,39 @@
 					</div>
 					<p>Single File</p>
 					{#if files[0].extension == 'svg' || files[0].extension == 'png'}
-						<img
-							class="h-6 w-6"
-							src={files[0].path.replace("/public","")}
-							alt={'file-icon-preview'}
-						/>
+						<img class="h-6 w-6" src={`/sv-content${files[0].path}`} alt={'file-icon-preview'} />
 					{/if}
 				{:else}
 					<p>Error: {data.status}</p>
 				{/if}
 			</div>
 		</div>
-		<div
-			class="h-full-editor open flex min-w-64 max-w-64 flex-col justify-between overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
-		>
-			<div id="roles" class="flex flex-col gap-3"></div>
-			<p>Files:</p>
-			<p class="text-white">{JSON.stringify(selectedFiles)}</p>
-			<p>Folders:</p>
-			<p class="text-white">{JSON.stringify(selectedFolders)}</p>
-			<div>
-				<button
-					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
-					on:mouseenter={() => hoverOver('users')}
-					on:mouseleave={() => hoverOver(undefined)}
-					on:click={() => (client.sidebar = !client.sidebar)}
-				>
-					{#if client.hoverOver == 'users'}
-						<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-						<p class="text-white">Here will be a folder tree</p>
-					{:else}
-						<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-						<p class="text-neutral-500">Here will be a folder tree</p>
-					{/if}
-				</button>
+		{#if client.sidebar}
+			<div
+				class="h-full-editor open flex min-w-64 max-w-64 flex-col gap-2 overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
+			>
+				<div>
+					<button
+						class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] focus:outline-none"
+						on:mouseenter={() => hoverOver('users')}
+						on:mouseleave={() => hoverOver(undefined)}
+						on:click={() => (client.sidebar = !client.sidebar)}
+					>
+						{#if client.hoverOver == 'users'}
+							<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
+							<p class="text-white">Files Tree</p>
+						{:else}
+							<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
+							<p class="text-neutral-500">Files Tree</p>
+						{/if}
+					</button>
+				</div>
+				<div class="overflow-y-auto overflow-x-hidden">
+					<!-- <p class="text-white">{JSON.stringify(selectedFiles)}</p> -->
+					<FileTree {tree} treeRoute="/svelted/media" />
+				</div>
 			</div>
-		</div>
+		{/if}
 	</div>
 </Navigation>
 
@@ -1050,6 +1069,7 @@
 
 	.h-full-editor {
 		min-height: calc(100vh - 4rem);
+		max-height: calc(100vh - 4rem);
 	}
 
 	:is(.closed .section-description, .hide) {

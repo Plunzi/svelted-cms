@@ -1,6 +1,6 @@
 import { isRelativePath } from "$svelted/checks/Paths";
 import type { PageServerLoad } from "./$types";
-import { promises as fs } from 'fs';
+import fs from 'fs';
 import path from 'path';
 
 interface Folder {
@@ -21,14 +21,38 @@ interface File {
 
 type FilesItem = Folder | File;
 
+function buildTree(dirPath: string) {
+    const name = path.basename(dirPath);
+    const item = { label: name };
+
+    const children = fs.readdirSync(dirPath).map(childName => {
+        const childPath = path.join(dirPath, childName);
+        if (fs.statSync(childPath).isDirectory()) {
+            return buildTree(childPath);
+        } else {
+            return { label: childName };
+        }
+    });
+
+    if (children.length > 0) {
+        item.children = children;
+    }
+
+    return item;
+}
+
 export const load: PageServerLoad = async ({ params }) => {
     if (isRelativePath(params.path)) {
         return { folders: [], files: [] };
     }
 
+    const publicTree = buildTree('./public');
+    const privateTree = buildTree('./private');
+    const media = { label: "", children: [publicTree, privateTree] };
+
     if (!(params.path.startsWith('public/') || params.path.startsWith('private/') || params.path.startsWith('data/') || params.path == 'data' || params.path == 'public' || params.path == 'private')) {
         console.log(params.path, " - ", "not allowed");
-        return { folders: [], files: [], status: "not allowed" };
+        return { folders: [], files: [], status: "not allowed", media};
     }
 
     const baseDir = path.resolve('./');
@@ -39,14 +63,17 @@ export const load: PageServerLoad = async ({ params }) => {
     let folders: Folder[] = [];
 
     try {
-        const stat = await fs.stat(currentPath);
+        const stat = await fs.promises.stat(currentPath);
         if (stat.isDirectory()) {
+            //
+            // Route is a directory
+            //
 
-            const items = await fs.readdir(currentPath, { withFileTypes: true });
+            const items = await fs.promises.readdir(currentPath, { withFileTypes: true });
 
             for (const item of items) {
                 const itemPath = path.join(currentPath, item.name);
-                const stat = await fs.stat(itemPath);
+                const stat = await fs.promises.stat(itemPath);
 
                 if (item.isDirectory()) {
                     folders.push({
@@ -67,8 +94,11 @@ export const load: PageServerLoad = async ({ params }) => {
                 }
             }
         } else if (stat.isFile()) {
-            // Handle the case where the path is a file
-            const fileStat = await fs.stat(currentPath);
+            //
+            // route is a file
+            //
+            const fileStat = await fs.promises.stat(currentPath);
+
             files.push({
                 path: `/${params.path}`,
                 name: path.basename(currentPath),
@@ -83,6 +113,7 @@ export const load: PageServerLoad = async ({ params }) => {
             return {
                 folders,
                 files,
+                media,
                 status: "file"
             };
         }
@@ -93,6 +124,7 @@ export const load: PageServerLoad = async ({ params }) => {
     return {
         folders,
         files,
+        media,
         status: "success"
     };
 };
