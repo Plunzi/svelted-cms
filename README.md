@@ -8,14 +8,21 @@
 
 Everything you need to build a fast, moderny and yet not so stable website project, powered by [`Svelte Kit`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
 This project is still very new and every contribution of code will be appreciated.
+**Important!** This project requires [bun](https://bun.sh) as the runtime. If you do not currently have Bun installed,
+please visit their website: [Official Bun Website](https://bun.sh).
+
+Bun is a faster alternative to Node.js. Most, if not all, Node.js libraries you want to use should work fine in Bun as well! Since Bun consistently outperforms Node, we decided to use their exclusive imports.
 
 ## 🙋 Committers and Contributors
 - [Plunzi](https://twitter.com/JustPlunzi) (maintainer, designer, developer)
 - [joshnuss](https://twitter.com/joshnuss) (skilled developer)
 
 Currently developed features:
-> simplistic block build editor (can be found under the route ``/svelted/editor``) <br>
-> basic configuration storage
+> svelted admin dashboard (can be found under the route ``/svelted/``)
+> simplistic block build editor (``/svelted/editor``)
+> creating, deleting, saving layouts & pages (``/svelted/layouts`` | ``/svelted/pages``)
+> adding new routes at runtime
+> storage/media navigation (``/svelted/media``)
 
 ## 🚩 Setup project locally
 
@@ -23,16 +30,33 @@ First clone this repository to a place on your machine and execute the following
 
 ```bash
 # install required packages
-bun install (or pnpm/npm install)
+bun install
 ```
+
+```bash
+# install required packages
+bun run build && bun run preview
+```
+
+## 📚 Additional Resources
+
+Here are some additional resources which could be handy:
+
+[Svelte Documentation](svelte.dev/docs)
+[SvelteKit Documentation](kit.svelte.dev/docs)
+[Bun Documentation](bun.sh/docs)
+
+## 📝 Contributing
+
+We welcome contributions! If you have suggestions for improving the project or want to report a bug, please open an issue. If you would like to contribute code, please fork the repository and submit a pull request.
 
 ## Developing
 
-Done? Great, now you can install all required dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Done? Great, now you can install all required dependencies with `bun add`, start a development server:
 
 ```bash
-bun run dev (or pnpm/npm run dev)
+bun run dev
 
 # or start the server and open the app in a new browser tab
-bun run dev -- --open (or pnpm/npm run dev -- --open)
+bun run dev -- --open
 ```
