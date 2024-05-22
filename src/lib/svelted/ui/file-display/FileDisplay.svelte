@@ -10,6 +10,8 @@
 		Trash
 	} from 'phosphor-svelte';
 	import { onMount } from 'svelte';
+	import AudioPlayer from '../audio-player/AudioPlayer.svelte';
+	import Player from '$svelted/ui/audio-player/Player.svelte';
 
 	interface Client {
 		hoverOver: undefined | string;
@@ -35,10 +37,15 @@
 	};
 
 	const handleScroll = async function (e: WheelEvent) {
+		console.log(e);
+
 		if (e.deltaY > 0) {
 			decreaseFileDisplay();
-		} else {
+			return;
+		}
+		if (e.deltaY < 0) {
 			increaseFileDisplay();
+			return;
 		}
 	};
 
@@ -55,7 +62,9 @@
 
 	export let file: File;
 	const validExtensions = {
-		image: ['svg', 'png', 'jpeg', 'jpg', 'gif', 'bmp']
+		image: ['svg', 'png', 'jpeg', 'jpg', 'gif', 'bmp'],
+		audio: ['wav', 'mp3', 'aac', 'adts', 'ogg', 'opus', 'caf', 'flac'],
+		video: ['mp4', 'webm', '3gp', 'mpeg', 'mpg', 'mov', 'ogv']
 	};
 
 	let client: Client = {
@@ -68,7 +77,7 @@
 	// });
 </script>
 
-<section class="flex-grow">
+<section class="flex-grow relative">
 	<div class="h-full rounded-md pt-2">
 		{#if validExtensions.image.includes(file.extension)}
 			<div class="relative m-auto h-full">
@@ -87,8 +96,8 @@
 						{/if}
 					</button>
 					<a
-                        download
-                        href={`/sv-content${file.path}`}
+						download
+						href={`/sv-content${file.path}`}
 						on:mouseenter={() => hoverOver('tool-download')}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
@@ -182,16 +191,85 @@
 						{/if}
 					</button>
 				</div>
-				<div class="media h-full w-full overflow-hidden rounded-md">
+				<div class="flex h-full w-full overflow-hidden rounded-md">
 					<img
 						on:wheel={handleScroll}
 						id="file-preview"
-						style="transform: scale({scale || 1}); transition: ease 0.1s;"
+						style="transform: scale({scale ||
+							1}); transition: ease 0.1s; max-height: calc(100vh - 14.9rem);"
 						class="m-auto h-full"
 						src={`/sv-content${file.path}`}
 						alt={'file-icon-preview'}
 					/>
 				</div>
+			</div>
+		{:else if validExtensions.audio.includes(file.extension)}
+			<div class="flex h-full w-full items-center justify-center relative">
+				<div
+					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+				>
+					<a
+						download
+						href={`/sv-content${file.path}`}
+						on:mouseenter={() => hoverOver('tool-download')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-download'}
+							<Download class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Download class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</a>
+					<button
+						on:mouseenter={() => hoverOver('tool-star')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-star'}
+							<Star class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Star class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+				</div>
+				<AudioPlayer src={`/sv-content${file.path}`}>
+					<Player track={file.name} />
+				</AudioPlayer>
+			</div>
+		{:else if validExtensions.video.includes(file.extension)}
+			<div class="flex h-full w-full items-center justify-center relative">
+				<div
+					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+				>
+					<a
+						download
+						href={`/sv-content${file.path}`}
+						on:mouseenter={() => hoverOver('tool-download')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-download'}
+							<Download class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Download class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</a>
+					<button
+						on:mouseenter={() => hoverOver('tool-star')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-star'}
+							<Star class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Star class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+				</div>
+				<video controls class="mx-auto rounded-md bg-black" src={`/sv-content${file.path}`}>
+					<track kind="captions" />
+				</video>
 			</div>
 		{/if}
 	</div>

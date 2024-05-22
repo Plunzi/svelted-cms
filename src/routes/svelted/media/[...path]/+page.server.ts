@@ -53,7 +53,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
     if (!(params.path.startsWith('public/') || params.path.startsWith('private/') || params.path.startsWith('data/') || params.path == 'data' || params.path == 'public' || params.path == 'private')) {
         console.log(params.path, " - ", "not allowed");
-        return { folders: [], files: [], status: "not allowed", media};
+        return { folders: [], files: [], status: "not allowed", path: params.path, media};
     }
 
     const baseDir = path.resolve('./');
@@ -115,6 +115,7 @@ export const load: PageServerLoad = async ({ params }) => {
                 folders,
                 files,
                 media,
+                path: params.path,
                 status: "file"
             };
         }
@@ -126,6 +127,7 @@ export const load: PageServerLoad = async ({ params }) => {
         folders,
         files,
         media,
+        path: params.path,
         status: "success"
     };
 };

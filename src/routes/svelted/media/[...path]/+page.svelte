@@ -359,6 +359,14 @@
 					</p>
 				</div>
 				<div class="flex gap-2">
+					<p class="flex gap-1 items-center">
+						{#each data.path.split('/') as dir, index}
+						{#if index !== 0}
+							<span class="text-neutral-700">/</span>
+						{/if}
+						<span class="text-neutral-500">{dir}</span>
+						{/each}
+					</p>
 					<button
 						class:!bg-neutral-800={client.display == 'tables'}
 						on:click={() => (client.display = 'tables')}
