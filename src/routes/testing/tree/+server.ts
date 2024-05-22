@@ -3,7 +3,7 @@ import path from "node:path";
 
 function buildTree(dirPath: string) {
     const name = path.basename(dirPath);
-    const item = { label: name };
+    const item: { label: string, children?: any } = { label: name };
 
     const children = fs.readdirSync(dirPath).map(childName => {
         const childPath = path.join(dirPath, childName);

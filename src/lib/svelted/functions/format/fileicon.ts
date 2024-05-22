@@ -341,6 +341,7 @@ export default function getFileIcons(): { [key: string]: string } {
     "vsh": "/file-icons/vlang",
     "vsixmanifest": "/file-icons/visualstudio",
     "vue": "/file-icons/vue",
+    "wav": "/file-icons/audio",
     "webm": "/file-icons/movie",
     "webp": "/file-icons/image",
     "wim": "/file-icons/zip",

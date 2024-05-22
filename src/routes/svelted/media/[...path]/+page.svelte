@@ -23,6 +23,7 @@
 	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
 	import { onMount } from 'svelte';
 	import FileTree from '$svelted/ui/file-tree/FileTree.svelte';
+	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
 
 	function getSvgPath(extension: string): string {
 		const fileIcons = getFileIcons();
@@ -346,7 +347,7 @@
         </div> -->
 		<div
 			class="h-full-editor relative flex w-full flex-col gap-4 px-3 pt-3 text-white"
-			style={client.sidebar ? "width: calc(100vw - 20rem);" : "width: 100%;"}
+			style={client.sidebar ? 'width: calc(100vw - 20rem);' : 'width: 100%;'}
 		>
 			<div class="relative flex justify-between gap-2">
 				<div class="flex h-10 items-center gap-2 px-2">
@@ -387,7 +388,7 @@
 					{#if client.sidebar === false}
 						<button
 							class:!bg-neutral-800={client.display == 'cards'}
-							on:click={() => client.sidebar = !client.sidebar}
+							on:click={() => (client.sidebar = !client.sidebar)}
 							on:mouseenter={() => hoverOver('show-sidebar')}
 							on:mouseleave={() => hoverOver(undefined)}
 							class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
@@ -401,56 +402,58 @@
 					{/if}
 				</div>
 			</div>
-			<nav class="flex gap-2">
-				<button
-					on:mouseenter={() => hoverOver('create-layout')}
-					on:mouseleave={() => hoverOver(undefined)}
-					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
-				>
-					{#if client.hoverOver == 'create-layout'}
-						<Plus class="h-5 w-5 fill-[currentcolors]" weight="bold" />
-					{:else}
-						<Plus class="h-5 w-5 fill-[currentcolors]" />
-					{/if}
-				</button>
-				<button
-					on:click={deleteStackModal}
-					on:mouseenter={() => hoverOver('delete-stack')}
-					on:mouseleave={() => hoverOver(undefined)}
-					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
-				>
-					{#if client.hoverOver == 'delete-stack'}
-						<Trash class="h-5 w-5 fill-[currentcolors]" weight="fill" />
-					{:else}
-						<Trash class="h-5 w-5 fill-[currentcolors]" />
-					{/if}
-				</button>
-				<div class="flex-grow">
+			{#if data.success == 'success'}
+				<nav class="flex gap-2">
 					<button
-						on:mouseenter={() => hoverOver('filter')}
+						on:mouseenter={() => hoverOver('create-layout')}
 						on:mouseleave={() => hoverOver(undefined)}
-						class="contens absolute rounded-l-sm text-neutral-500 hover:text-white focus:bg-[#2da05a] focus:text-white focus:outline-none"
+						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
-						{#if client.hoverOver == 'filter'}
-							<Funnel
-								class="h-10 w-11 rounded-l-lg border-r border-neutral-800 fill-[currentcolor] p-2 px-2.5 hover:border-r-[#278c4c] hover:bg-[#278c4c]"
-								weight="fill"
-							/>
+						{#if client.hoverOver == 'create-layout'}
+							<Plus class="h-5 w-5 fill-[currentcolors]" weight="bold" />
 						{:else}
-							<Funnel
-								class="h-10 w-11 rounded-l-lg border-r border-neutral-800 fill-[currentcolor] p-2 px-2.5 hover:border-r-[#278c4c] hover:bg-[#278c4c]"
-							/>
+							<Plus class="h-5 w-5 fill-[currentcolors]" />
 						{/if}
 					</button>
-					<input
-						bind:value={searchTerm}
-						name="filter-layouts"
-						placeholder="Filter Pages ..."
-						type="text"
-						class="w-full rounded-lg bg-[#161616] px-3 py-2 pl-14 text-neutral-300 focus:outline-none focus:ring-1 focus:ring-[#36bf68]"
-					/>
-				</div>
-			</nav>
+					<button
+						on:click={deleteStackModal}
+						on:mouseenter={() => hoverOver('delete-stack')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
+					>
+						{#if client.hoverOver == 'delete-stack'}
+							<Trash class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Trash class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+					<div class="flex-grow">
+						<button
+							on:mouseenter={() => hoverOver('filter')}
+							on:mouseleave={() => hoverOver(undefined)}
+							class="contens absolute rounded-l-sm text-neutral-500 hover:text-white focus:bg-[#2da05a] focus:text-white focus:outline-none"
+						>
+							{#if client.hoverOver == 'filter'}
+								<Funnel
+									class="h-10 w-11 rounded-l-lg border-r border-neutral-800 fill-[currentcolor] p-2 px-2.5 hover:border-r-[#278c4c] hover:bg-[#278c4c]"
+									weight="fill"
+								/>
+							{:else}
+								<Funnel
+									class="h-10 w-11 rounded-l-lg border-r border-neutral-800 fill-[currentcolor] p-2 px-2.5 hover:border-r-[#278c4c] hover:bg-[#278c4c]"
+								/>
+							{/if}
+						</button>
+						<input
+							bind:value={searchTerm}
+							name="filter-layouts"
+							placeholder="Filter Assets ..."
+							type="text"
+							class="w-full rounded-lg bg-[#161616] px-3 py-2 pl-14 text-neutral-300 focus:outline-none focus:ring-1 focus:ring-[#36bf68]"
+						/>
+					</div>
+				</nav>
+			{/if}
 
 			<div class="w-full border-b border-b-neutral-800">
 				<Toaster class="absolute bottom-2 right-2 !bg-svelted-gray-700" />
@@ -461,7 +464,7 @@
 				/>
 			</div>
 
-			<div class="max-h-editor flex-grow overflow-y-auto">
+			<div class="max-h-editor flex flex-grow flex-col overflow-y-auto">
 				{#if data.status == 'success'}
 					{#if folders.length > 0}
 						<div class="mb-3 rounded-lg bg-svelted-gray-700 px-2 pt-1">
@@ -765,7 +768,7 @@
 									<tbody class="text-neutral-500">
 										{#each $sortItems as file, index (file)}
 											<tr
-												class="hover:!bg-[#0a2620] hover:text-white"
+												class="tr hover:!bg-[#0a2620] hover:text-white"
 												animate:flip={{ duration: 500 }}
 											>
 												<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
@@ -873,10 +876,18 @@
 				{:else if data.status == 'file'}
 					<!-- Table Display -->
 					<div class="rounded-lg bg-svelted-gray-700 px-2 pt-1">
-						<table class="mb-2 w-full pb-1">
+						<table class="mb-2 w-full !border-spacing-0 pt-1">
+							<thead class="text-left text-neutral-500">
+								<th></th>
+								<th class="pl-2">Name</th>
+								<th class="pl-2">Extension</th>
+								<th class="pl-2">Author</th>
+								<th class="pl-2">Modified</th>
+								<th class="pl-2">Created</th>
+							</thead>
 							<tbody class="text-neutral-500">
 								{#each $sortItems as file, index (file)}
-									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
+									<tr>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 											<Checkbox
 												on:click={() => toggleCheckboxFiles(file.path)}
@@ -885,8 +896,7 @@
 											/>
 										</td>
 										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-											<a
-												href={`/svelted/media${file.path}`}
+											<div
 												data-sveltekit-replacestate="true"
 												data-sveltekit-reload="true"
 												class="flex h-10 w-full items-center px-2"
@@ -899,54 +909,47 @@
 													/>
 													{file.name}
 												</div>
-											</a>
+											</div>
 										</td>
 										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-											<a
-												href={`/svelted/media${file.path}`}
+											<span
 												data-sveltekit-replacestate="true"
 												data-sveltekit-reload="true"
 												class="flex h-10 w-full items-center px-2"
 											>
 												{file.extension}
-											</a>
+											</span>
 										</td>
 										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-											<a
-												href={`/svelted/media${file.path}`}
+											<span
 												data-sveltekit-replacestate="true"
 												data-sveltekit-reload="true"
 												class="flex h-10 w-full items-center px-2"
 											>
 												{file.author}
-											</a>
+											</span>
 										</td>
 										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-											<a
-												href={`/svelted/media${file.path}`}
+											<span
 												data-sveltekit-replacestate="true"
 												data-sveltekit-reload="true"
 												class="flex h-10 w-full items-center px-2"
 											>
 												{formatTime(file.modified)}
-											</a>
+											</span>
 										</td>
 										<td class="p-0">
-											<a
-												href={`/svelted/media${file.path}`}
+											<span
 												data-sveltekit-replacestate="true"
 												data-sveltekit-reload="true"
 												class="flex h-10 w-full items-center px-2"
 											>
 												{formatTime(file.created)}
-											</a>
+											</span>
 										</td>
 										<td class="w-14">
 											<div class="flex gap-2">
-												<a
-													href={`/svelted/media${file.path}`}
-													data-sveltekit-replacestate="true"
-													data-sveltekit-reload="true"
+												<button
 													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
 													on:mouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
@@ -956,7 +959,7 @@
 													{:else}
 														<Pen class="h-5 w-5 fill-[currentcolor]" />
 													{/if}
-												</a>
+												</button>
 												<button
 													on:click={() => deleteModal(file.name, index)}
 													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
@@ -976,10 +979,7 @@
 							</tbody>
 						</table>
 					</div>
-					<p>Single File</p>
-					{#if files[0].extension == 'svg' || files[0].extension == 'png'}
-						<img class="h-6 w-6" src={`/sv-content${files[0].path}`} alt={'file-icon-preview'} />
-					{/if}
+					<FileDisplay file={files[0]} />
 				{:else}
 					<p>Error: {data.status}</p>
 				{/if}
@@ -1029,7 +1029,7 @@
 		outline-offset: -1.5px;
 	}
 
-	:is(tr:hover > td) {
+	:is(.tr:hover > td) {
 		border-color: #278c4c !important;
 	}
 
@@ -1079,6 +1079,7 @@
 	}
 
 	.max-h-editor {
-		max-height: calc(100vh - 19.6rem);
+		max-height: calc(100vh - 4rem);
+		/* max-height: calc(100vh - 19.6rem); */
 	}
 </style>

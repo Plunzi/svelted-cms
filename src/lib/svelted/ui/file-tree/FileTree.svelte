@@ -1,8 +1,5 @@
-<script context="module">
-	// retain module scoped expansion state for each tree node
-	const _expansionState = {
-		/* treeNodeId: expanded <boolean> */
-	};
+<script lang="ts" context="module">
+	const _expansionState: { [key: string]: boolean } = {};
 </script>
 
 <script lang="ts">
@@ -28,7 +25,6 @@
 	const toggleExpansion = () => {
 		expanded = _expansionState[label] = !expanded;
 	};
-	$: arrowDown = expanded;
 </script>
 
 <ul transition:slide class="{level == 0 || level == 1 ? "" : "pl-4 border-l border-neutral-800"} {level % 2 === 1 ? '' : 'bg-[]'}">
