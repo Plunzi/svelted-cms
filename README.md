@@ -35,7 +35,7 @@ bun install
 
 ```bash
 # install required packages
-bun run build && bun run preview
+bun run build && bun run start
 ```
 
 ## 📚 Additional Resources
@@ -55,8 +55,8 @@ We welcome contributions! If you have suggestions for improving the project or w
 Done? Great, now you can install all required dependencies with `bun add`, start a development server:
 
 ```bash
-bun run dev
+bun --bun run dev
 
 # or start the server and open the app in a new browser tab
-bun run dev -- --open
+bun --bun run dev -- --open
 ```

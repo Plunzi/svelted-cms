@@ -5,10 +5,10 @@
   export let step = 0.01;
 </script>
 
-<div class="relative flex items-center flex-1">
-  <div class="h-2 w-full rounded-sm bg-svelted-gray-700" />
+<div class="relative flex items-center flex-1 rounded-sm overflow-hidden outline outline-1 outline-neutral-800">
+  <div class="h-2 w-full rounded-sm" />
   <div
-    class="h-2 rounded-sm bg-svelted-primary-500 absolute"
+    class="h-2 bg-gradient-to-r from-emerald-500 to-svelted-primary-500 absolute"
     style={`width: ${(value * 100) / max}%;`}
   />
   <input
@@ -22,9 +22,11 @@
 </div>
 
 <style>
-  input[type='range']::-webkit-slider-thumb {
+  input[type='range']::-webkit-slider-thumb, input[type='range']::-moz-range-thumb {
     -webkit-appearance: none;
-    background: red;
+    -moz-appearance: none;
+    background: #2dbe6e;
+    border-color: #2dbe6e;
     border-radius: 100%;
     /* scale: 1.5; */
     width: 0px;

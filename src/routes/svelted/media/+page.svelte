@@ -26,14 +26,15 @@
 	import AlertDialog from '$svelted/ui/alert-dialog/AlertDialog.svelte';
 	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
 
+	const fileIcons = getFileIcons();
+
 	function getSvgPath(extension: string): string {
-    const fileIcons = getFileIcons();
-    const svgPath = fileIcons[extension];
-    if (!svgPath) {
-        return '/file-icons/unknown';
-    }
-    return svgPath;
-}
+		const svgPath = fileIcons[extension];
+		if (!svgPath) {
+			return '/file-icons/unknown';
+		}
+		return svgPath;
+	}
 
 	export let data;
 
@@ -58,12 +59,10 @@
 		if (client.modal.description != '') {
 			client.modal.description += '<br><br>';
 		}
-		client.modal.description += "Folders:<br>"
-		client.modal.description += `${selectedFolders.map(
-			(row, index) => {
-				return `${index == 0 ? '' : '<br>'}${row}`;
-			}
-		)}`;
+		client.modal.description += 'Folders:<br>';
+		client.modal.description += `${selectedFolders.map((row, index) => {
+			return `${index == 0 ? '' : '<br>'}${row}`;
+		})}`;
 		openModal();
 	};
 
@@ -118,7 +117,7 @@
 	};
 
 	const checkAllFiles = function () {
-		if ((files.length) == selectedFiles.length) {
+		if (files.length == selectedFiles.length) {
 			selectedFiles = [];
 		} else {
 			selectedFiles = files.map((file) => {
@@ -128,7 +127,7 @@
 	};
 
 	const checkAllFolders = function () {
-		if ((folders.length) == selectedFolders.length) {
+		if (folders.length == selectedFolders.length) {
 			selectedFolders = [];
 		} else {
 			selectedFolders = folders.map((folder) => {
@@ -157,7 +156,7 @@
 		}
 	};
 
-	const deleteFile = async function () {}
+	const deleteFile = async function () {};
 
 	const deleteModal = function (route: string, id: number) {
 		currentAction = deleteFile;
@@ -273,89 +272,89 @@
 	};
 
 	interface Folder {
-		path: string
-		name: string
+		path: string;
+		name: string;
 	}
 
 	interface File {
-		path: string
-		name: string
-		author: string
-		extension: string
-		size: number
-		description: string | undefined
-		modified: number
-		created: number
+		path: string;
+		name: string;
+		author: string;
+		extension: string;
+		size: number;
+		description: string | undefined;
+		modified: number;
+		created: number;
 	}
 
 	type FilesItem = Folder | File;
 
 	let folders: Folder[] = [
 		{
-			path: "/public",
-			name: "Public",
+			path: '/public',
+			name: 'Public'
 		},
 		{
-			path: "/private",
-			name: "Private",
+			path: '/private',
+			name: 'Private'
 		},
 		{
-			path: "/data",
-			name: "Data",
-		},
+			path: '/data',
+			name: 'Data'
+		}
 	];
 
 	let files: File[] = [
 		{
-			path: "/public/test.png",
-			name: "Test.png",
-			extension: "png",
-			author: "admin",
+			path: '/public/test.png',
+			name: 'Test.png',
+			extension: 'png',
+			author: 'admin',
 			size: 1000,
-			description: "test image",
+			description: 'test image',
 			modified: 171844377000,
-			created: 1715867971305,
+			created: 1715867971305
 		},
 		{
-			path: "/private/customer.csv",
-			name: "Customer.csv",
-			extension: "csv",
-			author: "admin",
+			path: '/private/customer.csv',
+			name: 'Customer.csv',
+			extension: 'csv',
+			author: 'admin',
 			size: 1000,
-			description: "customer list",
+			description: 'customer list',
 			modified: 171937997100,
-			created: 1715867971305,
+			created: 1715867971305
 		},
 		{
-			path: "/data/layouts/svelted/notfound/layout.json",
-			name: "Layout.json",
-			extension: "json",
-			author: "admin",
+			path: '/data/layouts/svelted/notfound/layout.json',
+			name: 'Layout.json',
+			extension: 'json',
+			author: 'admin',
 			size: 1000,
 			description: undefined,
 			modified: 172032143200,
-			created: 1715867971305,
+			created: 1715867971305
 		},
 		{
-			path: "/private/example/Navigation.svelte",
-			name: "Navigation.svelte",
-			extension: "svelte",
-			author: "admin",
+			path: '/private/example/Navigation.svelte',
+			name: 'Navigation.svelte',
+			extension: 'svelte',
+			author: 'admin',
 			size: 1000,
 			description: undefined,
 			modified: 1715867971305,
-			created: 1715867971305,
+			created: 1715867971305
 		},
 		{
-			path: "/bun.lockb",
-			name: "bun.lockb",
-			extension: "ps",
-			author: "admin",
+			path: '/bun.lockb',
+			name: 'bun.lockb',
+			extension: 'ps',
+			author: 'admin',
 			size: 1000,
 			description: undefined,
 			modified: 1715867971305,
-			created: 1715867971305,
-		},
+			created: 1715867971305
+		}
 	];
 
 	let currentAction = deleteMedia;
@@ -366,7 +365,7 @@
 
 	const sortTable = (key) => {
 		if ($sortKey === key) {
-			sortDirection.update(val => -val);
+			sortDirection.update((val) => -val);
 		} else {
 			sortKey.set(key);
 			sortDirection.set(1);
@@ -374,36 +373,34 @@
 	};
 
 	$: {
-	const key = $sortKey;
-	const direction = $sortDirection;
-	sortItems.set(
-		files
-			.slice()
-			.filter((file) =>
-				file.name.toLowerCase().includes(searchTerm.toLowerCase())
-			)
-			.sort((a, b) => {
-				switch (key) {
-					case 'name':
-						return direction * a.name.localeCompare(b.name);
-					case 'extension':
-						return direction * a.extension.localeCompare(b.extension);
-					case 'author':
-						return direction * a.author.localeCompare(b.author);
-					case 'size':
-						return direction * (a.size - b.size);
-					case 'created':
-						return direction * (a.created - b.created);
-					case 'modified':
-						return direction * (a.modified - b.modified);
-					default:
-						break;
-				}
-				// If contents are the same, maintain relative order
-				return 0;
-			})
-	);
-}
+		const key = $sortKey;
+		const direction = $sortDirection;
+		sortItems.set(
+			files
+				.slice()
+				.filter((file) => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
+				.sort((a, b) => {
+					switch (key) {
+						case 'name':
+							return direction * a.name.localeCompare(b.name);
+						case 'extension':
+							return direction * a.extension.localeCompare(b.extension);
+						case 'author':
+							return direction * a.author.localeCompare(b.author);
+						case 'size':
+							return direction * (a.size - b.size);
+						case 'created':
+							return direction * (a.created - b.created);
+						case 'modified':
+							return direction * (a.modified - b.modified);
+						default:
+							break;
+					}
+					// If contents are the same, maintain relative order
+					return 0;
+				})
+		);
+	}
 </script>
 
 <Navigation overflow={false} site={['Media & Files']} activepage="Media & Files">
@@ -418,7 +415,7 @@
 					<p class="font-medium text-neutral-500">Media</p>
 					<p class="text-neutral-500">―</p>
 					<p class="text-neutral-500">
-						{folders.length} Folders, {files.length} Files 
+						{folders.length} Folders, {files.length} Files
 					</p>
 				</div>
 				<div class="flex gap-2">
@@ -436,7 +433,7 @@
 						{/if}
 					</button>
 					<button
-					class:!bg-neutral-800={client.display == 'cards'}
+						class:!bg-neutral-800={client.display == 'cards'}
 						on:click={() => (client.display = 'cards')}
 						on:mouseenter={() => hoverOver('display-cards')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -511,81 +508,90 @@
 			</div>
 
 			<div class="max-h-editor flex-grow overflow-y-auto">
-
-				<div class="rounded-lg bg-svelted-gray-700 px-2 pt-1 mb-3">
-				<div class="flex flex-col gap-1">
-					<table class="w-full pb-1">
-						<thead>
-							<tr class="text-neutral-500">
-								<th>
-									<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
-										<Checkbox
-											on:click={checkAllFolders}
-											checked={selectedFolders.length === folders.length}
-											class="border-[currentcolor]"
-										/>
-									</div>
-								</th>
-								<th>
-									<button
-										on:click={() => sortTable('name')}
-										class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
-									>
-										<p>Name</p>
-										<CaretUp weight="fill" />
-									</button>
-								</th>
-							</tr>
-						</thead>
-						<tbody class="text-neutral-500">
-							{#each folders as folder, index (folder)}
-								<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
-									<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
-										<Checkbox
-											on:click={() => toggleCheckboxFolders(folder.path)}
-											checked={selectedFolders.includes(folder.path)}
-											class="border-neutral-800"
-										/>
-									</td>
-									<td class="px-2 !p-0">
-										<a href={`/svelted/media${folder.path}`} class="flex items-center px-2 w-full h-10">
-											<div class="flex gap-2"><img class="w-6 h-6" src={"/file-icons/folder_dark.svg"} alt={"file-icon-preview"}> {folder.name}<span class="text-neutral-700"> ― {folder.path}</span></div>
-										</a>
-									</td>
-									<td class="w-14">
-										<div class="flex gap-2">
+				<div class="mb-3 rounded-lg bg-svelted-gray-700 px-2 pt-1">
+					<div class="flex flex-col gap-1">
+						<table class="w-full pb-1">
+							<thead>
+								<tr class="text-neutral-500">
+									<th>
+										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
+											<Checkbox
+												on:click={checkAllFolders}
+												checked={selectedFolders.length === folders.length}
+												class="border-[currentcolor]"
+											/>
+										</div>
+									</th>
+									<th>
+										<button
+											on:click={() => sortTable('name')}
+											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
+										>
+											<p>Name</p>
+											<CaretUp weight="fill" />
+										</button>
+									</th>
+								</tr>
+							</thead>
+							<tbody class="text-neutral-500">
+								{#each folders as folder, index (folder)}
+									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
+										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
+											<Checkbox
+												on:click={() => toggleCheckboxFolders(folder.path)}
+												checked={selectedFolders.includes(folder.path)}
+												class="border-neutral-800"
+											/>
+										</td>
+										<td class="!p-0 px-2">
 											<a
 												href={`/svelted/media${folder.path}`}
-												on:mouseenter={() => hoverOver(`folder-edit-${index}`)}
-												on:mouseleave={() => hoverOver(undefined)}
-												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+												class="flex h-10 w-full items-center px-2"
 											>
-												{#if client.hoverOver == `folder-edit-${index}`}
-													<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-												{:else}
-													<Pen class="h-5 w-5 fill-[currentcolor]" />
-												{/if}
+												<div class="flex gap-2">
+													<img
+														class="h-6 w-6"
+														src={'/file-icons/folder_dark.svg'}
+														alt={'file-icon-preview'}
+													/>
+													{folder.name}<span class="text-neutral-700"> ― {folder.path}</span>
+												</div>
 											</a>
-											<button
-												on:click={() => deleteModal(folder.path, index)}
-												on:mouseenter={() => hoverOver(`folder-delete-${index}`)}
-												on:mouseleave={() => hoverOver(undefined)}
-												class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
-											>
-												{#if client.hoverOver == `folder-delete-${index}`}
-													<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
-												{:else}
-													<Trash class="h-5 w-5 fill-[currentcolor]" />
-												{/if}
-											</button>
-										</div>
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
+										</td>
+										<td class="w-14">
+											<div class="flex gap-2">
+												<a
+													href={`/svelted/media${folder.path}`}
+													on:mouseenter={() => hoverOver(`folder-edit-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
+												>
+													{#if client.hoverOver == `folder-edit-${index}`}
+														<Pen class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Pen class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</a>
+												<button
+													on:click={() => deleteModal(folder.path, index)}
+													on:mouseenter={() => hoverOver(`folder-delete-${index}`)}
+													on:mouseleave={() => hoverOver(undefined)}
+													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
+												>
+													{#if client.hoverOver == `folder-delete-${index}`}
+														<Trash class="h-5 w-5 fill-[currentcolor]" weight="fill" />
+													{:else}
+														<Trash class="h-5 w-5 fill-[currentcolor]" />
+													{/if}
+												</button>
+											</div>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
 				</div>
-			</div>
 
 				<!-- Card Display -->
 				{#if client.display == 'cards'}
@@ -663,13 +669,21 @@
 													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
 													<Checkbox
-													on:click={() => toggleCheckboxFiles(file.path)}
-													checked={selectedFiles.includes(file.path)}
+														on:click={() => toggleCheckboxFiles(file.path)}
+														checked={selectedFiles.includes(file.path)}
 														class="border-neutral-800"
 													/>
 												</div>
-												<div class="mb-0.5 py-2 flex gap-1">
-													<div class="flex gap-2"><img class="min-w-6 min-h-6" src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} alt={"file-icon-preview"}> {file.name}</div> <span class="text-neutral-800">―</span>
+												<div class="mb-0.5 flex gap-1 py-2">
+													<div class="flex gap-2">
+														<img
+															class="min-h-6 min-w-6"
+															src={`${getSvgPath(file.extension)}.svg` || '/file-icons/unknown.svg'}
+															alt={'file-icon-preview'}
+														/>
+														{file.name}
+													</div>
+													<span class="text-neutral-800">―</span>
 													{file.size}
 												</div>
 											</div>
@@ -790,28 +804,50 @@
 												class="border-neutral-800"
 											/>
 										</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
-											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
-												<div class="flex gap-2"><img class="w-6 h-6" src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} alt={"file-icon-preview"}> {file.name}</div>
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												class="flex h-10 w-full items-center px-2"
+											>
+												<div class="flex gap-2">
+													<img
+														class="h-6 w-6"
+														src={`${getSvgPath(file.extension)}.svg` || '/file-icons/unknown.svg'}
+														alt={'file-icon-preview'}
+													/>
+													{file.name}
+												</div>
 											</a>
 										</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
-											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												class="flex h-10 w-full items-center px-2"
+											>
 												{file.extension}
 											</a>
 										</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
-											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												class="flex h-10 w-full items-center px-2"
+											>
 												{file.author}
 											</a>
 										</td>
-										<td class="border-r border-r-neutral-800 px-2 py-2 !p-0">
-											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+										<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
+											<a
+												href={`/svelted/media${file.path}`}
+												class="flex h-10 w-full items-center px-2"
+											>
 												{formatTime(file.modified)}
 											</a>
 										</td>
 										<td class="p-0">
-											<a href={`/svelted/media${file.path}`} class="flex items-center px-2 w-full h-10">
+											<a
+												href={`/svelted/media${file.path}`}
+												class="flex h-10 w-full items-center px-2"
+											>
 												{formatTime(file.created)}
 											</a>
 										</td>

@@ -3,15 +3,15 @@
 		Download,
 		MagnifyingGlassMinus,
 		Minus,
-		Pen,
 		Plus,
 		Printer,
-		Star,
-		Trash
+		Star
 	} from 'phosphor-svelte';
-	import { onMount } from 'svelte';
-	import AudioPlayer from '../audio-player/AudioPlayer.svelte';
+	import AudioPlayer from '$svelted/ui/audio-player/AudioPlayer.svelte';
 	import Player from '$svelted/ui/audio-player/Player.svelte';
+	import VideoPlayer from '$svelted/ui/video-player/VideoPlayer.svelte';
+	import getFileIcons from '$svelted/functions/format/fileicon';
+	const fileIcons = getFileIcons();
 
 	interface Client {
 		hoverOver: undefined | string;
@@ -49,6 +49,14 @@
 		}
 	};
 
+	function getSvgPath(extension: string): string {
+		const svgPath = fileIcons[extension];
+		if (!svgPath) {
+			return '/file-icons/unknown';
+		}
+		return svgPath;
+	}
+
 	interface File {
 		path: string;
 		name: string;
@@ -77,10 +85,10 @@
 	// });
 </script>
 
-<section class="flex-grow relative">
-	<div class="h-full rounded-md pt-2">
+<section class="flex-grow w-full h-full flex flex-col relative">
+	<div class="h-full flex flex-col flex-grow rounded-md pt-2">
 		{#if validExtensions.image.includes(file.extension)}
-			<div class="relative m-auto h-full">
+			<div class="relative m-auto w-full h-full">
 				<div
 					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
@@ -108,17 +116,6 @@
 							<Download class="h-5 w-5 fill-[currentcolors]" />
 						{/if}
 					</a>
-					<!-- <button
-						on:mouseenter={() => hoverOver('tool-edit')}
-						on:mouseleave={() => hoverOver(undefined)}
-						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
-					>
-						{#if client.hoverOver == 'tool-edit'}
-							<Pen class="h-5 w-5 fill-[currentcolors]" weight="fill" />
-						{:else}
-							<Pen class="h-5 w-5 fill-[currentcolors]" />
-						{/if}
-					</button> -->
 					<button
 						on:mouseenter={() => hoverOver('tool-star')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -130,17 +127,6 @@
 							<Star class="h-5 w-5 fill-[currentcolors]" />
 						{/if}
 					</button>
-					<!-- <button
-						on:mouseenter={() => hoverOver('tool-delete')}
-						on:mouseleave={() => hoverOver(undefined)}
-						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-red-500 hover:text-white"
-					>
-						{#if client.hoverOver == 'tool-delete'}
-							<Trash class="h-5 w-5 fill-[currentcolors]" weight="fill" />
-						{:else}
-							<Trash class="h-5 w-5 fill-[currentcolors]" />
-						{/if}
-					</button> -->
 				</div>
 				<div
 					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
@@ -197,7 +183,7 @@
 						id="file-preview"
 						style="transform: scale({scale ||
 							1}); transition: ease 0.1s; max-height: calc(100vh - 14.9rem);"
-						class="m-auto h-full"
+						class="img-preview m-auto h-full"
 						src={`/sv-content${file.path}`}
 						alt={'file-icon-preview'}
 					/>
@@ -238,7 +224,7 @@
 				</AudioPlayer>
 			</div>
 		{:else if validExtensions.video.includes(file.extension)}
-			<div class="flex h-full w-full items-center justify-center relative">
+			<div class="flex flex-grow h-full w-full items-center justify-center relative">
 				<div
 					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
@@ -267,9 +253,44 @@
 						{/if}
 					</button>
 				</div>
-				<video controls class="mx-auto rounded-md bg-black" src={`/sv-content${file.path}`}>
-					<track kind="captions" />
-				</video>
+				<VideoPlayer track={file.name} src={`/sv-content${file.path}`} />
+			</div>
+		{:else}
+			<div class="flex h-full w-full items-center justify-center relative">
+				<div
+					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+				>
+					<button
+						on:mouseenter={() => hoverOver('tool-star')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-star'}
+							<Star class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Star class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+				</div>
+				<div class="flex flex-col">
+					<img src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} class="h-32 w-32 mx-auto" alt={"file-icon-preview"}>
+					<h1 class="mb-4 text-xl text-center font-semibold text-neutral-200">{file.name}</h1>
+					<p>Für diese Datei scheint es keine Vorschau zu geben, die wir Ihnen zeigen können.</p>
+					<a
+						download
+						href={`/sv-content${file.path}`}
+						on:mouseenter={() => hoverOver('tool-download')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="flex h-10 items-center gap-2 rounded-sm mx-auto bg-svelted-primary-700 px-4 hover:bg-svelted-primary-500 w-fit"
+					>
+						{#if client.hoverOver == 'tool-download'}
+							<Download class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+						{:else}
+							<Download class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+						Download
+					</a>
+				</div>
 			</div>
 		{/if}
 	</div>
@@ -303,7 +324,7 @@
 		background: transparent;
 	}
 
-	img {
+	.img-preview {
 		border: solid 1px #262626;
 		background-color: #0a0a0a;
 		border-radius: 0.25rem;

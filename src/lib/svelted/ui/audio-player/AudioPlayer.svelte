@@ -44,12 +44,31 @@
 
 		prevSrc = src;
 	}
+
+	async function fetchFullAudio(url: string) {
+		try {
+			const response = await fetch(url);
+			const blob = await response.blob();
+			const audioUrl = URL.createObjectURL(blob);
+
+			const audioElement = document.getElementById("audioplayer-element") as HTMLAudioElement;
+
+			audioElement.src = audioUrl;
+			console.log(blob);
+			console.log(audioElement.duration);
+		} catch (error) {
+			console.error('Error fetching and processing the audio file:', error);
+		}
+	}
+
 	/**
 	 * Mounted
 	 */
 	onMount(() => {
-    audio = document.getElementById("audioplayer-element") as HTMLAudioElement;
+		audio = document.getElementById('audioplayer-element') as HTMLAudioElement;
 		$duration = audio?.duration;
+
+		fetchFullAudio(src);
 	});
 
 	/**
@@ -65,7 +84,7 @@
 	};
 
 	const handleNewDuration = (e: Event) => {
-    $duration == audio?.duration;
+		$duration == audio?.duration;
 	};
 
 	/**
@@ -90,7 +109,7 @@
 <div>
 	<audio
 		id="audioplayer-element"
-    on:canplaythrough={handleNewDuration}
+		on:canplaythrough={handleNewDuration}
 		bind:volume={$volume}
 		bind:duration={$duration}
 		bind:currentTime={$currentTime}

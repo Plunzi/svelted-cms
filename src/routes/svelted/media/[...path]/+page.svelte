@@ -21,12 +21,13 @@
 	import { flip } from 'svelte/animate';
 	import AlertDialog from '$svelted/ui/alert-dialog/AlertDialog.svelte';
 	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
-	import { onMount } from 'svelte';
 	import FileTree from '$svelted/ui/file-tree/FileTree.svelte';
 	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
+	import FileOverlay from '$svelted/ui/file-display/FileOverlay.svelte';
+
+	const fileIcons = getFileIcons();
 
 	function getSvgPath(extension: string): string {
-		const fileIcons = getFileIcons();
 		// const svgPath = false;
 		const svgPath = fileIcons[extension];
 		if (!svgPath) {
@@ -218,6 +219,7 @@
 	};
 
 	interface Client {
+		currentFile: File | undefined;
 		hoverOver: undefined | string;
 		sidebar: boolean;
 		display: string | undefined;
@@ -247,6 +249,7 @@
 	let selectedFolders: string[] = [];
 
 	let client: Client = {
+		currentFile: undefined,
 		hoverOver: undefined,
 		sidebar: true,
 		display: 'tables',
@@ -359,12 +362,12 @@
 					</p>
 				</div>
 				<div class="flex gap-2">
-					<p class="flex gap-1 items-center">
+					<p class="flex items-center gap-1">
 						{#each data.path.split('/') as dir, index}
-						{#if index !== 0}
-							<span class="text-neutral-700">/</span>
-						{/if}
-						<span class="text-neutral-500">{dir}</span>
+							{#if index !== 0}
+								<span class="text-neutral-700">/</span>
+							{/if}
+							<span class="text-neutral-500">{dir}</span>
 						{/each}
 					</p>
 					<button
@@ -470,6 +473,9 @@
 					description={client.modal.description}
 					action={currentAction}
 				/>
+				{#if data.status == 'success' && client.currentFile}
+					<FileOverlay file={client.currentFile} />
+				{/if}
 			</div>
 
 			<div class="max-h-editor flex flex-grow flex-col overflow-y-auto">
@@ -787,11 +793,10 @@
 													/>
 												</td>
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-													<a
-														href={`/svelted/media${file.path}`}
-														data-sveltekit-replacestate="true"
-														data-sveltekit-reload="true"
-														class="flex h-10 w-full items-center px-2"
+													<button
+														tabindex="-1"
+														on:click={() => client.currentFile = file}
+														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														<div class="flex gap-2">
 															<img
@@ -802,47 +807,43 @@
 															/>
 															{file.name}
 														</div>
-													</a>
+													</button>
 												</td>
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-													<a
-														href={`/svelted/media${file.path}`}
-														data-sveltekit-replacestate="true"
-														data-sveltekit-reload="true"
-														class="flex h-10 w-full items-center px-2"
+													<button
+														tabindex="-1"
+														on:click={() => client.currentFile = file}
+														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{file.extension}
-													</a>
+													</button>
 												</td>
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-													<a
-														href={`/svelted/media${file.path}`}
-														data-sveltekit-replacestate="true"
-														data-sveltekit-reload="true"
-														class="flex h-10 w-full items-center px-2"
+													<button
+														tabindex="-1"
+														on:click={() => client.currentFile = file}
+														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{file.author}
-													</a>
+													</button>
 												</td>
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
-													<a
-														href={`/svelted/media${file.path}`}
-														data-sveltekit-replacestate="true"
-														data-sveltekit-reload="true"
-														class="flex h-10 w-full items-center px-2"
+													<button
+														tabindex="-1"
+														on:click={() => client.currentFile = file}
+														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{formatTime(file.modified)}
-													</a>
+													</button>
 												</td>
 												<td class="p-0">
-													<a
-														href={`/svelted/media${file.path}`}
-														data-sveltekit-replacestate="true"
-														data-sveltekit-reload="true"
-														class="flex h-10 w-full items-center px-2"
+													<button
+														tabindex="-1"
+														on:click={() => client.currentFile = file}
+														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{formatTime(file.created)}
-													</a>
+													</button>
 												</td>
 												<td class="w-14">
 													<div class="flex gap-2">
@@ -850,8 +851,9 @@
 															href={`/svelted/media${file.path}`}
 															data-sveltekit-replacestate="true"
 															data-sveltekit-reload="true"
-															on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-															on:mouseleave={() => hoverOver(undefined)}
+															data-sveltekit-preload-data="false"
+															on:mouseenter={() => {hoverOver(`pages-edit-${index}`); client.currentFile = undefined}}
+															on:mouseleave={() => {hoverOver(undefined); client.currentFile = undefined}}
 															class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 														>
 															{#if client.hoverOver == `pages-edit-${index}`}
@@ -862,8 +864,8 @@
 														</a>
 														<button
 															on:click={() => deleteModal(file.name, index)}
-															on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
-															on:mouseleave={() => hoverOver(undefined)}
+															on:mouseenter={() => {hoverOver(`layouts-delete-${index}`); client.currentFile = undefined}}
+															on:mouseleave={() => {hoverOver(undefined); client.currentFile = undefined}}
 															class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 														>
 															{#if client.hoverOver == `layouts-delete-${index}`}

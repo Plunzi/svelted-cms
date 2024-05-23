@@ -1,11 +1,12 @@
 {
   "name": "svelted-component-builder",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "bun run --bun vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "bun run vite build",
+    "start": "bun message.js && bun run execute",
+    "execute": "bun --bun ./build/index.js",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check . && eslint .",

@@ -26,6 +26,7 @@ const config = {
 				},
 				'svelted-gray': {
 					700: '#161616',
+					800: '#101010',
 					900: '#0a0a0a',
 				},
 				border: "hsl(var(--border) / <alpha-value>)",

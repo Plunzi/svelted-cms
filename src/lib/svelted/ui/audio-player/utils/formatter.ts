@@ -1,6 +1,6 @@
 export const toHHMMSS = (sec_num: number) => {
   if (isNaN(sec_num)) {
-    return NaN
+    return "00:00"
   }
 
   sec_num = Math.floor(sec_num)

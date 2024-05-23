@@ -21,7 +21,7 @@
 <div
 	class="flex w-full flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-950 min-w-[32rem] shadow-md"
 >
-	<div class="py-3 block bg-svelted-gray-700 w-full">
+	<div class="py-3 block bg-svelted-gray-800 w-full rounded-t-xl">
 		<p class="text-center text-md font-medium text-neutral-200">{track}</p>
 	</div>
 
