@@ -231,7 +231,7 @@
 		</nav>
 		<section
 			class="max-h-editor relative flex-1 {overflow
-				? 'overflow-y-auto'
+				? 'overflow-y-visible'
 				: 'overflow-y-hidden'} bg-[#0e0f13] bg-[radial-gradient(#17181c_1px,transparent_1px)] [background-size:16px_16px]"
 		>
 			<slot />

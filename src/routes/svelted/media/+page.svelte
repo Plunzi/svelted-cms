@@ -36,7 +36,7 @@
 		return svgPath;
 	}
 
-	export let data;
+	// export let data;
 
 	let searchTerm = '';
 

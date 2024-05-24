@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Link } from 'phosphor-svelte';
 	import FileDisplay from './FileDisplay.svelte';
 
 	export let file: File | undefined;
@@ -36,6 +35,14 @@
 		}, 50);
 	};
 
+    const openCurrentFile = () => {
+        if (!file) {
+            return;
+        }
+
+        window.location.href = `/svelted/media${file.path}`;
+    }
+
     const handleKeydown = async (e: KeyboardEvent) => {
         if (!file) {
             return;
@@ -47,8 +54,6 @@
     }
 
 	$: {
-        console.log(file);
-
 		if (file !== undefined) {
 			setTimeout(() => {
 				openFileOverlay();
@@ -68,24 +73,8 @@
 			bind:this={popupModalHelper}
 			class="popup-modal-helper mx-auto my-auto flex h-full min-h-48 w-3/6 w-full flex-col justify-between rounded-lg border border-neutral-800 bg-neutral-950 p-4 shadow-lg transition-transform"
 		>
-			<div class="w-full" style="height: calc(100% - 3.5rem);">
-				<FileDisplay {file} />
-			</div>
-			<div class="ml-auto mt-2 flex gap-2">
-				<button
-					on:click={closeModal}
-					class="h-10 rounded-sm border bg-svelted-gray-800 px-4 hover:bg-svelted-gray-700"
-				>
-					Close
-				</button>
-				<a
-					href={`/svelted/media${file.path}`}
-					data-sveltekit-replacestate
-					class="flex h-10 items-center gap-2 rounded-sm bg-svelted-primary-700 px-4 hover:bg-svelted-primary-500"
-				>
-					<Link />
-					Details
-				</a>
+			<div class="w-full h-full">
+				<FileDisplay {file} close={closeModal} link={openCurrentFile} />
 			</div>
 		</div>
 	</section>

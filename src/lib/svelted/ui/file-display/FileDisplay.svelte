@@ -1,11 +1,13 @@
 <script lang="ts">
 	import {
 		Download,
+		Link,
 		MagnifyingGlassMinus,
 		Minus,
 		Plus,
 		Printer,
-		Star
+		Star,
+		X
 	} from 'phosphor-svelte';
 	import AudioPlayer from '$svelted/ui/audio-player/AudioPlayer.svelte';
 	import Player from '$svelted/ui/audio-player/Player.svelte';
@@ -37,8 +39,6 @@
 	};
 
 	const handleScroll = async function (e: WheelEvent) {
-		console.log(e);
-
 		if (e.deltaY > 0) {
 			decreaseFileDisplay();
 			return;
@@ -47,6 +47,22 @@
 			increaseFileDisplay();
 			return;
 		}
+	};
+
+	const closeDisplay = function () {
+		const lastSlashIndex = file.path.lastIndexOf('/');
+
+		if (lastSlashIndex === -1) {
+			return;
+		}
+
+		const url = file.path.substring(0, lastSlashIndex);
+		window.location.href = `/svelted/media${url}`;
+	};
+
+	const copyLink = function () {
+		navigator.clipboard.writeText(file.path)
+		alert('copied text to clipboard');
 	};
 
 	function getSvgPath(extension: string): string {
@@ -69,6 +85,9 @@
 	}
 
 	export let file: File;
+	export let close: Function = closeDisplay;
+	export let link: Function = copyLink;
+
 	const validExtensions = {
 		image: ['svg', 'png', 'jpeg', 'jpg', 'gif', 'bmp'],
 		audio: ['wav', 'mp3', 'aac', 'adts', 'ogg', 'opus', 'caf', 'flac'],
@@ -79,19 +98,27 @@
 		hoverOver: undefined,
 		sidebar: false
 	};
-
-	// onMount(async () => {
-	// 	window.addEventListener('wheel', handleScroll);
-	// });
 </script>
 
-<section class="flex-grow w-full h-full flex flex-col relative">
-	<div class="h-full flex flex-col flex-grow rounded-md pt-2">
+<section class="relative flex h-full w-full flex-grow flex-col">
+	<div class="flex h-full flex-grow flex-col rounded-md pt-2">
 		{#if validExtensions.image.includes(file.extension)}
-			<div class="relative m-auto w-full h-full">
+			<div class="relative m-auto h-full w-full">
 				<div
 					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
+					<button
+						on:click={() => link()}
+						on:mouseenter={() => hoverOver('tool-open-path')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 min-w-10 items-center relative justify-center rounded-full bg-svelted-gray-700 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-open-path'}
+							<Link class="h-5 w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<Link class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
 					<button
 						on:mouseenter={() => hoverOver('tool-print')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -129,7 +156,7 @@
 					</button>
 				</div>
 				<div
-					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute right-16 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						on:mouseenter={() => hoverOver('tool-zoom-in')}
@@ -177,6 +204,22 @@
 						{/if}
 					</button>
 				</div>
+				<div
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+				>
+					<button
+						on:mouseenter={() => hoverOver('tool-exit')}
+						on:mouseleave={() => hoverOver(undefined)}
+						on:click={() => close()}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-exit'}
+							<X class="h-5 min-w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<X class="h-5 min-w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+				</div>
 				<div class="flex h-full w-full overflow-hidden rounded-md">
 					<img
 						on:wheel={handleScroll}
@@ -190,10 +233,22 @@
 				</div>
 			</div>
 		{:else if validExtensions.audio.includes(file.extension)}
-			<div class="flex h-full w-full items-center justify-center relative">
+			<div class="relative flex h-full w-full items-center justify-center">
 				<div
 					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
+					<button
+						on:click={() => link()}
+						on:mouseenter={() => hoverOver('tool-open-path')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full bg-svelted-gray-700 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-open-path'}
+							<Link class="h-5 w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<Link class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
 					<a
 						download
 						href={`/sv-content${file.path}`}
@@ -222,12 +277,40 @@
 				<AudioPlayer src={`/sv-content${file.path}`}>
 					<Player track={file.name} />
 				</AudioPlayer>
+				<div
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+				>
+					<button
+						on:mouseenter={() => hoverOver('tool-exit')}
+						on:mouseleave={() => hoverOver(undefined)}
+						on:click={() => close()}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-exit'}
+							<X class="h-5 min-w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<X class="h-5 min-w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+				</div>
 			</div>
 		{:else if validExtensions.video.includes(file.extension)}
-			<div class="flex flex-grow h-full w-full items-center justify-center relative">
+			<div class="relative flex h-full w-full flex-grow items-center justify-center">
 				<div
 					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
+					<button
+						on:click={() => link()}
+						on:mouseenter={() => hoverOver('tool-open-path')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full bg-svelted-gray-700 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-open-path'}
+							<Link class="h-5 w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<Link class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
 					<a
 						download
 						href={`/sv-content${file.path}`}
@@ -254,12 +337,40 @@
 					</button>
 				</div>
 				<VideoPlayer track={file.name} src={`/sv-content${file.path}`} />
+				<div
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+				>
+					<button
+						on:mouseenter={() => hoverOver('tool-exit')}
+						on:mouseleave={() => hoverOver(undefined)}
+						on:click={() => close()}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-exit'}
+							<X class="h-5 min-w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<X class="h-5 min-w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
+				</div>
 			</div>
 		{:else}
-			<div class="flex h-full w-full items-center justify-center relative">
+			<div class="relative flex h-full w-full items-center justify-center">
 				<div
 					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
+					<button
+						on:click={() => link()}
+						on:mouseenter={() => hoverOver('tool-open-path')}
+						on:mouseleave={() => hoverOver(undefined)}
+						class="grid h-10 w-10 items-center justify-center rounded-full bg-svelted-gray-700 hover:bg-svelted-primary-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-open-path'}
+							<Link class="h-5 w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<Link class="h-5 w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
 					<button
 						on:mouseenter={() => hoverOver('tool-star')}
 						on:mouseleave={() => hoverOver(undefined)}
@@ -273,15 +384,25 @@
 					</button>
 				</div>
 				<div class="flex flex-col">
-					<img src={`${getSvgPath(file.extension)}.svg` || "/file-icons/unknown.svg"} class="h-32 w-32 mx-auto" alt={"file-icon-preview"}>
-					<h1 class="mb-4 text-xl text-center font-semibold text-neutral-200">{file.name}</h1>
-					<p>Für diese Datei scheint es keine Vorschau zu geben, die wir Ihnen zeigen können.</p>
+					<img
+						src={`${getSvgPath(file.extension)}.svg` || '/file-icons/unknown.svg'}
+						class="mx-auto h-32 w-32"
+						alt={'file-icon-preview'}
+					/>
+					<h1
+						class="mb-2 text-center text-xl font-semibold text-neutral-200 text-svelted-primary-500"
+					>
+						{file.name}
+					</h1>
+					<p class="mb-4 text-center text-neutral-400">
+						We can not preview this file type currently.<br />You might download it instead.
+					</p>
 					<a
 						download
 						href={`/sv-content${file.path}`}
 						on:mouseenter={() => hoverOver('tool-download')}
 						on:mouseleave={() => hoverOver(undefined)}
-						class="flex h-10 items-center gap-2 rounded-sm mx-auto bg-svelted-primary-700 px-4 hover:bg-svelted-primary-500 w-fit"
+						class="mx-auto flex h-10 w-fit items-center gap-2 rounded-sm border border-svelted-primary-500 bg-gradient-to-t from-svelted-primary-700 to-svelted-primary-500 px-4 shadow-lg hover:bg-svelted-primary-500"
 					>
 						{#if client.hoverOver == 'tool-download'}
 							<Download class="h-5 w-5 fill-[currentcolors]" weight="fill" />
@@ -290,6 +411,22 @@
 						{/if}
 						Download
 					</a>
+				</div>
+				<div
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+				>
+					<button
+						on:mouseenter={() => hoverOver('tool-exit')}
+						on:mouseleave={() => hoverOver(undefined)}
+						on:click={() => close()}
+						class="grid h-10 w-10 items-center justify-center rounded-full hover:bg-svelted-gray-700 hover:text-white"
+					>
+						{#if client.hoverOver == 'tool-exit'}
+							<X class="h-5 min-w-5 fill-[currentcolors]" weight="bold" />
+						{:else}
+							<X class="h-5 min-w-5 fill-[currentcolors]" />
+						{/if}
+					</button>
 				</div>
 			</div>
 		{/if}

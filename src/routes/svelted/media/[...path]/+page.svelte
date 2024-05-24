@@ -343,7 +343,7 @@
 	}
 </script>
 
-<Navigation overflow={false} site={['Media & Files']} activepage="Media & Files">
+<Navigation overflow={true} site={['Media & Files']} activepage="Media & Files">
 	<div class="flex bg-neutral-950">
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
@@ -478,7 +478,8 @@
 				{/if}
 			</div>
 
-			<div class="max-h-editor flex flex-grow flex-col overflow-y-auto">
+			<!-- <div class="max-h-editor flex flex-grow flex-col overflow-x-visible overflow-y-auto"> -->
+			<div class="max-h-editor flex flex-grow flex-col">
 				{#if data.status == 'success'}
 					{#if folders.length > 0}
 						<div class="mb-3 rounded-lg bg-svelted-gray-700 px-2 pt-1">
