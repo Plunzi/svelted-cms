@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+//
+// Account tables
+//
+
+model role {
+  id           Int      @id @default(autoincrement())
+  name         String
+  icon         String?
+  description  String?
+  admin_access Boolean? @default(false)
+  app_access   Boolean? @default(false)
+  users        user[]
+  page         page?    @relation(fields: [pageRoute], references: [route])
+  pageRoute    String?
+}
+
+model session {
+  session_token String    @unique @default(uuid())
+  user_id       String
+  created_at    DateTime  @default(now())
+  expires_at    DateTime?
+  users         user      @relation(fields: [user_id], references: [id])
+
+  @@id([user_id, session_token])
+  @@index([user_id], map: "idx_sessions_user_id")
+  @@index([session_token], map: "idx_sessions_token")
+}
+
+model user {
+  id              String    @id @default(uuid())
+  first_name      String?
+  last_name       String?
+  display_name    String
+  email           String    @unique(map: "sqlite_autoindex_users_2")
+  password_hash   String
+  tfa_secret      String?
+  location        String?
+  title           String?
+  description     String?
+  avatar          String?
+  language        String?   @default("en-US")
+  appearance      String?   @default("auto")
+  status          String?   @default("draft")
+  created_at      DateTime  @default(now())
+  created_by      String
+  updated_at      DateTime? @updatedAt
+  updated_by      String?
+  last_online     String?
+  role_id         Int?
+  layoutsId       Int?
+  pagesId         Int?
+  sessions        session[]
+  roles           role?    @relation(fields: [role_id], references: [id], onDelete: SetNull)
+  layouts         layout?   @relation("layout_authors", fields: [layoutsId], references: [id])
+  pages_created   page[]    @relation("page_created_by")
+  pages_updated   page[]    @relation("page_updated_by")
+  layouts_created layout[]  @relation("layout_created_by")
+  layouts_updated layout[]  @relation("layout_updated_by")
+
+  @@index([email], map: "idx_users_email")
+}
+
+//
+// Core functionality tables
+//
+
+model layout {
+  id             Int       @id @default(autoincrement())
+  name           String
+  authors        user[]    @relation("layout_authors")
+  modified       DateTime  @updatedAt
+  content        String    @default("[]")
+  pages          page[]
+  created_userId String?
+  created_at     DateTime  @default(now())
+  created_by     user?     @relation("layout_created_by", fields: [created_userId], references: [id])
+  updated_userId String?
+  updated_at     DateTime? @updatedAt
+  updated_by     user?     @relation("layout_updated_by", fields: [updated_userId], references: [id])
+}
+
+model page {
+  id             String    @default(uuid())
+  route          String    @id
+  name           String
+  status         String?   @default("draft")
+  layoutsId      Int?
+  layout         layout?    @relation(fields: [layoutsId], references: [id])
+  allowed_roles  role[]
+  created_userId String?
+  created_at     DateTime  @default(now())
+  created_by     user?     @relation("page_created_by", fields: [created_userId], references: [id])
+  updated_userId String?
+  updated_at     DateTime? @updatedAt
+  updated_by     user?     @relation("page_updated_by", fields: [updated_userId], references: [id])
+}

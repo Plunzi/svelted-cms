@@ -24,6 +24,7 @@
 	import FileTree from '$svelted/ui/file-tree/FileTree.svelte';
 	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
 	import FileOverlay from '$svelted/ui/file-display/FileOverlay.svelte';
+	import PathSpacer from '$svelted/ui/path-spacer/PathSpacer.svelte';
 
 	const fileIcons = getFileIcons();
 
@@ -171,49 +172,39 @@
 	};
 
 	const deleteMedia = async function () {
-		const deleteRoute = client.delete.route;
-		const deleteId = client.delete.id;
-		// /*
-
-		console.log(deleteRoute, deleteId);
-
-		if (!deleteRoute || (!deleteId && deleteId != 0)) {
-			closeModal();
-			return;
-		}
-
-		toast.loading(`Trying to delete route: ${deleteRoute}`);
-
-		const formData = new FormData();
-		// client.isSaving = true;
-		// client.savingMessage = 'Loading ...';
-
-		formData.append('route', deleteRoute);
-
-		const response = await fetch('/svelted/layouts/delete', {
-			method: 'POST',
-			body: formData
-		});
-
-		if (!response.ok) {
-			const error = await response.text();
-			toast.error(error);
-		} else {
-			if (client.hoverOver == `layouts-delete-${deleteId}`) {
-				hoverOver(undefined);
-			}
-
-			const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
-			if (indexToRemove !== -1) {
-				items.splice(indexToRemove, 1);
-				sortItems.set(items.slice());
-			}
-
-			let result = await response.text();
-			toast.success(result);
-		}
-
-		closeModal();
+		// const deleteRoute = client.delete.route;
+		// const deleteId = client.delete.id;
+		// // /*
+		// console.log(deleteRoute, deleteId);
+		// if (!deleteRoute || (!deleteId && deleteId != 0)) {
+		// 	closeModal();
+		// 	return;
+		// }
+		// toast.loading(`Trying to delete route: ${deleteRoute}`);
+		// const formData = new FormData();
+		// // client.isSaving = true;
+		// // client.savingMessage = 'Loading ...';
+		// formData.append('route', deleteRoute);
+		// const response = await fetch('/svelted/layouts/delete', {
+		// 	method: 'POST',
+		// 	body: formData
+		// });
+		// if (!response.ok) {
+		// 	const error = await response.text();
+		// 	toast.error(error);
+		// } else {
+		// 	if (client.hoverOver == `layouts-delete-${deleteId}`) {
+		// 		hoverOver(undefined);
+		// 	}
+		// 	const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
+		// 	if (indexToRemove !== -1) {
+		// 		items.splice(indexToRemove, 1);
+		// 		sortItems.set(items.slice());
+		// 	}
+		// 	let result = await response.text();
+		// 	toast.success(result);
+		// }
+		// closeModal();
 		// client.isSaving = false;
 		// client.savingMessage = 'Save changes';
 	};
@@ -363,17 +354,20 @@
 				</div>
 				<div class="flex gap-2">
 					<p class="flex items-center gap-1">
-						{#each data.path.split('/') as dir, index}
-							{#if index !== 0}
-								<span class="text-neutral-700">/</span>
-							{/if}
-							<span class="text-neutral-500">{dir}</span>
-						{/each}
+						<a href={`/svelted/media/`} class="text-neutral-500 hover:text-svelted-primary-500 hover:bg-svelted-gray-700 px-2 rounded-sm py-0.5">
+							<span>media</span>
+						</a>
+						{#if data.path}
+							<PathSpacer path={data.path}/>
+						{/if}
 					</p>
 					<button
 						class:!bg-neutral-800={client.display == 'tables'}
 						on:click={() => (client.display = 'tables')}
-						on:mouseenter={() => hoverOver('display-tables')}
+						on:mouseenter={() => {
+							hoverOver('display-tables');
+							client.currentFile = undefined;
+						}}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
@@ -385,8 +379,11 @@
 					</button>
 					<button
 						class:!bg-neutral-800={client.display == 'cards'}
-						on:click={() => (client.display = 'cards')}
-						on:mouseenter={() => hoverOver('display-cards')}
+						on:click={() => (client.display = 'cards')}	
+						on:mouseenter={() => {
+							hoverOver('display-cards');
+							client.currentFile = undefined;
+						}}
 						on:mouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
 					>
@@ -400,7 +397,10 @@
 						<button
 							class:!bg-neutral-800={client.display == 'cards'}
 							on:click={() => (client.sidebar = !client.sidebar)}
-							on:mouseenter={() => hoverOver('show-sidebar')}
+							on:mouseenter={() => {
+								hoverOver('show-sidebar');
+								client.currentFile = undefined;
+							}}
 							on:mouseleave={() => hoverOver(undefined)}
 							class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
 						>
@@ -413,7 +413,7 @@
 					{/if}
 				</div>
 			</div>
-			{#if data.success == 'success'}
+			{#if data.status == 'success'}
 				<nav class="flex gap-2">
 					<button
 						on:mouseenter={() => hoverOver('create-layout')}
@@ -678,7 +678,10 @@
 																href={`/svelted/media${file.path}`}
 																data-sveltekit-replacestate="true"
 																data-sveltekit-reload="true"
-																on:mouseenter={() => hoverOver(`file-edit-${index}`)}
+																on:mouseenter={() => {
+																	hoverOver(`file-delete-${index}`);
+																	client.currentFile = undefined;
+																}}
 																on:mouseleave={() => hoverOver(undefined)}
 																class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
 															>
@@ -690,7 +693,10 @@
 															</a>
 															<button
 																on:click={() => deleteModal(file.name, index)}
-																on:mouseenter={() => hoverOver(`file-delete-${index}`)}
+																on:mouseenter={() => {
+																	hoverOver(`file-delete-${index}`);
+																	client.currentFile = undefined;
+																}}
 																on:mouseleave={() => hoverOver(undefined)}
 																class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
 															>
@@ -796,7 +802,7 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<button
 														tabindex="-1"
-														on:click={() => client.currentFile = file}
+														on:click={() => (client.currentFile = file)}
 														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														<div class="flex gap-2">
@@ -813,7 +819,7 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<button
 														tabindex="-1"
-														on:click={() => client.currentFile = file}
+														on:click={() => (client.currentFile = file)}
 														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{file.extension}
@@ -822,7 +828,7 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<button
 														tabindex="-1"
-														on:click={() => client.currentFile = file}
+														on:click={() => (client.currentFile = file)}
 														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{file.author}
@@ -831,7 +837,7 @@
 												<td class="border-r border-r-neutral-800 !p-0 px-2 py-2">
 													<button
 														tabindex="-1"
-														on:click={() => client.currentFile = file}
+														on:click={() => (client.currentFile = file)}
 														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{formatTime(file.modified)}
@@ -840,7 +846,7 @@
 												<td class="p-0">
 													<button
 														tabindex="-1"
-														on:click={() => client.currentFile = file}
+														on:click={() => (client.currentFile = file)}
 														class="flex h-10 w-full items-center px-2 outline-none"
 													>
 														{formatTime(file.created)}
@@ -853,8 +859,14 @@
 															data-sveltekit-replacestate="true"
 															data-sveltekit-reload="true"
 															data-sveltekit-preload-data="false"
-															on:mouseenter={() => {hoverOver(`pages-edit-${index}`); client.currentFile = undefined}}
-															on:mouseleave={() => {hoverOver(undefined); client.currentFile = undefined}}
+															on:mouseenter={() => {
+																hoverOver(`pages-edit-${index}`);
+																client.currentFile = undefined;
+															}}
+															on:mouseleave={() => {
+																hoverOver(undefined);
+																client.currentFile = undefined;
+															}}
 															class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 														>
 															{#if client.hoverOver == `pages-edit-${index}`}
@@ -865,8 +877,14 @@
 														</a>
 														<button
 															on:click={() => deleteModal(file.name, index)}
-															on:mouseenter={() => {hoverOver(`layouts-delete-${index}`); client.currentFile = undefined}}
-															on:mouseleave={() => {hoverOver(undefined); client.currentFile = undefined}}
+															on:mouseenter={() => {
+																hoverOver(`layouts-delete-${index}`);
+																client.currentFile = undefined;
+															}}
+															on:mouseleave={() => {
+																hoverOver(undefined);
+																client.currentFile = undefined;
+															}}
 															class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 														>
 															{#if client.hoverOver == `layouts-delete-${index}`}
@@ -1017,8 +1035,9 @@
 					</button>
 				</div>
 				<div class="overflow-y-auto overflow-x-hidden">
-					<!-- <p class="text-white">{JSON.stringify(selectedFiles)}</p> -->
-					<FileTree {tree} treeRoute="/svelted/media" />
+					{#if tree}
+						<FileTree {tree} treeRoute="/svelted/media" />
+					{/if}
 				</div>
 			</div>
 		{/if}

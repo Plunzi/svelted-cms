@@ -2,10 +2,7 @@
 	import Navigation from '$svelted/ui/navigation/Navigation.svelte';
 	import {
 		Blueprint,
-		Folder,
-		CaretDown,
 		CaretUp,
-		Check,
 		Funnel,
 		Pen,
 		Plus,
@@ -13,7 +10,7 @@
 		Rows,
 		SquaresFour,
 		Trash,
-		UserList
+		Star
 	} from 'phosphor-svelte';
 	import { writable } from 'svelte/store';
 	import formatTime from '$svelted/functions/format/time';
@@ -25,6 +22,7 @@
 	import { flip } from 'svelte/animate';
 	import AlertDialog from '$svelted/ui/alert-dialog/AlertDialog.svelte';
 	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
+	import FileTree from '$svelted/ui/file-tree/FileTree.svelte';
 
 	const fileIcons = getFileIcons();
 
@@ -36,7 +34,8 @@
 		return svgPath;
 	}
 
-	// export let data;
+	export let data;
+	const tree = data.media;
 
 	let searchTerm = '';
 
@@ -247,7 +246,7 @@
 
 	let client: Client = {
 		hoverOver: undefined,
-		sidebar: false,
+		sidebar: true,
 		display: 'tables',
 		routeInput: '',
 		nameInput: '',
@@ -306,27 +305,27 @@
 
 	let files: File[] = [
 		{
-			path: '/public/test.png',
-			name: 'Test.png',
-			extension: 'png',
+			path: '/private/test%20assets/Chromabit%20-%20knko%20&%20plunzi%20(high%20quality%20ver.).wav',
+			name: 'Chromabit - knko & plunzi (high quality ver.).wav',
+			extension: 'wav',
 			author: 'admin',
 			size: 1000,
-			description: 'test image',
+			description: 'test music',
 			modified: 171844377000,
 			created: 1715867971305
 		},
 		{
-			path: '/private/customer.csv',
-			name: 'Customer.csv',
+			path: '/private/test%20assets/excel.csv',
+			name: 'excel.csv',
 			extension: 'csv',
 			author: 'admin',
 			size: 1000,
-			description: 'customer list',
+			description: 'example list',
 			modified: 171937997100,
 			created: 1715867971305
 		},
 		{
-			path: '/data/layouts/svelted/notfound/layout.json',
+			path: '/soon/Layout.json',
 			name: 'Layout.json',
 			extension: 'json',
 			author: 'admin',
@@ -336,7 +335,17 @@
 			created: 1715867971305
 		},
 		{
-			path: '/private/example/Navigation.svelte',
+			path: '/private/test%20assets/logo_animation.mp4',
+			name: 'logo_animation.mp4',
+			extension: 'mp4',
+			author: 'admin',
+			size: 1000,
+			description: undefined,
+			modified: 172032143200,
+			created: 1715867971305
+		},
+		{
+			path: '/soon/Navigation.svelte',
 			name: 'Navigation.svelte',
 			extension: 'svelte',
 			author: 'admin',
@@ -346,9 +355,9 @@
 			created: 1715867971305
 		},
 		{
-			path: '/bun.lockb',
-			name: 'bun.lockb',
-			extension: 'ps',
+			path: '/private/test%20assets/svelte.svg',
+			name: 'svelte.svg',
+			extension: 'svg',
 			author: 'admin',
 			size: 1000,
 			description: undefined,
@@ -408,7 +417,7 @@
 		<!-- <div class="flex w-full flex-col justify-between p-4">
 			<QuickToDo tasks={data.todo.data} />
         </div> -->
-		<div class="relative flex w-full flex-col gap-4 px-3 pt-3 text-white">
+		<div class="h-full-editor relative flex w-full flex-col gap-4 px-3 pt-3 text-white">
 			<div class="relative flex justify-between gap-2">
 				<div class="flex h-10 items-center gap-2 px-2">
 					<Blueprint class="mt-0.5 h-6 w-6 fill-neutral-500" weight="regular" />
@@ -419,6 +428,14 @@
 					</p>
 				</div>
 				<div class="flex gap-2">
+					<p class="flex items-center gap-1">
+						<a
+							href={`/svelted/media/`}
+							class="rounded-sm px-2 py-0.5 text-neutral-500 hover:bg-svelted-gray-700 hover:text-svelted-primary-500"
+						>
+							<span>media</span>
+						</a>
+					</p>
 					<button
 						class:!bg-neutral-800={client.display == 'tables'}
 						on:click={() => (client.display = 'tables')}
@@ -445,6 +462,23 @@
 							<SquaresFour class="h-5 w-5 fill-[currentcolors]" />
 						{/if}
 					</button>
+					{#if client.sidebar === false}
+						<button
+							class:!bg-neutral-800={client.display == 'cards'}
+							on:click={() => (client.sidebar = !client.sidebar)}
+							on:mouseenter={() => {
+								hoverOver('show-sidebar');
+							}}
+							on:mouseleave={() => hoverOver(undefined)}
+							class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
+						>
+							{#if client.hoverOver == 'show-sidebar'}
+								<Tree class="h-5 w-5 fill-[currentcolors]" weight="fill" />
+							{:else}
+								<Tree class="h-5 w-5 fill-[currentcolors]" />
+							{/if}
+						</button>
+					{/if}
 				</div>
 			</div>
 			<nav class="flex gap-2">
@@ -591,6 +625,11 @@
 							</tbody>
 						</table>
 					</div>
+				</div>
+
+				<div class="mb-3 flex items-center gap-2 px-2 text-neutral-500">
+					<Star weight="fill" />
+					<p>Favourites</p>
 				</div>
 
 				<!-- Card Display -->
@@ -887,31 +926,33 @@
 				{/if}
 			</div>
 		</div>
-		<div
-			class="h-full-editor open flex min-w-64 max-w-64 flex-col justify-between overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
-		>
-			<div id="roles" class="flex flex-col gap-3"></div>
-			<p>Files:</p>
-			<p class="text-white">{JSON.stringify(selectedFiles)}</p>
-			<p>Folders:</p>
-			<p class="text-white">{JSON.stringify(selectedFolders)}</p>
-			<div>
-				<button
-					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
-					on:mouseenter={() => hoverOver('users')}
-					on:mouseleave={() => hoverOver(undefined)}
-					on:click={() => (client.sidebar = !client.sidebar)}
-				>
-					{#if client.hoverOver == 'users'}
-						<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
-						<p class="text-white">Here will be a folder tree</p>
-					{:else}
-						<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
-						<p class="text-neutral-500">Here will be a folder tree</p>
+		{#if client.sidebar}
+			<div
+				class="h-full-editor open flex min-w-64 max-w-64 flex-col gap-2 overflow-hidden border-l border-neutral-800 bg-neutral-950 p-2 transition-all"
+			>
+				<div>
+					<button
+						class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] focus:outline-none"
+						on:mouseenter={() => hoverOver('users')}
+						on:mouseleave={() => hoverOver(undefined)}
+						on:click={() => (client.sidebar = !client.sidebar)}
+					>
+						{#if client.hoverOver == 'users'}
+							<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
+							<p class="text-white">Files Tree</p>
+						{:else}
+							<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500" weight="regular" />
+							<p class="text-neutral-500">Files Tree</p>
+						{/if}
+					</button>
+				</div>
+				<div class="overflow-y-auto overflow-x-hidden">
+					{#if tree}
+						<FileTree {tree} treeRoute="/svelted/media" />
 					{/if}
-				</button>
+				</div>
 			</div>
-		</div>
+		{/if}
 	</div>
 </Navigation>
 
@@ -930,7 +971,7 @@
 		outline-offset: -1.5px;
 	}
 
-	:is(tr:hover > td) {
+	:is(.tr:hover > td) {
 		border-color: #278c4c !important;
 	}
 
@@ -970,6 +1011,7 @@
 
 	.h-full-editor {
 		min-height: calc(100vh - 4rem);
+		max-height: calc(100vh - 4rem);
 	}
 
 	:is(.closed .section-description, .hide) {
@@ -979,6 +1021,7 @@
 	}
 
 	.max-h-editor {
-		max-height: calc(100vh - 19.6rem);
+		max-height: calc(100vh - 4rem);
+		/* max-height: calc(100vh - 19.6rem); */
 	}
 </style>
