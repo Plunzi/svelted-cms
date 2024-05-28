@@ -18,8 +18,8 @@
 	import { toast } from 'svelte-sonner';
 	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
 	import { flip } from 'svelte/animate';
-	import AlertDialog from '$svelted/ui/alert-dialog/AlertDialog.svelte';
-	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
+	import AlertDialog from '$svelted/overlays/AlertDialog.svelte';
+	import { closeModal, openModal } from '$svelted/overlays/AlertDialogControls.js';
 
 	export let data;
 

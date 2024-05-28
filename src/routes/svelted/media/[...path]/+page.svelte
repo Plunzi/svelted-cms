@@ -19,11 +19,11 @@
 	import { toast } from 'svelte-sonner';
 	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
 	import { flip } from 'svelte/animate';
-	import AlertDialog from '$svelted/ui/alert-dialog/AlertDialog.svelte';
-	import { closeModal, openModal } from '$svelted/ui/alert-dialog/AlertDialogControls.js';
+	import AlertDialog from '$svelted/overlays/AlertDialog.svelte';
+	import { closeModal, openModal } from '$svelted/overlays/AlertDialogControls.js';
 	import FileTree from '$svelted/ui/file-tree/FileTree.svelte';
 	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
-	import FileOverlay from '$svelted/ui/file-display/FileOverlay.svelte';
+	import FileOverlay from '$svelted/overlays/FilePreview.svelte';
 	import PathSpacer from '$svelted/ui/path-spacer/PathSpacer.svelte';
 
 	const fileIcons = getFileIcons();

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import FileDisplay from './FileDisplay.svelte';
+	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
 
 	export let file: File | undefined;
 
