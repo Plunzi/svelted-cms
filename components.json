@@ -1,5 +1,5 @@
 {
-	"$schema": "https://shadcn-svelte.com/schema.json",
+	"$schema": "https://next.shadcn-svelte.com/schema.json",
 	"style": "default",
 	"tailwind": {
 		"config": "tailwind.config.js",
@@ -8,7 +8,11 @@
 	},
 	"aliases": {
 		"components": "$lib/internal/shadcn/",
-		"utils": "$lib/internal/shadcn/utils"
+		"utils": "$lib/internal/shadcn/utils",
+		"ui": "$lib/internal/shadcn/ui",
+		"hooks": "$lib/internal/shadcn/hooks"
+
 	},
-	"typescript": true
+	"typescript": true,
+	"registry": "https://next.shadcn-svelte.com/registry"
 }

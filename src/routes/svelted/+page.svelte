@@ -5,12 +5,16 @@
 	import { CaretDown, UserList } from 'phosphor-svelte';
 	import { onMount } from 'svelte';
 
-	export let data;
+	interface Props {
+		data: any;
+	}
+
+	let { data }: Props = $props();
 	const ressources = data.ressources;
 
 	// console.log(os.hostname, os.cpus, os.platform, os.homedir, os.version, os.uptime);
 
-	let currentTime = new Date();
+	let currentTime = $state(new Date());
 
 	let roles = [
 		{
@@ -63,10 +67,10 @@
 		sidebar: boolean;
 	}
 
-	let client: Client = {
+	let client: Client = $state({
 		hoverOver: undefined,
 		sidebar: false
-	};
+	});
 
 	const toggleSection = function (element: string) {
 		const target = document.getElementById(element);
@@ -172,7 +176,7 @@
 				{#each roles as role}
 					<button
 						class="section-description -mb-2 flex w-full justify-between text-neutral-500 transition-all"
-						on:click={() => toggleSection(`${role.name}-role`)}
+						onclick={() => toggleSection(`${role.name}-role`)}
 					>
 						<h2>{role.name}</h2>
 						<CaretDown id={`${role.name}-role-btn`} class="my-auto fill-[currentcolor]" />
@@ -185,15 +189,15 @@
 								{#if user.status == 'online'}
 									<div
 										class="absolute h-6 w-6 rounded-full outline outline-[1.5px] outline-offset-2 outline-green-500"
-									/>
+									></div>
 								{:else if user.status == 'away'}
 									<div
 										class="absolute h-6 w-6 rounded-full outline outline-[1.5px] outline-offset-2 outline-yellow-500"
-									/>
+									></div>
 								{:else}
 									<div
 										class="absolute h-6 w-6 rounded-full outline outline-[1.5px] outline-offset-2 outline-red-500"
-									/>
+									></div>
 								{/if}
 								<Avatar.Root class="h-6 w-6">
 									<Avatar.Image src="https://github.com/shadcn.png" alt="@shadcn" />
@@ -208,9 +212,9 @@
 			<div>
 				<button
 					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
-					on:mouseenter={() => hoverOver('users')}
-					on:mouseleave={() => hoverOver(undefined)}
-					on:click={() => (client.sidebar = !client.sidebar)}
+					onmouseenter={() => hoverOver('users')}
+					onmouseleave={() => hoverOver(undefined)}
+					onclick={() => (client.sidebar = !client.sidebar)}
 				>
 					{#if client.hoverOver == 'users'}
 						<UserList class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />

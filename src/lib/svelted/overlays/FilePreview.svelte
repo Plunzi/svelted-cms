@@ -1,10 +1,16 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
 
-	export let file: File | undefined;
+	interface Props {
+		file: File | undefined;
+	}
 
-	let popupModal: HTMLElement;
-	let popupModalHelper: HTMLElement;
+	let { file = $bindable() }: Props = $props();
+
+	let popupModal: HTMLElement = $state();
+	let popupModalHelper: HTMLElement = $state();
 
 	interface File {
 		path: string;
@@ -53,16 +59,16 @@
         }
     }
 
-	$: {
+	run(() => {
 		if (file !== undefined) {
 			setTimeout(() => {
 				openFileOverlay();
 			}, 1);
 		}
-	}
+	});
 </script>
 
-<svelte:window on:keydown={handleKeydown}></svelte:window>
+<svelte:window onkeydown={handleKeydown}></svelte:window>
 
 {#if file}
     <section

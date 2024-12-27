@@ -19,17 +19,17 @@
 		component_blocks = e.detail.items;
 	}
 
-	let component_blocks = [
+	let component_blocks = $state([
 		{ id: 1, name: 'Paragraph' },
 		{ id: 2, name: 'Heading', moved: false },
 		{ id: 3, name: 'List', moved: false },
 		{ id: 4, name: 'item4', moved: false }
-	];
+	]);
 
-	let layout_blocks = [
+	let layout_blocks = $state([
 		{ id: 1, name: 'Paragraph', moved: false },
 		{ id: 2, name: 'Heading', moved: false }
-	];
+	]);
 </script>
 
 <main class="h-full min-h-screen w-full bg-neutral-900">
@@ -58,8 +58,8 @@
 			</li>
 			<ul
 				use:dndzone={{ items: component_blocks, flipDurationMs }}
-				on:consider={componentBlocksConsider}
-				on:finalize={componentBlocksFinalize}
+				onconsider={componentBlocksConsider}
+				onfinalize={componentBlocksFinalize}
 			>
 				{#each component_blocks as item (item.id)}
 					<li class="block w-full" animate:flip={{ duration: flipDurationMs }}>
@@ -76,8 +76,8 @@
 			<div class="bg-lime-500 p-4">Drag here!</div>
 			<ul
 				use:dndzone={{ items: layout_blocks, flipDurationMs }}
-				on:consider={layoutBlocksConsider}
-				on:finalize={layoutBlocksFinalize}
+				onconsider={layoutBlocksConsider}
+				onfinalize={layoutBlocksFinalize}
 			>
 				{#each layout_blocks as block, index (block.id)}
 					<li class="relative bg-purple-500 py-5 {block.moved ? 'bg-yellow-500' : ''}">

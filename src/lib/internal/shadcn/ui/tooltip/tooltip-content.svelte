@@ -4,14 +4,27 @@
 
 	type $$Props = TooltipPrimitive.ContentProps;
 
-	let className: $$Props["class"] = undefined;
-	export let sideOffset: $$Props["sideOffset"] = 4;
-	export let transition: $$Props["transition"] = flyAndScale;
-	export let transitionConfig: $$Props["transitionConfig"] = {
+	interface Props {
+		class?: $$Props["class"];
+		sideOffset?: $$Props["sideOffset"];
+		transition?: $$Props["transition"];
+		transitionConfig?: $$Props["transitionConfig"];
+		children?: import('svelte').Snippet;
+		[key: string]: any
+	}
+
+	let {
+		class: className = undefined,
+		sideOffset = 4,
+		transition = flyAndScale,
+		transitionConfig = {
 		y: 8,
 		duration: 150,
-	};
-	export { className as class };
+	},
+		children,
+		...rest
+	}: Props = $props();
+	
 </script>
 
 <TooltipPrimitive.Content
@@ -23,7 +36,7 @@
 		className
 	)}
 	style="box-shadow: 0px 2px 10px #1d1d1d !important;"
-	{...$$restProps}
+	{...rest}
 >
-	<slot />
+	{@render children?.()}
 </TooltipPrimitive.Content>

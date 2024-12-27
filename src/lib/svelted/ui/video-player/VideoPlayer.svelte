@@ -1,18 +1,22 @@
 <script lang="ts">
 	import { FastForward, Pause, Play, Repeat, Rewind } from 'phosphor-svelte';
 
-	export let track: string = 'Unnamed Video';
-	export let src: string;
+	interface Props {
+		track?: string;
+		src: string;
+	}
+
+	let { track = 'Unnamed Video', src }: Props = $props();
 
 	let seekSeconds = 2;
-	let videoElement: HTMLVideoElement;
+	let videoElement: HTMLVideoElement = $state();
 
-	let video = {
+	let video = $state({
 		repeat: false,
 		paused: true,
 		playbackRate: 1,
 		duration: 0
-	};
+	});
 
 	const togglePaused = () => {
 		if (video.paused) {

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import RangeSlider from '$svelted/ui/audio-player/RangeSlider.svelte';
 
   import { getAudioContext } from '$svelted/ui/audio-player';
@@ -7,12 +9,14 @@
 
   const { volume, muted } = getAudioContext();
 
-  let volumePercentage = 100;
-  $: $volume = volumePercentage / 100;
+  let volumePercentage = $state(100);
+  run(() => {
+    $volume = volumePercentage / 100;
+  });
 </script>
 
 <div class="volume flex justify-center w-full relative items-center gap-2" id="volume-control">
-  <button on:click={() => toggle(muted)}>
+  <button onclick={() => toggle(muted)}>
     {#if $muted}
       <SpeakerX class="text-neutral-500" weight="fill" />
     {:else}

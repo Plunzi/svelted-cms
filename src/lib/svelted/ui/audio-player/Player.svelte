@@ -5,7 +5,11 @@
 	import RangeSlider from './RangeSlider.svelte';
 	import VolumeControl from './VolumeControl.svelte';
 
-	export let track = 'Unnamed Music Track';
+	interface Props {
+		track?: string;
+	}
+
+	let { track = 'Unnamed Music Track' }: Props = $props();
 
 	const SEEK_SECONDS = 10;
 	const PLAYBACK_SPEEDS = [1, 1.25, 1.5, 1.75, 2, 0.25, 0.5, 0.75];
@@ -30,7 +34,7 @@
 	<div class="relative flex items-center my-3">
 		<button
 			class="absolute -left-16 z-10 flex min-w-12 items-center justify-center rounded-full bg-svelted-gray-700"
-			on:click={() => toggle(repeat)}
+			onclick={() => toggle(repeat)}
 		>
 			<Repeat
 				class={`min-w-6" min-h-6 ${$repeat ? 'text-svelted-primary-500' : 'text-neutral-500'}`}
@@ -39,12 +43,12 @@
 
 		<button
 			class="rounded-full p-2 text-neutral-500 hover:bg-svelted-gray-700 hover:text-white"
-			on:click={() => seekBy(-1 * SEEK_SECONDS)}
+			onclick={() => seekBy(-1 * SEEK_SECONDS)}
 		>
 			<Rewind weight="fill" class="min-h-6 min-w-6" />
 		</button>
 		<button
-			on:click={() => toggle(paused)}
+			onclick={() => toggle(paused)}
 			class="mx-4 flex h-12 w-12 items-center justify-center rounded-full bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 		>
 			{#if $playing}
@@ -56,14 +60,14 @@
 
 		<button
 			class="rounded-full p-2 text-neutral-500 hover:bg-svelted-gray-700 hover:text-white"
-			on:click={() => seekBy(SEEK_SECONDS)}
+			onclick={() => seekBy(SEEK_SECONDS)}
 		>
 			<FastForward class="min-h-6 min-w-6" weight="fill" />
 		</button>
 
 		<button
 			class="absolute -right-16 flex min-h-6 min-w-12 items-center justify-center rounded-full bg-svelted-gray-700"
-			on:click={handlePlaybackSpeedClick}
+			onclick={handlePlaybackSpeedClick}
 		>
 			<span class="text-sm font-semibold text-white">{$playbackRate}x</span>
 		</button>

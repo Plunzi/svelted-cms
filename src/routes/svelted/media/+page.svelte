@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import Navigation from '$svelted/ui/navigation/Navigation.svelte';
 	import {
 		Blueprint,
@@ -34,10 +36,14 @@
 		return svgPath;
 	}
 
-	export let data;
+	interface Props {
+		data: any;
+	}
+
+	let { data }: Props = $props();
 	const tree = data.media;
 
-	let searchTerm = '';
+	let searchTerm = $state('');
 
 	interface Client {
 		sidebar: boolean;
@@ -241,10 +247,10 @@
 		};
 	}
 
-	let selectedFiles: string[] = [];
-	let selectedFolders: string[] = [];
+	let selectedFiles: string[] = $state([]);
+	let selectedFolders: string[] = $state([]);
 
-	let client: Client = {
+	let client: Client = $state({
 		hoverOver: undefined,
 		sidebar: true,
 		display: 'tables',
@@ -268,7 +274,7 @@
 				value: 'none'
 			}
 		}
-	};
+	});
 
 	interface Folder {
 		path: string;
@@ -366,7 +372,7 @@
 		}
 	];
 
-	let currentAction = deleteMedia;
+	let currentAction = $state(deleteMedia);
 
 	const sortKey = writable('name');
 	const sortDirection = writable(1);
@@ -381,7 +387,7 @@
 		}
 	};
 
-	$: {
+	run(() => {
 		const key = $sortKey;
 		const direction = $sortDirection;
 		sortItems.set(
@@ -409,7 +415,7 @@
 					return 0;
 				})
 		);
-	}
+	});
 </script>
 
 <Navigation overflow={false} site={['Media & Files']} activepage="Media & Files">
@@ -438,9 +444,9 @@
 					</p>
 					<button
 						class:!bg-neutral-800={client.display == 'tables'}
-						on:click={() => (client.display = 'tables')}
-						on:mouseenter={() => hoverOver('display-tables')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.display = 'tables')}
+						onmouseenter={() => hoverOver('display-tables')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
 						{#if client.hoverOver == 'display-tables'}
@@ -451,9 +457,9 @@
 					</button>
 					<button
 						class:!bg-neutral-800={client.display == 'cards'}
-						on:click={() => (client.display = 'cards')}
-						on:mouseenter={() => hoverOver('display-cards')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.display = 'cards')}
+						onmouseenter={() => hoverOver('display-cards')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
 					>
 						{#if client.hoverOver == 'display-cards'}
@@ -465,11 +471,11 @@
 					{#if client.sidebar === false}
 						<button
 							class:!bg-neutral-800={client.display == 'cards'}
-							on:click={() => (client.sidebar = !client.sidebar)}
-							on:mouseenter={() => {
+							onclick={() => (client.sidebar = !client.sidebar)}
+							onmouseenter={() => {
 								hoverOver('show-sidebar');
 							}}
-							on:mouseleave={() => hoverOver(undefined)}
+							onmouseleave={() => hoverOver(undefined)}
 							class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
 						>
 							{#if client.hoverOver == 'show-sidebar'}
@@ -483,8 +489,8 @@
 			</div>
 			<nav class="flex gap-2">
 				<button
-					on:mouseenter={() => hoverOver('create-layout')}
-					on:mouseleave={() => hoverOver(undefined)}
+					onmouseenter={() => hoverOver('create-layout')}
+					onmouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 				>
 					{#if client.hoverOver == 'create-layout'}
@@ -494,9 +500,9 @@
 					{/if}
 				</button>
 				<button
-					on:click={deleteStackModal}
-					on:mouseenter={() => hoverOver('delete-stack')}
-					on:mouseleave={() => hoverOver(undefined)}
+					onclick={deleteStackModal}
+					onmouseenter={() => hoverOver('delete-stack')}
+					onmouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
 				>
 					{#if client.hoverOver == 'delete-stack'}
@@ -507,8 +513,8 @@
 				</button>
 				<div class="flex-grow">
 					<button
-						on:mouseenter={() => hoverOver('filter')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onmouseenter={() => hoverOver('filter')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="contens absolute rounded-l-sm text-neutral-500 hover:text-white focus:bg-[#2da05a] focus:text-white focus:outline-none"
 					>
 						{#if client.hoverOver == 'filter'}
@@ -558,7 +564,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -596,8 +602,8 @@
 											<div class="flex gap-2">
 												<a
 													href={`/svelted/media${folder.path}`}
-													on:mouseenter={() => hoverOver(`folder-edit-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onmouseenter={() => hoverOver(`folder-edit-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 												>
 													{#if client.hoverOver == `folder-edit-${index}`}
@@ -607,9 +613,9 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteModal(folder.path, index)}
-													on:mouseenter={() => hoverOver(`folder-delete-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onclick={() => deleteModal(folder.path, index)}
+													onmouseenter={() => hoverOver(`folder-delete-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 												>
 													{#if client.hoverOver == `folder-delete-${index}`}
@@ -651,7 +657,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -660,7 +666,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('extension')}
+											onclick={() => sortTable('extension')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Extension</p>
@@ -669,7 +675,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('author')}
+											onclick={() => sortTable('author')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Author</p>
@@ -678,7 +684,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('modified')}
+											onclick={() => sortTable('modified')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Modified</p>
@@ -687,7 +693,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('created')}
+											onclick={() => sortTable('created')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Created</p>
@@ -731,8 +737,8 @@
 													<p class="px-2 py-2">{file.extension}</p>
 													<a
 														href={`/svelted/media${file.path}`}
-														on:mouseenter={() => hoverOver(`file-edit-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
+														onmouseenter={() => hoverOver(`file-edit-${index}`)}
+														onmouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
 													>
 														{#if client.hoverOver == `file-edit-${index}`}
@@ -742,9 +748,9 @@
 														{/if}
 													</a>
 													<button
-														on:click={() => deleteModal(file.name, index)}
-														on:mouseenter={() => hoverOver(`file-delete-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
+														onclick={() => deleteModal(file.name, index)}
+														onmouseenter={() => hoverOver(`file-delete-${index}`)}
+														onmouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
 													>
 														{#if client.hoverOver == `file-delete-${index}`}
@@ -788,7 +794,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -797,7 +803,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('extension')}
+											onclick={() => sortTable('extension')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Extension</p>
@@ -806,7 +812,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('author')}
+											onclick={() => sortTable('author')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Author</p>
@@ -815,7 +821,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('modified')}
+											onclick={() => sortTable('modified')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Modified</p>
@@ -824,7 +830,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('created')}
+											onclick={() => sortTable('created')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Created</p>
@@ -894,8 +900,8 @@
 											<div class="flex gap-2">
 												<a
 													href={`/svelted/media${file.path}`}
-													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onmouseenter={() => hoverOver(`pages-edit-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 												>
 													{#if client.hoverOver == `pages-edit-${index}`}
@@ -905,9 +911,9 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteModal(file.name, index)}
-													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onclick={() => deleteModal(file.name, index)}
+													onmouseenter={() => hoverOver(`layouts-delete-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 												>
 													{#if client.hoverOver == `layouts-delete-${index}`}
@@ -933,9 +939,9 @@
 				<div>
 					<button
 						class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] focus:outline-none"
-						on:mouseenter={() => hoverOver('users')}
-						on:mouseleave={() => hoverOver(undefined)}
-						on:click={() => (client.sidebar = !client.sidebar)}
+						onmouseenter={() => hoverOver('users')}
+						onmouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.sidebar = !client.sidebar)}
 					>
 						{#if client.hoverOver == 'users'}
 							<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />

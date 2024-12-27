@@ -1,7 +1,7 @@
 <script lang="ts">
   import { T, useFrame } from '@threlte/core'
 
-  let rotation = 0
+  let rotation = $state(0)
   useFrame(() => {
     rotation += 0.001
   })

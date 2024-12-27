@@ -1,6 +1,11 @@
 <script lang="ts">
-	export let path: string;
-	export let accumulatedPath: string = '';
+	import PathSpacer from './PathSpacer.svelte';
+	interface Props {
+		path: string;
+		accumulatedPath?: string;
+	}
+
+	let { path, accumulatedPath = '' }: Props = $props();
 
 	let parts = path.split('/');
 	let currentSegment = parts[0];
@@ -15,6 +20,6 @@
 		<span>{currentSegment}</span>
 	</a>
 	{#if remainingPath !== ''}
-		<svelte:self path={remainingPath} accumulatedPath={newAccumulatedPath} />
+		<PathSpacer path={remainingPath} accumulatedPath={newAccumulatedPath} />
 	{/if}
 {/if}
