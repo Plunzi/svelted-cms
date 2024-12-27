@@ -9,10 +9,6 @@
 		children?: TreeNode[];
 	};
 
-	import { CaretDown, File, Folder, FolderOpen } from 'phosphor-svelte';
-	import { slide } from 'svelte/transition';
-	const { label, children } = tree;
-
 	interface Props {
 		tree: TreeNode;
 		level?: number;
@@ -20,6 +16,11 @@
 	}
 
 	let { tree, level = 0, treeRoute = $bindable('') }: Props = $props();
+
+	import { CaretDown, File, Folder, FolderOpen } from 'phosphor-svelte';
+	import { slide } from 'svelte/transition';
+	const { label, children } = tree;
+
     if (label === '') {
         treeRoute += ``;
     } else {

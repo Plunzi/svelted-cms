@@ -114,13 +114,17 @@
 	const toggleSize = () => {
 		maximized = !maximized;
 	};
+
+	$effect(() => {
+		console.log(tasks);
+	});
 </script>
 
 <div
 	class="absolute right-64 top-0 mr-2 mt-2 transition-all flex {maximized ? 'h-72 w-48' : 'h-[32rem] w-[20rem]' } flex-col rounded-sm border border-neutral-800 bg-neutral-950 text-white shadow-sm"
 >
 	<div
-		class="flex h-10 items-center items-center justify-between gap-1 rounded-t-sm bg-[#161616] p-2 pr-1 text-neutral-500"
+		class="flex h-10 items-center justify-between gap-1 rounded-t-sm bg-[#161616] p-2 pr-1 text-neutral-500"
 	>
 		<div class="flex items-center gap-1">
 			<CheckSquareOffset class="fill-[currentcolor]" />

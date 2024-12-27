@@ -48,7 +48,7 @@
 		data: ComponentData;
 	}
 
-	let { data }: Props = $props();
+	let { data = $bindable() }: Props = $props();
 
 	console.log(JSON.stringify(data));
 
@@ -72,6 +72,7 @@
 		role="listitem"
 	>
 		<button
+			aria-label="Add content"
 			class="left-0 right-0 z-10 flex h-full w-full items-center justify-center rounded-xl bg-gray-100 shadow-lg border-transparent transition-all border-2 hover:border-brand-500"
 			class:py-2={client.isDragging}
 			class:bg-brand-500={client.isDraggingOver == 0}

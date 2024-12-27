@@ -1,7 +1,4 @@
-<!-- @migration-task Error while migrating Svelte code: `<th>` is invalid inside `<thead>` -->
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import Navigation from '$svelted/ui/navigation/Navigation.svelte';
 	import {
 		Blueprint,
@@ -14,13 +11,10 @@
 		SquaresFour,
 		Trash
 	} from 'phosphor-svelte';
-	import { writable } from 'svelte/store';
 	import formatTime from '$svelted/functions/format/time';
 	import getFileIcons from '$svelted/functions/format/fileicon';
 	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
 	import { Toaster } from '$lib/internal/shadcn/ui/sonner';
-	import { toast } from 'svelte-sonner';
-	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
 	import { flip } from 'svelte/animate';
 	import AlertDialog from '$svelted/overlays/AlertDialog.svelte';
 	import { closeModal, openModal } from '$svelted/overlays/AlertDialogControls.js';
@@ -28,6 +22,7 @@
 	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
 	import FileOverlay from '$svelted/overlays/FilePreview.svelte';
 	import PathSpacer from '$svelted/ui/path-spacer/PathSpacer.svelte';
+	import { preventDefault } from 'svelte/legacy';
 
 	const fileIcons = getFileIcons();
 
@@ -49,7 +44,30 @@
 	let searchTerm = $state('');
 
 	interface Client {
+		hoverOver: undefined | string;
 		sidebar: boolean;
+		display: string | undefined;
+		routeInput: string;
+		nameInput: string;
+		currentFile: File | undefined;
+		delete: {
+			route: undefined | string;
+			id: undefined | number;
+		};
+		modal: {
+			title: undefined | string;
+			description: undefined | string;
+		};
+		dropdowns: {
+			status: {
+				open: boolean;
+				value: string;
+			};
+			layout: {
+				open: boolean;
+				value: string;
+			};
+		};
 	}
 
 	const hoverOver = function (element: string | undefined) {
@@ -297,48 +315,46 @@
 
 	let currentAction = $state(deleteMedia);
 
-	const sortKey = writable('name');
-	const sortDirection = writable(1);
-	const sortItems = writable(files.slice());
+	let sortKey = $state('name');
+	let sortDirection = $state(1);
 
-	const sortTable = (key: any) => {
-		if ($sortKey === key) {
-			sortDirection.update((val) => -val);
+	const sortTable = (key: string) => {
+		if (sortKey === key) {
+			sortDirection = -sortDirection;
 		} else {
-			sortKey.set(key);
-			sortDirection.set(1);
+			sortKey = key;
+			sortDirection = 1;
 		}
 	};
 
-	run(() => {
-		const key = $sortKey;
-		const direction = $sortDirection;
-		sortItems.set(
-			files
-				.slice()
-				.filter((file) => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
-				.sort((a, b) => {
-					switch (key) {
-						case 'name':
-							return direction * a.name.localeCompare(b.name);
-						case 'extension':
-							return direction * a.extension.localeCompare(b.extension);
-						case 'author':
-							return direction * a.author.localeCompare(b.author);
-						case 'size':
-							return direction * (a.size - b.size);
-						case 'created':
-							return direction * (a.created - b.created);
-						case 'modified':
-							return direction * (a.modified - b.modified);
-						default:
-							break;
-					}
-					// If contents are the same, maintain relative order
-					return 0;
-				})
-		);
-	});
+	let key = $derived(sortKey);
+	let direction = $derived(sortDirection);
+
+	let sortItems = $derived(
+		files
+			.slice()
+			.filter((file) => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
+			.sort((a, b) => {
+				switch (key) {
+					case 'name':
+						return direction * a.name.localeCompare(b.name);
+					case 'extension':
+						return direction * a.extension.localeCompare(b.extension);
+					case 'author':
+						return direction * a.author.localeCompare(b.author);
+					case 'size':
+						return direction * (a.size - b.size);
+					case 'created':
+						return direction * (a.created - b.created);
+					case 'modified':
+						return direction * (a.modified - b.modified);
+					default:
+						break;
+				}
+				// If contents are the same, maintain relative order
+				return 0;
+			})
+	);
 </script>
 
 <Navigation overflow={true} site={['Media & Files']} activepage="Media & Files">
@@ -361,11 +377,14 @@
 				</div>
 				<div class="flex gap-2">
 					<p class="flex items-center gap-1">
-						<a href={`/svelted/media/`} class="text-neutral-500 hover:text-svelted-primary-500 hover:bg-svelted-gray-700 px-2 rounded-sm py-0.5">
+						<a
+							href={`/svelted/media/`}
+							class="rounded-sm px-2 py-0.5 text-neutral-500 hover:bg-svelted-gray-700 hover:text-svelted-primary-500"
+						>
 							<span>media</span>
 						</a>
 						{#if data.path}
-							<PathSpacer path={data.path}/>
+							<PathSpacer path={data.path} />
 						{/if}
 					</p>
 					<button
@@ -386,7 +405,7 @@
 					</button>
 					<button
 						class:!bg-neutral-800={client.display == 'cards'}
-						onclick={() => (client.display = 'cards')}	
+						onclick={() => (client.display = 'cards')}
 						onmouseenter={() => {
 							hoverOver('display-cards');
 							client.currentFile = undefined;
@@ -497,7 +516,7 @@
 											<th>
 												<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 													<Checkbox
-														on:click={checkAllFolders}
+														onclick={(e) => {e.preventDefault(); checkAllFolders()}}
 														checked={selectedFolders.length === folders.length}
 														class="border-[currentcolor]"
 													/>
@@ -522,7 +541,7 @@
 											>
 												<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 													<Checkbox
-														on:click={() => toggleCheckboxFolders(folder.path)}
+														onclick={(e) => {e.preventDefault(); toggleCheckboxFolders(folder.path)}}
 														checked={selectedFolders.includes(folder.path)}
 														class="border-neutral-800"
 													/>
@@ -594,7 +613,7 @@
 													class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 												>
 													<Checkbox
-														on:click={checkAllFiles}
+														onclick={(e: Event) => {e.preventDefault(); checkAllFiles();}}
 														checked={selectedFiles.length === files.length}
 														class="border-[currentcolor]"
 													/>
@@ -648,7 +667,7 @@
 										</div>
 									</div>
 									<div class="grid grid-cols-2 gap-2 text-neutral-500">
-										{#each $sortItems as file, index (file)}
+										{#each sortItems as file, index (file)}
 											<div
 												animate:flip={{ duration: 500 }}
 												class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
@@ -659,7 +678,7 @@
 															class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 														>
 															<Checkbox
-																on:click={() => toggleCheckboxFiles(file.path)}
+																onclick={(e: Event) => {e.preventDefault(); toggleCheckboxFiles(file.path);}}
 																checked={selectedFiles.includes(file.path)}
 																class="border-neutral-800"
 															/>
@@ -740,7 +759,7 @@
 											<th>
 												<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 													<Checkbox
-														on:click={checkAllFiles}
+														onclick={(e: Event) => {e.preventDefault(); checkAllFiles();}}
 														checked={selectedFiles.length === files.length}
 														class="border-[currentcolor]"
 													/>
@@ -794,14 +813,14 @@
 										</tr>
 									</thead>
 									<tbody class="text-neutral-500">
-										{#each $sortItems as file, index (file)}
+										{#each sortItems as file, index (file)}
 											<tr
 												class="tr hover:!bg-[#0a2620] hover:text-white"
 												animate:flip={{ duration: 500 }}
 											>
 												<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 													<Checkbox
-														on:click={() => toggleCheckboxFiles(file.path)}
+														onclick={(e) => {e.preventDefault(); toggleCheckboxFiles(file.path)}}
 														checked={selectedFiles.includes(file.path)}
 														class="border-neutral-800"
 													/>
@@ -924,11 +943,11 @@
 								</tr>
 							</thead>
 							<tbody class="text-neutral-500">
-								{#each $sortItems as file, index (file)}
+								{#each sortItems as file, index (file)}
 									<tr>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 											<Checkbox
-												on:click={() => toggleCheckboxFiles(file.path)}
+												onclick={() => toggleCheckboxFiles(file.path)}
 												checked={selectedFiles.includes(file.path)}
 												class="border-neutral-800"
 											/>

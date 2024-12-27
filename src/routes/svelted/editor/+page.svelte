@@ -246,7 +246,7 @@
 			body: formData
 		});
 
-		await setTimeout(() => {
+		setTimeout(() => {
 			client.isSaving = false;
 			client.savingMessage = 'Save changes';
 			// console.log(response.status, response);

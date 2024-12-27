@@ -9,7 +9,7 @@
 		data: any;
 	}
 
-	let { data }: Props = $props();
+	let { data = $bindable() }: Props = $props();
 	const ressources = data.ressources;
 
 	// console.log(os.hostname, os.cpus, os.platform, os.homedir, os.version, os.uptime);
@@ -113,7 +113,7 @@
 				</div>
 			</div>
 
-			<QuickToDo tasks={data.todo.data} />
+			<QuickToDo bind:tasks={data.todo.data} />
 
 			<div class="absolute bottom-0 left-0 mb-2 ml-2 text-neutral-500">
 				<p><span class="text-[#2da05a]">4</span> Users</p>

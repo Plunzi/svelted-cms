@@ -116,14 +116,6 @@
 	let items = data.pages || [];
 	const sortItems = $derived(items.slice()); // make a copy of the items array
 
-
-	function closeAndFocusTrigger(triggerId: string) {
-		client.dropdowns.status.open = false;
-		tick().then(() => {
-			document.getElementById(triggerId)?.focus();
-		});
-	}
-	
 	const showCreateForm = function () {
 		const createForm = document.getElementById('create-page-form')!;
 
@@ -327,9 +319,31 @@
 		)
 	);
 
-	
-	let selectedStatus = $derived(pageStatusOptions.find((f) => f.value === client.dropdowns.status.value)?.label ?? 'Select a status');
-	let selectedLayout = $derived(pageLayoutOptions.find((f) => f.value === client.dropdowns.layout.value)?.label ?? 'Select a layout');
+	let selectedStatus = $derived(
+		pageStatusOptions.find((f) => f.value === client.dropdowns.status.value)?.label ??
+			'Select a status'
+	);
+	let selectedLayout = $derived(
+		pageLayoutOptions.find((f) => f.value === client.dropdowns.layout.value)?.label ??
+			'Select a layout'
+	);
+
+	let triggerStatusRef = $state<HTMLButtonElement>(null!);
+	let triggerLayoutRef = $state<HTMLButtonElement>(null!);
+
+	function closeAndFocusStatusTrigger() {
+		client.dropdowns.status.open = false;
+		tick().then(() => {
+			triggerStatusRef.focus();
+		});
+	}
+
+	function closeAndFocusLayoutTrigger() {
+		client.dropdowns.status.open = false;
+		tick().then(() => {
+			triggerLayoutRef.focus();
+		});
+	}
 </script>
 
 <Navigation overflow={false} site={['Pages']} activepage="Pages">
@@ -430,10 +444,7 @@
 				</div>
 			</nav>
 
-			<div
-				id="create-page-form"
-				class="hidden justify-between rounded-lg bg-svelted-gray-700 p-2"
-			>
+			<div id="create-page-form" class="hidden justify-between rounded-lg bg-svelted-gray-700 p-2">
 				<div class="mt-5 flex">
 					<div class="relative w-full">
 						<label
@@ -472,18 +483,21 @@
 							Page Status
 						</label>
 
-						<Popover.Root bind:open={client.dropdowns.status.open} let:ids>
-							<Popover.Trigger>
-								<Button
-									id="enter-page-status"
-									variant="outline"
-									role="combobox"
-									aria-expanded={client.dropdowns.status.open}
-									class="relative h-10 min-w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700 focus:z-10"
-								>
-									{selectedStatus}
-									<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-								</Button>
+						<Popover.Root bind:open={client.dropdowns.status.open}>
+							<Popover.Trigger bind:ref={triggerStatusRef}>
+								{#snippet child({ props }: any)}
+									<Button
+										id="enter-page-status"
+										variant="outline"
+										role="combobox"
+										{...props}
+										aria-expanded={client.dropdowns.status.open}
+										class="relative h-10 min-w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700 focus:z-10"
+									>
+										{selectedStatus}
+										<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+									</Button>
+								{/snippet}
 							</Popover.Trigger>
 							<Popover.Content class="w-48 border-none bg-transparent p-0">
 								<Command.Root class="bg-svelted-gray-700 text-neutral-400">
@@ -499,9 +513,9 @@
 											<Command.Item
 												class="rounded-none bg-svelted-gray-700 text-neutral-500"
 												value={status.value}
-												onSelect={(currentValue: any) => {
-													client.dropdowns.status.value = currentValue;
-													closeAndFocusTrigger(ids.trigger);
+												onSelect={() => {
+													client.dropdowns.status.value = status.value;
+													closeAndFocusStatusTrigger();
 												}}
 											>
 												<Check
@@ -525,19 +539,21 @@
 						>
 							Page Layout
 						</label>
-						<Popover.Root bind:open={client.dropdowns.layout.open} let:ids>
-							<Popover.Trigger asChild let:builder>
-								<Button
-									id="enter-page-layout"
-									builders={[builder]}
-									variant="outline"
-									role="combobox"
-									aria-expanded={client.dropdowns.status.open}
-									class="relative h-10 min-w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700 focus:z-10"
-								>
-									{selectedLayout}
-									<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-								</Button>
+						<Popover.Root bind:open={client.dropdowns.layout.open}>
+							<Popover.Trigger bind:ref={triggerLayoutRef}>
+								{#snippet child({ props }: any)}
+									<Button
+										id="enter-page-layout"
+										{...props}
+										variant="outline"
+										role="combobox"
+										aria-expanded={client.dropdowns.status.open}
+										class="relative h-10 min-w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700 focus:z-10"
+									>
+										{selectedLayout}
+										<CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+									</Button>
+								{/snippet}
 							</Popover.Trigger>
 							<Popover.Content class="w-48 border-none bg-transparent p-0">
 								<Command.Root class="bg-svelted-gray-700 text-neutral-400">
@@ -559,10 +575,10 @@
 											<Command.Item
 												class="rounded-none bg-svelted-gray-700 text-neutral-500"
 												value={layout.value}
-												onSelect={(currentValue: string) => {
-													client.dropdowns.layout.value = currentValue;
+												onSelect={() => {
+													client.dropdowns.layout.value = layout.value;
 													client.dropdowns.layout.selection = layout.selection;
-													closeAndFocusTrigger(ids.trigger);
+													closeAndFocusLayoutTrigger();
 												}}
 											>
 												<Check
@@ -612,7 +628,7 @@
 											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 										>
 											<Checkbox
-												on:click={checkAllCheckboxes}
+												onclick={(e: Event) => {e.preventDefault(); checkAllCheckboxes()}}
 												checked={items.length == selectedRows.length}
 												class="border-[currentcolor]"
 											/>
@@ -695,7 +711,7 @@
 													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
 													<Checkbox
-														on:click={checkAllCheckboxes}
+														onclick={(e: Event) => {e.preventDefault(); checkAllCheckboxes()}}
 														checked={items.length == selectedRows.length}
 														class="border-[currentcolor]"
 													/>
@@ -773,7 +789,7 @@
 									<th>
 										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 											<Checkbox
-												on:click={checkAllCheckboxes}
+												onclick={(e: Event) => {e.preventDefault(); checkAllCheckboxes()}}
 												checked={items.length == selectedRows.length}
 												class="border-neutral-700"
 												id="pages-checkbox"
@@ -850,7 +866,7 @@
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 											<Checkbox
-												on:click={() => toggleCheckbox(item.route)}
+												onclick={(e: Event) => {e.preventDefault(); toggleCheckbox(item.route)}}
 												checked={selectedRows.includes(item.route)}
 												class="border-neutral-800"
 											/>

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { onMount, } from 'svelte';
 	import { setAudioContext } from './context';
 	import { derived, writable, type Writable } from 'svelte/store';
@@ -38,7 +36,7 @@
 	 * Reactives
 	 */
 
-	run(() => {
+	$effect(() => {
 		if (prevSrc !== src) {
 			// fix $paused store not sync with audio.paused on src props change
 			setTimeout(() => {

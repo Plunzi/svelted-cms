@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
   import RangeSlider from '$svelted/ui/audio-player/RangeSlider.svelte';
 
   import { getAudioContext } from '$svelted/ui/audio-player';
@@ -10,7 +8,7 @@
   const { volume, muted } = getAudioContext();
 
   let volumePercentage = $state(100);
-  run(() => {
+  $effect(() => {
     $volume = volumePercentage / 100;
   });
 </script>

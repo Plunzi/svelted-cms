@@ -1,6 +1,4 @@
 <script lang="ts" defer>
-	import { run } from 'svelte/legacy';
-
 	import { browser } from '$app/environment';
 	import {
 		Blueprint,
@@ -69,39 +67,6 @@
 			const deleteId = files.findIndex((file) => file.path === entry);
 
 			console.log(deleteRoute, deleteId);
-
-			// if (!deleteRoute || (!deleteId && deleteId != 0)) {
-			// 	closeModal();
-			// 	return;
-			// }
-
-			// toast.loading(`Trying to delete route: ${deleteRoute}`);
-
-			// const formData = new FormData();
-			// formData.append('route', deleteRoute);
-
-			// const response = await fetch('/svelted/layouts/delete', {
-			// 	method: 'POST',
-			// 	body: formData
-			// });
-
-			// if (!response.ok) {
-			// 	const error = await response.text();
-			// 	toast.error(error);
-			// } else {
-			// 	if (client.hoverOver == `layouts-delete-${deleteId}`) {
-			// 		hoverOver(undefined);
-			// 	}
-
-			// 	const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
-			// 	if (indexToRemove !== -1) {
-			// 		items.splice(indexToRemove, 1);
-			// 		sortItems.set(items.slice());
-			// 	}
-
-			// 	let result = await response.text();
-			// 	toast.success(result);
-			// }
 		});
 
 		selectedFolders.map(async (entry) => {
@@ -359,13 +324,13 @@
 	const sortDirection = writable(1);
 	const sortItems = writable(files.slice());
 
-	run(() => {
+	$effect(() => {
 		display ? openModal() : closeModal();
 	});
 
-	run(() => {
-		const key = $sortKey;
-		const direction = $sortDirection;
+		let key = $derived($sortKey);
+		let direction = $derived($sortDirection);
+
 		sortItems.set(
 			files
 				.slice()
@@ -391,7 +356,6 @@
 					return 0;
 				})
 		);
-	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -563,7 +527,7 @@
 												class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 											>
 												<Checkbox
-													on:click={checkAllFiles}
+													onclick={checkAllFiles}
 													checked={selectedFiles.length === files.length}
 													class="border-[currentcolor]"
 												/>
@@ -628,7 +592,7 @@
 														class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 													>
 														<Checkbox
-															on:click={() => toggleCheckboxFiles(file.path)}
+															onclick={() => toggleCheckboxFiles(file.path)}
 															checked={selectedFiles.includes(file.path)}
 															class="border-neutral-800"
 														/>
@@ -689,7 +653,7 @@
 										<th>
 											<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 												<Checkbox
-													on:click={checkAllFiles}
+													onclick={checkAllFiles}
 													checked={selectedFiles.length === files.length}
 													class="border-[currentcolor]"
 												/>
@@ -750,7 +714,7 @@
 										>
 											<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 												<Checkbox
-													on:click={() => toggleCheckboxFiles(file.path)}
+													onclick={() => toggleCheckboxFiles(file.path)}
 													checked={selectedFiles.includes(file.path)}
 													class="border-neutral-800"
 												/>
@@ -835,7 +799,7 @@
 							class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] focus:outline-none"
 							on:mouseenter={() => hoverOver('users')}
 							on:mouseleave={() => hoverOver(undefined)}
-							on:click={() => (client.sidebar = !client.sidebar)}
+							onclick={() => (client.sidebar = !client.sidebar)}
 						>
 							{#if client.hoverOver == 'users'}
 								<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />

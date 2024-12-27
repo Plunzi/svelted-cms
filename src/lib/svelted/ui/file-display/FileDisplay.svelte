@@ -109,7 +109,7 @@
 		{#if validExtensions.image.includes(file.extension)}
 			<div class="relative m-auto h-full w-full">
 				<div
-					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onclick={() => link()}
@@ -160,7 +160,7 @@
 					</button>
 				</div>
 				<div
-					class="absolute right-16 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute right-16 top-1 z-10 flex w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onmouseenter={() => hoverOver('tool-zoom-in')}
@@ -209,7 +209,7 @@
 					</button>
 				</div>
 				<div
-					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onmouseenter={() => hoverOver('tool-exit')}
@@ -239,7 +239,7 @@
 		{:else if validExtensions.audio.includes(file.extension)}
 			<div class="relative flex h-full w-full items-center justify-center">
 				<div
-					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onclick={() => link()}
@@ -282,7 +282,7 @@
 					<Player track={file.name} />
 				</AudioPlayer>
 				<div
-					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onmouseenter={() => hoverOver('tool-exit')}
@@ -301,7 +301,7 @@
 		{:else if validExtensions.video.includes(file.extension)}
 			<div class="relative flex h-full w-full flex-grow items-center justify-center">
 				<div
-					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onclick={() => link()}
@@ -342,7 +342,7 @@
 				</div>
 				<VideoPlayer track={file.name} src={`/sv-content${file.path}`} />
 				<div
-					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onmouseenter={() => hoverOver('tool-exit')}
@@ -361,7 +361,7 @@
 		{:else}
 			<div class="relative flex h-full w-full items-center justify-center">
 				<div
-					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute left-1 top-1 z-10 flex h-12 w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onclick={() => link()}
@@ -417,7 +417,7 @@
 					</a>
 				</div>
 				<div
-					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
+					class="absolute right-1 top-1 z-10 flex w-fit rounded-full border border-neutral-800 bg-neutral-950 px-1 py-1 text-neutral-500 shadow-lg"
 				>
 					<button
 						onmouseenter={() => hoverOver('tool-exit')}
