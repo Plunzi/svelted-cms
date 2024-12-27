@@ -1,24 +1,29 @@
 <script lang="ts">
-	import { Command as CommandPrimitive } from "cmdk-sv";
+	import { Command as CommandPrimitive } from "bits-ui";
 	import { cn } from "$lib/internal/shadcn/utils.js";
-	type $$Props = CommandPrimitive.GroupProps;
 
-	interface Props {
-		class?: string | undefined | null;
-		children?: import('svelte').Snippet;
-		[key: string]: any
-	}
-
-	let { class: className = undefined, children, ...rest }: Props = $props();
-	
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		heading,
+		...restProps
+	}: CommandPrimitive.GroupProps & {
+		heading?: string;
+	} = $props();
 </script>
 
 <CommandPrimitive.Group
-	class={cn(
-		"overflow-hidden p-1 text-foreground [&_[data-cmdk-group-heading]]:px-2 [&_[data-cmdk-group-heading]]:py-1.5 [&_[data-cmdk-group-heading]]:text-xs [&_[data-cmdk-group-heading]]:font-medium [&_[data-cmdk-group-heading]]:text-muted-foreground",
-		className
-	)}
-	{...rest}
+	class={cn("text-foreground overflow-hidden p-1", className)}
+	bind:ref
+	{...restProps}
 >
-	{@render children?.()}
+	{#if heading}
+		<CommandPrimitive.GroupHeading
+			class="text-muted-foreground px-2 py-1.5 text-xs font-medium"
+		>
+			{heading}
+		</CommandPrimitive.GroupHeading>
+	{/if}
+	<CommandPrimitive.GroupItems {children} />
 </CommandPrimitive.Group>

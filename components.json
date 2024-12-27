@@ -11,7 +11,6 @@
 		"utils": "$lib/internal/shadcn/utils",
 		"ui": "$lib/internal/shadcn/ui",
 		"hooks": "$lib/internal/shadcn/hooks"
-
 	},
 	"typescript": true,
 	"registry": "https://next.shadcn-svelte.com/registry"

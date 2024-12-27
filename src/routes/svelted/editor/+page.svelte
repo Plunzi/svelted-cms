@@ -461,8 +461,6 @@
 		}
 	};
 
-	const hideOverlay = function (e: MouseEvent, id: number) {};
-
 	function addComponentBlock(
 		component_blocks: LayoutBlock[],
 		index: number,
@@ -538,10 +536,10 @@
 		selectedScale = pageScales.find((f) => f.value === value)?.label ?? '100 %';
 	});
 
-	function closeAndFocusTrigger(triggerId: string) {
+	function closeAndFocusTrigger() {
 		open = false;
 		tick().then(() => {
-			document.getElementById(triggerId)?.focus();
+			triggerRef.focus();
 		});
 	}
 
@@ -551,6 +549,9 @@
 			document.getElementById(triggerId)?.focus();
 		});
 	}
+
+	let triggerRef = $state<HTMLButtonElement>(null!);
+	let triggerRefScale = $state<HTMLButtonElement>(null!);
 
 	onMount(async () => {
 		makeResizableDiv('#editor-preview');
@@ -583,51 +584,49 @@
 			<div class="text-neutral-500">Editor</div>
 			<div class="flex h-full w-48 items-center text-white">
 				<Popover.Root bind:open>
-					{#snippet children({ ids })}
-						<Popover.Trigger asChild>
-							{#snippet children({ builder })}
-								<Button
-									builders={[builder]}
-									variant="outline"
-									role="combobox"
-									aria-expanded={open}
-									class="h-10 w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
-								>
-									{selectedLayout}
-									<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-								</Button>
-							{/snippet}
-						</Popover.Trigger>
-						<Popover.Content class="w-48 border-none bg-transparent p-0">
-							<Command.Root class="bg-svelted-gray-700 text-neutral-400">
-								<Command.Input
-									placeholder="Search layout..."
-									class="h-12 rounded-none bg-svelted-gray-700 text-white"
-								/>
-								<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
-									<button>Create new layout</button>
-								</Command.Empty>
-								<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
-									{#each PageLayouts as layout}
-										<Command.Item
-											class="rounded-none bg-svelted-gray-700 text-neutral-500"
-											value={layout.value}
-											onSelect={(currentValue) => {
-												value = currentValue;
-												changeEditorPage(layout.route);
-												closeAndFocusTrigger(ids.trigger);
-											}}
-										>
-											<icons.Check
-												class={cn('mr-2 h-8 w-4', value !== layout.value && 'text-transparent')}
-											/>
-											{layout.label}
-										</Command.Item>
-									{/each}
-								</Command.Group>
-							</Command.Root>
-						</Popover.Content>
-					{/snippet}
+					<Popover.Trigger bind:ref={triggerRef}>
+						{#snippet child({ props }: any)}
+							<Button
+								variant="outline"
+								class="h-10 w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
+								{...props}
+								role="combobox"
+								aria-expanded={open}
+							>
+								{selectedLayout}
+								<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+							</Button>
+						{/snippet}
+					</Popover.Trigger>
+					<Popover.Content class="w-48 border-none bg-transparent p-0">
+						<Command.Root class="bg-svelted-gray-700 text-neutral-400">
+							<Command.Input
+								placeholder="Search layout..."
+								class="h-12 rounded-none bg-svelted-gray-700 text-white"
+							/>
+							<Command.Empty class="rounded-none bg-svelted-gray-700 text-neutral-500">
+								<button>Create new layout</button>
+							</Command.Empty>
+							<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
+								{#each PageLayouts as layout}
+									<Command.Item
+										class="rounded-none bg-svelted-gray-700 text-neutral-500"
+										value={layout.value}
+										onSelect={() => {
+											value = layout.value;
+											changeEditorPage(layout.route);
+											closeAndFocusTrigger();
+										}}
+									>
+										<icons.Check
+											class={cn('mr-2 h-8 w-4', value !== layout.value && 'text-transparent')}
+										/>
+										{layout.label}
+									</Command.Item>
+								{/each}
+							</Command.Group>
+						</Command.Root>
+					</Popover.Content>
 				</Popover.Root>
 			</div>
 			<div class="flex">
@@ -653,51 +652,49 @@
 		</div>
 		<div class="flex h-full">
 			<Popover.Root bind:open={scaleSwitchOpen}>
-				{#snippet children({ ids })}
-					<Popover.Trigger asChild>
-						{#snippet children({ builder })}
-							<Button
-								builders={[builder]}
-								variant="outline"
-								role="combobox"
-								aria-expanded={scaleSwitchOpen}
-								class="my-auto h-10 w-48 justify-between rounded-md border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
-							>
-								Scale {selectedScale}
-								<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-							</Button>
-						{/snippet}
-					</Popover.Trigger>
-					<Popover.Content class="w-48 border-none bg-transparent p-0">
-						<Command.Root class="bg-svelted-gray-700 text-neutral-400">
-							<Command.Input
-								placeholder="Search route..."
-								class="h-12 rounded-none bg-svelted-gray-700 text-white"
-							/>
-							<Command.Empty class="bg-svelted-gray-700 text-neutral-500">
-								<button>Scale not found</button>
-							</Command.Empty>
-							<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
-								{#each pageScales as scale}
-									<Command.Item
-										class="rounded-none bg-svelted-gray-700 text-neutral-500"
-										value={scale.value}
-										onSelect={(currentValue) => {
-											value = currentValue;
-											closeAndFocusTriggerScale(ids.trigger);
-											setEditorScale(Number(currentValue));
-										}}
-									>
-										<icons.Check
-											class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')}
-										/>
-										{scale.label}
-									</Command.Item>
-								{/each}
-							</Command.Group>
-						</Command.Root>
-					</Popover.Content>
-				{/snippet}
+				<Popover.Trigger bind:ref={triggerRefScale}>
+					{#snippet child({ props }: any)}
+						<Button
+							{...props}
+							variant="outline"
+							role="combobox"
+							aria-expanded={scaleSwitchOpen}
+							class="my-auto h-10 w-48 justify-between rounded-md border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
+						>
+							Scale {selectedScale}
+							<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content class="w-48 border-none bg-transparent p-0">
+					<Command.Root class="bg-svelted-gray-700 text-neutral-400">
+						<Command.Input
+							placeholder="Search route..."
+							class="h-12 rounded-none bg-svelted-gray-700 text-white"
+						/>
+						<Command.Empty class="bg-svelted-gray-700 text-neutral-500">
+							<button>Scale not found</button>
+						</Command.Empty>
+						<Command.Group class="max-h-[20rem] overflow-y-auto p-0">
+							{#each pageScales as scale}
+								<Command.Item
+									class="rounded-none bg-svelted-gray-700 text-neutral-500"
+									value={scale.value}
+									onSelect={() => {
+										value = scale.value;
+										closeAndFocusTrigger();
+										setEditorScale(Number(scale.value));
+									}}
+								>
+									<icons.Check
+										class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')}
+									/>
+									{scale.label}
+								</Command.Item>
+							{/each}
+						</Command.Group>
+					</Command.Root>
+				</Popover.Content>
 			</Popover.Root>
 		</div>
 		<div class="flex h-full items-center gap-3">

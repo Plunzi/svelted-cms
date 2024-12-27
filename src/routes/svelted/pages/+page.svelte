@@ -16,7 +16,7 @@
 	import formatTime from '$svelted/functions/format/time';
 
 	// shadcn ui imports
-	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
+	import { Checkbox } from '$lib/internal/shadcn/ui/checkbox/index.js';
 	import { Toaster } from '$lib/internal/shadcn/ui/sonner';
 	import { toast } from 'svelte-sonner';
 	import * as Command from '$lib/internal/shadcn/ui/command/index.js';
@@ -473,10 +473,9 @@
 						</label>
 
 						<Popover.Root bind:open={client.dropdowns.status.open} let:ids>
-							<Popover.Trigger asChild let:builder>
+							<Popover.Trigger>
 								<Button
 									id="enter-page-status"
-									builders={[builder]}
 									variant="outline"
 									role="combobox"
 									aria-expanded={client.dropdowns.status.open}
