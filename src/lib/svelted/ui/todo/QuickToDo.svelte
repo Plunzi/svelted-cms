@@ -10,11 +10,15 @@
 
 	import { Check, CheckSquareOffset, Circle, Plus, Resize, Trash } from 'phosphor-svelte';
 
-	let shown = false;
-	let input = '';
-	let maximized = true;
+	let shown = $state(false);
+	let input = $state('');
+	let maximized = $state(true);
 
-	export let tasks: Todos = {
+	interface Props {
+		tasks?: Todos;
+	}
+
+	let { tasks = $bindable({
 		todo: [
 			{
 				entry: 'Exampler'
@@ -25,7 +29,7 @@
 				entry: 'Exampler Done!'
 			}
 		]
-	};
+	}) }: Props = $props();
 
 	const saveData = async function (todos: string) {
 		const formData = new FormData();
@@ -110,13 +114,17 @@
 	const toggleSize = () => {
 		maximized = !maximized;
 	};
+
+	$effect(() => {
+		console.log(tasks);
+	});
 </script>
 
 <div
 	class="absolute right-64 top-0 mr-2 mt-2 transition-all flex {maximized ? 'h-72 w-48' : 'h-[32rem] w-[20rem]' } flex-col rounded-sm border border-neutral-800 bg-neutral-950 text-white shadow-sm"
 >
 	<div
-		class="flex h-10 items-center items-center justify-between gap-1 rounded-t-sm bg-[#161616] p-2 pr-1 text-neutral-500"
+		class="flex h-10 items-center justify-between gap-1 rounded-t-sm bg-[#161616] p-2 pr-1 text-neutral-500"
 	>
 		<div class="flex items-center gap-1">
 			<CheckSquareOffset class="fill-[currentcolor]" />
@@ -124,13 +132,13 @@
 		</div>
 		<div class="flex">
 			<button
-				on:click={addEntries}
+				onclick={addEntries}
 				class="p-1.5 text-neutral-400 hover:rounded-sm hover:bg-neutral-800 hover:text-white"
 			>
 				<Plus class="fill-[currentcolor]" />
 			</button>
 			<button
-				on:click={toggleSize}
+				onclick={toggleSize}
 				class="p-1.5 text-neutral-400 hover:rounded-sm hover:bg-neutral-800 hover:text-white"
 			>
 				<Resize class="fill-[currentcolor]" />
@@ -140,7 +148,7 @@
 	<div class="flex h-full flex-col gap-1 overflow-auto">
 		<input
 			id="todo-input"
-			on:keydown={(e) => {
+			onkeydown={(e) => {
 				if (e.key == 'Enter') addEntries();
 			}}
 			bind:value={input}
@@ -152,14 +160,14 @@
 		{#each tasks.todo as task, index}
 			<div class="flex relative tasks">
 				<button
-					on:click={() => checkEntry(index, 'todo')}
+					onclick={() => checkEntry(index, 'todo')}
 					class="relative flex items-center gap-2 px-1 text-neutral-500 hover:text-white"
 				>
 					<Circle class="top-1.5 absolute min-h-4 min-w-4 fill-[currentcolor]" />
 					<p class="text-left ml-5 mb-1">{task.entry}</p>
 				</button>
 				<button
-					on:click={() => deleteEntry(index, 'todo')}
+					onclick={() => deleteEntry(index, 'todo')}
 					class="btns absolute opacity-0 transition-all right-1 grid h-6 w-6 items-center justify-center rounded-sm bg-neutral-900 text-neutral-500 hover:text-red-500"
 				>
 					<Trash class="fill-[currentcolor]" />
@@ -169,7 +177,7 @@
 
 		<div class="relative my-3 flex h-[1px] items-center border-neutral-800 bg-neutral-800">
 			<button
-				on:click={clearDones}
+				onclick={clearDones}
 				class="absolute right-4 mb-1 bg-neutral-950 px-2 text-neutral-700 hover:text-neutral-500"
 				>↓ Clear</button
 			>
@@ -178,14 +186,14 @@
 		{#each tasks.done as task, index}
 			<div class="flex relative tasks">
 				<button
-					on:click={() => checkEntry(index, 'done')}
+					onclick={() => checkEntry(index, 'done')}
 					class="relative flex items-center gap-2 px-1 text-neutral-500 hover:text-white"
 				>
 					<Check class="top-1.5 absolute min-h-4 min-w-4 fill-[currentcolor]" />
 					<p class="text-left ml-5 mb-1">{task.entry}</p>
 				</button>
 				<button
-					on:click={() => deleteEntry(index, 'done')}
+					onclick={() => deleteEntry(index, 'done')}
 					class="btns absolute opacity-0 transition-all right-1 grid h-6 w-6 items-center justify-center rounded-sm bg-neutral-900 text-neutral-500 hover:text-red-500"
 				>
 					<Trash class="fill-[currentcolor]" />

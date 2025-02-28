@@ -23,8 +23,8 @@ function buildTree(dirPath: string) {
 }
 
 export const load: PageServerLoad = async ({ params }) => {
-    const publicTree = buildTree('./public');
-    const privateTree = buildTree('./private');
+    const publicTree = buildTree('./assets/public');
+    const privateTree = buildTree('./assets/private');
     const dataTree = buildTree('./data');
     const media = { label: "", children: [publicTree, privateTree, dataTree] };
 

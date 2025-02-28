@@ -20,7 +20,7 @@
 		scale: number;
 	}
 
-	let client: Client = {
+	let client: Client = $state({
 		x: 0,
 		y: 0,
 		currentComponent: undefined,
@@ -28,7 +28,7 @@
 		isDraggingOver: undefined,
 		shiftKeyHeld: false,
 		scale: 1
-	};
+	});
 
 	const enterPlaceRegion = function (e: DragEvent, id: number) {
 		client.isDraggingOver = id;
@@ -44,7 +44,11 @@
 
 	const deleteComponent = function (e: MouseEvent, id: number) {};
 
-	export let data: ComponentData;
+	interface Props {
+		data: ComponentData;
+	}
+
+	let { data = $bindable() }: Props = $props();
 
 	console.log(JSON.stringify(data));
 
@@ -53,20 +57,22 @@
 <section class={`${data.class} mx-auto flex w-full max-w-[80%] gap-2 rounded-2xl bg-gray-200 p-2`}>
 	<!-- {#each data.content.component as block, index} -->
 	{#each data.content as block, index}
+		{@const SvelteComponent = components[block.component]}
 		<div class="aspect-square w-full rounded-xl bg-gray-100 shadow-lg">
 			<!-- <svelte:component this={block.component} bind:data={block.data} /> -->
-			<svelte:component this={components[block.component]} bind:data={block.data} />
+			<SvelteComponent bind:data={block.data} />
 		</div>
 	{/each}
 	<div
 		class="add-content my-0 flex w-full items-center"
-		on:drop={placeComponent}
-		on:dragenter={(e) => enterPlaceRegion(e, 0)}
-		on:dragleave={(e) => leavePlaceRegion(e, 0)}
-		on:dragover={dragOver}
+		ondrop={placeComponent}
+		ondragenter={(e) => enterPlaceRegion(e, 0)}
+		ondragleave={(e) => leavePlaceRegion(e, 0)}
+		ondragover={dragOver}
 		role="listitem"
 	>
 		<button
+			aria-label="Add content"
 			class="left-0 right-0 z-10 flex h-full w-full items-center justify-center rounded-xl bg-gray-100 shadow-lg border-transparent transition-all border-2 hover:border-brand-500"
 			class:py-2={client.isDragging}
 			class:bg-brand-500={client.isDraggingOver == 0}

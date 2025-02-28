@@ -1,38 +1,31 @@
-// import adapter from '@sveltejs/adapter-auto';
-
-// Bun adapter docs: https://github.com/gornostay25/svelte-adapter-bun
+import { mdsvex } from 'mdsvex';
+// import adapter from '@sveltejs/adapter-node';
 import adapter from "svelte-adapter-bun";
+import path from 'path';
 
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-import path from 'path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
+	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
-	preprocess: [vitePreprocess({})],
+	preprocess: [vitePreprocess(), mdsvex()],
 
 	kit: {
-		// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
-		// If your environment is not supported or you settled on a specific environment, switch out the adapter.
-		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
-		adapter: adapter({
-			precompress: {
-			  brotli: true,
-			  gzip: true,
-			  files: ["htm", "html"],
-			},
-		  }),
-		files: {
-			assets: path.resolve('./public'),
-		},
+		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
+		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
+		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
+		adapter: adapter(),
 		alias: {
-			$components: path.resolve('./src/components'),
-			$layouts: path.resolve('./data/layouts'),
-			$pages: path.resolve('./data/pages'),
-			$svelted: path.resolve('./src/lib/svelted'),
-		}
-	}
+			'$shadcn/*': './src/lib/internal/shadcn/*',
+			'$components': 'src/components',
+			'$layouts': 'data/layouts',
+			'$pages': 'data/pages',
+			'$svelted': 'src/lib/svelted',
+		},
+	},
+
+	extensions: ['.svelte', '.svx']
 };
 
 export default config;

@@ -11,22 +11,46 @@
 		Trash,
 		UserList
 	} from 'phosphor-svelte';
-	import { writable } from 'svelte/store';
 	import formatTime from '$svelted/functions/format/time';
-	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
-	import { Toaster } from '$lib/internal/shadcn/ui/sonner';
+	import Checkbox from '$shadcn/components/ui/checkbox/checkbox.svelte';
+	import { Toaster } from '$shadcn/components/ui/sonner';
 	import { toast } from 'svelte-sonner';
-	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
 	import { flip } from 'svelte/animate';
 	import AlertDialog from '$svelted/overlays/AlertDialog.svelte';
 	import { closeModal, openModal } from '$svelted/overlays/AlertDialogControls.js';
 
-	export let data;
+	interface Props {
+		data: any;
+	}
 
-	let searchTerm = '';
+	let { data }: Props = $props();
+
+	let searchTerm = $state('');
 
 	interface Client {
 		sidebar: boolean;
+		hoverOver: any;
+		display: string;
+		routeInput: string;
+		nameInput: string;
+		delete: {
+			route: string | undefined;
+			id: number | undefined;
+		};
+		modal: {
+			title: string | undefined;
+			description: string | undefined;
+		};
+		dropdowns: {
+			status: {
+				open: boolean;
+				value: string;
+			};
+			layout: {
+				open: boolean;
+				value: string;
+			};
+		};
 	}
 
 	const hoverOver = function (element: string | undefined) {
@@ -62,16 +86,11 @@
 
 	const showCreateForm = function () {
 		const createForm = document.getElementById('create-page-form')!;
-		const editor = document.getElementById('page-editor')!;
 		if (createForm.style.display == 'flex') {
 			createForm.style.display = 'none';
-			editor.classList.remove('max-h-small-editor');
 		} else {
 			createForm.style.display = 'flex';
-			editor.classList.add('max-h-small-editor');
 		}
-
-		// max-height: calc(100vh - 14rem);
 	};
 
 	const deleteStackModal = function () {
@@ -88,7 +107,7 @@
 	const deleteStack = async function () {
 		selectedRows.map(async (entry) => {
 			const deleteRoute = (client.delete.route = entry);
-			const deleteId = items.findIndex((page) => page.route === entry);
+			const deleteId = items.findIndex((page: any) => page.route === entry);
 
 			console.log(deleteRoute, deleteId);
 
@@ -115,7 +134,7 @@
 					hoverOver(undefined);
 				}
 
-				const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
+				const indexToRemove = items.findIndex((item: any) => item.route === deleteRoute);
 				if (indexToRemove !== -1) {
 					items.splice(indexToRemove, 1);
 					sortItems.set(items.slice());
@@ -132,7 +151,7 @@
 		if (items.length == selectedRows.length) {
 			selectedRows = [];
 		} else {
-			selectedRows = items.map((item) => {
+			selectedRows = items.map((item: any) => {
 				return item.route;
 			});
 		}
@@ -191,7 +210,7 @@
 				hoverOver(undefined);
 			}
 
-			const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
+			const indexToRemove = items.findIndex((item: any) => item.route === deleteRoute);
 			if (indexToRemove !== -1) {
 				items.splice(indexToRemove, 1);
 				sortItems.set(items.slice());
@@ -232,9 +251,9 @@
 		};
 	}
 
-	let selectedRows: string[] = [];
+	let selectedRows: string[] = $state([]);
 
-	let client: Client = {
+	let client: Client = $state({
 		hoverOver: undefined,
 		sidebar: false,
 		display: 'tables',
@@ -258,44 +277,43 @@
 				value: 'none'
 			}
 		}
-	};
+	});
 
 	let items = data.layouts || [];
-	let currentAction = deleteLayout;
+	let currentAction = $state(deleteLayout);
 
-	const sortKey = writable('route'); // default sort key
-	const sortDirection = writable(1); // default sort direction (ascending)
-	const sortItems = writable(items.slice()); // make a copy of the items array
+	const sortItems = $derived(items.slice()); // make a copy of the items array
 
-	// Define a function to sort the items
+	let sortKey = $state('route'); // default sort key
+	let sortDirection = $state(1); // default sort direction (ascending)
+	let sortedItems = $derived(
+		[...items].sort((a, b) => {
+			const aVal = a[sortKey];
+			const bVal = b[sortKey];
+			if (aVal < bVal) {
+				return -sortDirection;
+			} else if (aVal > bVal) {
+				return sortDirection;
+			}
+			return 0;
+		})
+	);
+
+	// Update the sort function to modify the state directly
 	const sortTable = (key: string) => {
-		// If the same key is clicked, reverse the sort direction
-		if ($sortKey === key) {
-			sortDirection.update((val) => -val);
+		if (sortKey === key) {
+			sortDirection = -sortDirection;
 		} else {
-			sortKey.set(key);
-			sortDirection.set(1);
+			sortKey = key;
+			sortDirection = 1;
 		}
 	};
 
-	$: {
-		const key = $sortKey;
-		const direction = $sortDirection;
-		const sorted = [...$sortItems].sort((a, b) => {
-			const aVal = a.description[key];
-			const bVal = b.description[key];
-			if (aVal < bVal) {
-				return -direction;
-			} else if (aVal > bVal) {
-				return direction;
-			}
-			return 0;
-		});
-		sortItems.set(sorted);
-	}
-
-	$: filteredItems = $sortItems.filter(
-		(item) => item.description.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
+	// Update filteredItems to use the new sortedItems
+	let filteredItems = $derived(
+		sortedItems.filter(
+			(item: any) => item.route.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1
+		)
 	);
 </script>
 
@@ -317,9 +335,9 @@
 				<div class="flex gap-2">
 					<button
 						class:!bg-neutral-800={client.display == 'tables'}
-						on:click={() => (client.display = 'tables')}
-						on:mouseenter={() => hoverOver('display-tables')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.display = 'tables')}
+						onmouseenter={() => hoverOver('display-tables')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
 						{#if client.hoverOver == 'display-tables'}
@@ -330,9 +348,9 @@
 					</button>
 					<button
 						class:!bg-neutral-800={client.display == 'cards'}
-						on:click={() => (client.display = 'cards')}
-						on:mouseenter={() => hoverOver('display-cards')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.display = 'cards')}
+						onmouseenter={() => hoverOver('display-cards')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
 					>
 						{#if client.hoverOver == 'display-cards'}
@@ -345,9 +363,9 @@
 			</div>
 			<nav class="flex gap-2">
 				<button
-					on:click={showCreateForm}
-					on:mouseenter={() => hoverOver('create-layout')}
-					on:mouseleave={() => hoverOver(undefined)}
+					onclick={showCreateForm}
+					onmouseenter={() => hoverOver('create-layout')}
+					onmouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 				>
 					{#if client.hoverOver == 'create-layout'}
@@ -357,9 +375,9 @@
 					{/if}
 				</button>
 				<button
-					on:click={deleteStackModal}
-					on:mouseenter={() => hoverOver('delete-stack')}
-					on:mouseleave={() => hoverOver(undefined)}
+					onclick={deleteStackModal}
+					onmouseenter={() => hoverOver('delete-stack')}
+					onmouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
 				>
 					{#if client.hoverOver == 'delete-stack'}
@@ -371,8 +389,8 @@
 				<div class="flex-grow">
 					<label
 						for="filter-layouts"
-						on:mouseenter={() => hoverOver('filter')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onmouseenter={() => hoverOver('filter')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="contens absolute rounded-l-sm text-neutral-500 hover:text-white focus:bg-[#2da05a] focus:text-white focus:outline-none"
 					>
 						{#if client.hoverOver == 'filter'}
@@ -396,7 +414,10 @@
 				</div>
 			</nav>
 
-			<div class="flex justify-between rounded-lg bg-svelted-gray-700 p-2 hidden" id="create-page-form">
+			<div
+				class="hidden justify-between rounded-lg bg-svelted-gray-700 p-2"
+				id="create-page-form"
+			>
 				<div class="mt-5 flex">
 					<div class="relative w-full">
 						<label
@@ -430,7 +451,7 @@
 				</div>
 				<div class="flex">
 					<button
-						on:click={createLayout}
+						onclick={createLayout}
 						class="mt-auto flex max-h-10 min-h-10 items-center gap-2 rounded-sm bg-neutral-800 pl-3 pr-5 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
 						<Plus class="h-5 w-5 fill-[currentcolor]" />
@@ -460,7 +481,7 @@
 											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 										>
 											<Checkbox
-												on:click={checkAllCheckboxes}
+												onclick={checkAllCheckboxes}
 												checked={items.length == selectedRows.length}
 												class="border-[currentcolor]"
 											/>
@@ -468,7 +489,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('route')}
+											onclick={() => sortTable('route')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Route</p>
@@ -477,7 +498,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -486,7 +507,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('author')}
+											onclick={() => sortTable('author')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Author</p>
@@ -495,7 +516,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('modified')}
+											onclick={() => sortTable('modified')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Modified</p>
@@ -504,7 +525,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('created')}
+											onclick={() => sortTable('created')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Created</p>
@@ -525,7 +546,7 @@
 													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
 													<Checkbox
-														on:click={() => toggleCheckbox(item.route)}
+														onclick={() => toggleCheckbox(item.route)}
 														checked={selectedRows.includes(item.route)}
 														class="border-neutral-800"
 													/>
@@ -540,8 +561,8 @@
 													<p class="px-2 py-2">{item.description.author}</p>
 													<a
 														href={`/svelted/editor?currentpage=${item.description.route}`}
-														on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
+														onmouseenter={() => hoverOver(`pages-edit-${index}`)}
+														onmouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
 													>
 														{#if client.hoverOver == `pages-edit-${index}`}
@@ -551,9 +572,9 @@
 														{/if}
 													</a>
 													<button
-														on:click={() => deleteModal(item.route, index)}
-														on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
+														onclick={() => deleteModal(item.route, index)}
+														onmouseenter={() => hoverOver(`layouts-delete-${index}`)}
+														onmouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
 													>
 														{#if client.hoverOver == `layouts-delete-${index}`}
@@ -589,7 +610,7 @@
 									<th>
 										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 											<Checkbox
-												on:click={checkAllCheckboxes}
+												onclick={checkAllCheckboxes}
 												checked={items.length == selectedRows.length}
 												class="border-[currentcolor]"
 											/>
@@ -597,7 +618,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('route')}
+											onclick={() => sortTable('route')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Route</p>
@@ -606,7 +627,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -615,7 +636,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('author')}
+											onclick={() => sortTable('author')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Author</p>
@@ -624,7 +645,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('modified')}
+											onclick={() => sortTable('modified')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Modified</p>
@@ -633,7 +654,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('created')}
+											onclick={() => sortTable('created')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Created</p>
@@ -647,7 +668,7 @@
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 											<Checkbox
-												on:click={() => toggleCheckbox(item.route)}
+												onclick={() => toggleCheckbox(item.route)}
 												checked={selectedRows.includes(item.route)}
 												class="border-neutral-800"
 											/>
@@ -667,8 +688,8 @@
 											<div class="flex gap-2">
 												<a
 													href={`/svelted/editor?currentpage=${item.description.route}`}
-													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onmouseenter={() => hoverOver(`pages-edit-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 												>
 													{#if client.hoverOver == `pages-edit-${index}`}
@@ -678,9 +699,9 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteModal(item.route, index)}
-													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onclick={() => deleteModal(item.route, index)}
+													onmouseenter={() => hoverOver(`layouts-delete-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 												>
 													{#if client.hoverOver == `layouts-delete-${index}`}
@@ -706,9 +727,9 @@
 			<div>
 				<button
 					class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:outline focus:outline-none"
-					on:mouseenter={() => hoverOver('users')}
-					on:mouseleave={() => hoverOver(undefined)}
-					on:click={() => (client.sidebar = !client.sidebar)}
+					onmouseenter={() => hoverOver('users')}
+					onmouseleave={() => hoverOver(undefined)}
+					onclick={() => (client.sidebar = !client.sidebar)}
 				>
 					{#if client.hoverOver == 'users'}
 						<UserList class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
@@ -740,10 +761,6 @@
 
 	:is(tr:hover > td) {
 		border-color: #278c4c !important;
-	}
-
-	table tr.spacer:last-of-type td {
-		display: none;
 	}
 
 	tr td:first-of-type {
@@ -778,12 +795,6 @@
 
 	.h-full-editor {
 		min-height: calc(100vh - 4rem);
-	}
-
-	:is(.closed .section-description, .hide) {
-		max-height: 0;
-		opacity: 0;
-		overflow: hidden;
 	}
 
 	.max-h-editor {

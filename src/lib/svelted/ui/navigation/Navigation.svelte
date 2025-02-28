@@ -14,24 +14,34 @@
 		SquareHalf
 	} from 'phosphor-svelte';
 
-	export let overflow;
-	export let site;
 
 	interface Client {
 		hoverOver: undefined | string;
 		sidebar: boolean;
 	}
 
-	let client: Client = {
+	let client: Client = $state({
 		hoverOver: undefined,
 		sidebar: false
-	};
+	});
 
 	const hoverOver = function (element: string | undefined) {
 		client.hoverOver = element;
 	};
 
-	export let activepage: string = 'Overview';
+	interface Props {
+		overflow: any;
+		site: any;
+		activepage?: string;
+		children?: import('svelte').Snippet;
+	}
+
+	let {
+		overflow,
+		site,
+		activepage = 'Overview',
+		children
+	}: Props = $props();
 
 	let NavigationCategories = [
 		{
@@ -119,12 +129,12 @@
 			>
 				<img
 					class="m-auto h-10 w-10 opacity-80 transition-all"
-					src="/static-svelted/svelted-color.svg"
+					src="/sv-content/public/static-svelted/svelted-color.svg"
 					alt="Svelted Logo - Back"
 				/>
 			</a>
 			<div class="flex flex-col">
-				<h1 class="text-gradient text-lg font-bold text-neutral-200">Svelted CMS</h1>
+				<h1 class="text-gradient text-lg font-bold text-[#2da05a]">Svelted CMS</h1>
 				<span class="-mt-2 text-sm font-medium text-neutral-500">made by Plunzi</span>
 			</div>
 			{#each site as site}
@@ -170,7 +180,7 @@
 				{#each NavigationCategories as category}
 					<button
 						class="section-description -mb-2 flex justify-between text-neutral-500 transition-all"
-						on:click={() => toggleSection(category.name.toLowerCase())}
+						onclick={() => toggleSection(category.name.toLowerCase())}
 					>
 						<h2>{category.name}</h2>
 						<CaretDown
@@ -186,19 +196,17 @@
 								class="flex aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] focus:outline-none"
 								class:!bg-neutral-800={activepage.toLowerCase() == route.name.toLowerCase()}
 								class:!shadow-2xl={activepage.toLowerCase() == route.name.toLowerCase()}
-								on:mouseenter={() => hoverOver(route.name.toLowerCase())}
-								on:mouseleave={() => hoverOver(undefined)}
+								onmouseenter={() => hoverOver(route.name.toLowerCase())}
+								onmouseleave={() => hoverOver(undefined)}
 							>
 								{#if client.hoverOver == route.name.toLowerCase()}
-									<svelte:component
-										this={route.icon}
+									<route.icon
 										class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200"
 										weight="fill"
 									/>
 									<p class="text-white">{route.name}</p>
 								{:else}
-									<svelte:component
-										this={route.icon}
+									<route.icon
 										class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-500"
 										weight="regular"
 									/>
@@ -214,9 +222,9 @@
 				<div id="settings">
 					<button
 						class="flex rounded-sm aspect-square h-12 w-full items-center gap-4 bg-[#161616] p-1 px-2 hover:bg-[#278c4c] hover:bg-white focus:bg-[#0a2620] border-svelted-primary-500 focus:outline-none"
-						on:mouseenter={() => hoverOver('sidebar')}
-						on:mouseleave={() => hoverOver(undefined)}
-						on:click={() => (client.sidebar = !client.sidebar)}
+						onmouseenter={() => hoverOver('sidebar')}
+						onmouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.sidebar = !client.sidebar)}
 					>
 						{#if client.hoverOver == 'sidebar'}
 							<SquareHalf class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />
@@ -234,7 +242,7 @@
 				? 'overflow-y-visible'
 				: 'overflow-y-hidden'} bg-[#0e0f13] bg-[radial-gradient(#17181c_1px,transparent_1px)] [background-size:16px_16px]"
 		>
-			<slot />
+			{@render children?.()}
 		</section>
 	</div>
 </main>
@@ -282,13 +290,6 @@
 	:is(.open .section-description) {
 		max-height: 2rem;
 		opacity: 1;
-	}
-
-	.text-gradient {
-		background: linear-gradient(120deg, #36bf68, #1e6b61);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
 	}
 
 	.text-ghost {

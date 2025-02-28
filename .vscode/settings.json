@@ -6,27 +6,20 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
-        ".eslintignore": true,
-        ".eslintrc.cjs": true,
-        ".npmrc": true,
         ".prettierignore": true,
+        ".prettierrc": true,
+        ".npmrc": true,
         "bun.lockb": true,
-        "node_modules": true,
+        "postcss.config.js": true,
+        "build": true,
         ".vscode": true,
-        ".svelte-kit": true,
-        "postcss.config.cjs": true,
-        ".prettierrc": true
+        ".svelte-kit": true
     },
     "hide-files.files": [
-        ".eslintignore",
-        ".eslintrc.cjs",
-        ".npmrc",
         ".prettierignore",
+        ".prettierrc",
+        ".npmrc",
         "bun.lockb",
-        "node_modules",
-        ".vscode",
-        ".svelte-kit",
-        "postcss.config.cjs",
-        ".prettierrc"
+        "postcss.config.js"
     ]
 }

@@ -46,8 +46,8 @@ export const load: PageServerLoad = async ({ params }) => {
         return { folders: [], files: [] };
     }
 
-    const publicTree = buildTree('./public');
-    const privateTree = buildTree('./private');
+    const publicTree = buildTree('./assets/public');
+    const privateTree = buildTree('./assets/private');
     const dataTree = buildTree('./data');
     const media = { label: "", children: [publicTree, privateTree, dataTree] };
 
@@ -56,7 +56,7 @@ export const load: PageServerLoad = async ({ params }) => {
         return { folders: [], files: [], status: "not allowed", path: params.path, media};
     }
 
-    const baseDir = path.resolve('./');
+    const baseDir = path.resolve('./assets');
 
     const currentPath = params.path ? path.join(baseDir, params.path) : baseDir;
 

@@ -1,7 +1,11 @@
 <script lang="ts">
 	// layout component imports
 	import components from '$components';
-	export let data;
+	interface Props {
+		data: any;
+	}
+
+	let { data }: Props = $props();
 
 	let layout_blocks = data.page.content || [
 		{
@@ -62,8 +66,9 @@
 
 <main>
 	{#each layout_blocks as block, index}
+		{@const SvelteComponent = components[block.component]}
 		<div class="contents">
-			<svelte:component this={components[block.component]} data={block.data} />
+			<SvelteComponent data={block.data} />
         </div>
 	{/each}
 </main>

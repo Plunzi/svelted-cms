@@ -1,14 +1,17 @@
 {
 	"$schema": "https://shadcn-svelte.com/schema.json",
-	"style": "default",
+	"style": "new-york",
 	"tailwind": {
-		"config": "tailwind.config.js",
-		"css": "src\\app.pcss",
+		"config": "tailwind.config.ts",
+		"css": "src\\app.css",
 		"baseColor": "neutral"
 	},
 	"aliases": {
-		"components": "$lib/internal/shadcn/",
-		"utils": "$lib/internal/shadcn/utils"
+		"components": "$lib/internal/shadcn/components",
+		"utils": "$lib/internal/shadcn/utils",
+		"ui": "$lib/internal/shadcn/components/ui",
+		"hooks": "$lib/hooks"
 	},
-	"typescript": true
+	"typescript": true,
+	"registry": "https://next.shadcn-svelte.com/registry"
 }

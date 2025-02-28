@@ -17,7 +17,11 @@
 			}[];
 		};
 	}
-	export let data: ComponentData;
+	interface Props {
+		data: ComponentData;
+	}
+
+	let { data = $bindable() }: Props = $props();
 
 	// console.log(JSON.stringify(data));
 

@@ -9,7 +9,9 @@ export const GET: RequestHandler = async ({ setHeaders, params }) => {
     // here will be authentication some time when the far far galaxy.. 🌌💫
     //
 
-    const contentPath = `${params.storage}`;
+    const contentPath = `assets/${params.storage}`;
+
+    console.log(contentPath);
 
     const file = Bun.file(contentPath);
     const exists = await file.exists();

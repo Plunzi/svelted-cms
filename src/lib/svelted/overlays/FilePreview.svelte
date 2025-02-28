@@ -1,10 +1,14 @@
 <script lang="ts">
 	import FileDisplay from '$svelted/ui/file-display/FileDisplay.svelte';
 
-	export let file: File | undefined;
+	interface Props {
+		file: File | undefined;
+	}
 
-	let popupModal: HTMLElement;
-	let popupModalHelper: HTMLElement;
+	let { file = $bindable() }: Props = $props();
+
+	let popupModal: HTMLElement | undefined = $state();
+	let popupModalHelper: HTMLElement | undefined = $state();
 
 	interface File {
 		path: string;
@@ -18,20 +22,20 @@
 	}
 
 	const closeModal = async () => {
-		popupModal.style.opacity = '0';
-		popupModalHelper.style.transform = 'scale(0.9)';
+		popupModal!.style.opacity = '0';
+		popupModalHelper!.style.transform = 'scale(0.9)';
 
 		setTimeout(() => {
-			popupModal.style.display = 'none';
+			popupModal!.style.display = 'none';
 			file = undefined;
 		}, 250);
 	};
 
 	const openFileOverlay = async () => {
-		popupModal.style.display = 'grid';
+		popupModal!.style.display = 'grid';
 		setTimeout(() => {
-			popupModal.style.opacity = '1';
-			popupModalHelper.style.transform = 'scale(1)';
+			popupModal!.style.opacity = '1';
+			popupModalHelper!.style.transform = 'scale(1)';
 		}, 50);
 	};
 
@@ -53,16 +57,16 @@
         }
     }
 
-	$: {
+	$effect(() => {
 		if (file !== undefined) {
 			setTimeout(() => {
 				openFileOverlay();
 			}, 1);
 		}
-	}
+	});
 </script>
 
-<svelte:window on:keydown={handleKeydown}></svelte:window>
+<svelte:window onkeydown={handleKeydown}></svelte:window>
 
 {#if file}
     <section

@@ -1,9 +1,7 @@
-import { sveltekit } from '@sveltejs/kit/vite'
-import { defineConfig } from 'vite'
+import { sveltekit } from '@sveltejs/kit/vite';
+import { sveltePhosphorOptimize } from "phosphor-svelte/vite";
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [sveltekit()],
-  ssr: {
-    noExternal: ['three']
-  }
-})
+	plugins: [sveltePhosphorOptimize(), sveltekit()],
+});

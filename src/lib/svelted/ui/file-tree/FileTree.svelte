@@ -1,27 +1,33 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	const _expansionState: { [key: string]: boolean } = {};
 </script>
 
 <script lang="ts">
+	import FileTree from './FileTree.svelte';
 	type TreeNode = {
 		label: string;
 		children?: TreeNode[];
 	};
 
+	interface Props {
+		tree: TreeNode;
+		level?: number;
+		treeRoute?: string;
+	}
+
+	let { tree, level = 0, treeRoute = $bindable('') }: Props = $props();
+
 	import { CaretDown, File, Folder, FolderOpen } from 'phosphor-svelte';
 	import { slide } from 'svelte/transition';
-	export let tree: TreeNode;
 	const { label, children } = tree;
-	export let level: number = 0;
 
-    export let treeRoute = '';
     if (label === '') {
         treeRoute += ``;
     } else {
         treeRoute += `/${label}`;
     }
 
-	let expanded: boolean = _expansionState[label] || true;
+	let expanded: boolean = $state(_expansionState[label] || true);
 	const toggleExpansion = () => {
 		expanded = _expansionState[label] = !expanded;
 	};
@@ -34,7 +40,7 @@
 			<div
 				class="flex items-center gap-1 rounded-md hover:bg-neutral-900 px-2 py-0.5 text-neutral-500 hover:text-neutral-200"
 			>
-                <button on:click={toggleExpansion} class="flex items-center gap-1">
+                <button onclick={toggleExpansion} class="flex items-center gap-1">
                     <CaretDown class="transition-all" style={expanded ? '' : 'transform: rotate(-90deg);'} />
                     {#if expanded}
                         <FolderOpen color="currentcolor" weight="fill" />
@@ -49,7 +55,7 @@
             {/if}
 			{#if expanded}
 				{#each children as child}
-					<svelte:self tree={child} treeRoute={treeRoute} level={level + 1} />
+					<FileTree tree={child} treeRoute={treeRoute} level={level + 1} />
 				{/each}
 			{/if}
 		{:else}

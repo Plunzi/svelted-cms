@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	// type imports
 	import type { SvelteComponent } from 'svelte';
 
@@ -40,7 +42,7 @@
 		route: string;
 	};
 
-	type PageLayouts = PageLayout[];
+	type PageLayoutsType = PageLayout[];
 
 	interface LayoutBlock {
 		name: string;
@@ -49,7 +51,7 @@
 		icon: string;
 	}
 
-	let sidebar = {
+	let sidebar = $state({
 		left: {
 			expanded: false,
 			page: ''
@@ -58,7 +60,7 @@
 			expanded: true,
 			page: ''
 		}
-	};
+	});
 
 	let undoStack: any = [];
 	let redoStack: any = [];
@@ -147,65 +149,71 @@
 		}
 	];
 
-	export let data;
+	interface Props {
+		data: any;
+	}
 
-	let layout_blocks = data.page.content || [
-		{
-			icon: 'Cube',
-			name: 'Navigation',
-			component: 'BLOCK_Navigation',
-			data: {
-				class: 'undefined',
-				content: {
-					title: 'Hello Svelted User!',
-					navigation_links: [
-						{
-							text: 'Home',
-							link: '/'
-						},
-						{
-							text: 'About',
-							link: '/about'
-						},
-						{
-							text: 'Blog',
-							link: '/blog'
-						},
-						{
-							text: 'Contact',
-							link: '/contact'
-						}
-					],
-					primary_buttons: [
-						{
-							text: 'Get Started',
-							link: '/get-startet'
-						}
-					],
-					secondary_buttons: [
-						{
-							text: 'Log In',
-							link: '/login'
-						}
-					]
+	let { data }: Props = $props();
+
+	let layout_blocks = $state(
+		data.page.content || [
+			{
+				icon: 'Cube',
+				name: 'Navigation',
+				component: 'BLOCK_Navigation',
+				data: {
+					class: 'undefined',
+					content: {
+						title: 'Hello Svelted User!',
+						navigation_links: [
+							{
+								text: 'Home',
+								link: '/'
+							},
+							{
+								text: 'About',
+								link: '/about'
+							},
+							{
+								text: 'Blog',
+								link: '/blog'
+							},
+							{
+								text: 'Contact',
+								link: '/contact'
+							}
+						],
+						primary_buttons: [
+							{
+								text: 'Get Started',
+								link: '/get-startet'
+							}
+						],
+						secondary_buttons: [
+							{
+								text: 'Log In',
+								link: '/login'
+							}
+						]
+					}
 				}
+			},
+			{
+				icon: 'Cube',
+				name: 'Heading',
+				component: 'BLOCK_Heading1',
+				data: { class: 'text-2xl', content: 'Hello User!' }
+			},
+			{
+				icon: 'Cube',
+				name: 'Paragraph',
+				component: 'BLOCK_Paragraph',
+				data: { class: 'text-lg', content: 'Welcome to svelted visual editor!' }
 			}
-		},
-		{
-			icon: 'Cube',
-			name: 'Heading',
-			component: 'BLOCK_Heading1',
-			data: { class: 'text-2xl', content: 'Hello User!' }
-		},
-		{
-			icon: 'Cube',
-			name: 'Paragraph',
-			component: 'BLOCK_Paragraph',
-			data: { class: 'text-lg', content: 'Welcome to svelted visual editor!' }
-		}
-	];
+		]
+	);
 
-	let client: Client = {
+	let client: Client = $state({
 		x: 0,
 		y: 0,
 		currentComponent: undefined,
@@ -216,8 +224,8 @@
 		shiftKeyHeld: false,
 		scale: 1,
 		layout: data.page.route,
-		created: data.page.created,
-	};
+		created: data.page.created
+	});
 
 	const saveData = async function (content: string, route: string, name: string) {
 		const formData = new FormData();
@@ -238,7 +246,7 @@
 			body: formData
 		});
 
-		await setTimeout(() => {
+		setTimeout(() => {
 			client.isSaving = false;
 			client.savingMessage = 'Save changes';
 			// console.log(response.status, response);
@@ -453,8 +461,6 @@
 		}
 	};
 
-	const hideOverlay = function (e: MouseEvent, id: number) {};
-
 	function addComponentBlock(
 		component_blocks: LayoutBlock[],
 		index: number,
@@ -469,10 +475,14 @@
 		}
 	}
 
-	let PageLayouts: PageLayouts = [];
+	let PageLayouts: PageLayoutsType = [];
 
 	for (const layout of data.layouts) {
-		PageLayouts.push({ value: layout.description.name.toLowerCase(), label: layout.description.name, route: layout.description.route });
+		PageLayouts.push({
+			value: layout.description.name.toLowerCase(),
+			label: layout.description.name,
+			route: layout.description.route
+		});
 	}
 
 	const pageScales = [
@@ -514,17 +524,22 @@
 		}
 	];
 
-	let open = false;
-	let scaleSwitchOpen = false;
-	let value = data.page.name.toLowerCase();
+	let open = $state(false);
+	let scaleSwitchOpen = $state(false);
+	let value = $state(data.page.name.toLowerCase());
 
-	$: selectedLayout = PageLayouts.find((f) => f.value === value)?.label ?? data.page.name;
-	$: selectedScale = pageScales.find((f) => f.value === value)?.label ?? '100 %';
+	let selectedLayout = $derived(
+		PageLayouts.find((f) => f.value === value)?.label ?? data.page.name
+	);
+	let selectedScale = $state('100 %');
+	$effect.pre(() => {
+		selectedScale = pageScales.find((f) => f.value === value)?.label ?? '100 %';
+	});
 
-	function closeAndFocusTrigger(triggerId: string) {
+	function closeAndFocusTrigger() {
 		open = false;
 		tick().then(() => {
-			document.getElementById(triggerId)?.focus();
+			triggerRef.focus();
 		});
 	}
 
@@ -535,13 +550,16 @@
 		});
 	}
 
+	let triggerRef = $state<HTMLButtonElement>(null!);
+	let triggerRefScale = $state<HTMLButtonElement>(null!);
+
 	onMount(async () => {
 		makeResizableDiv('#editor-preview');
 		window.addEventListener('wheel', handleScroll);
 	});
 </script>
 
-<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
 
 <main class="h-full max-h-screen min-h-screen w-full bg-neutral-900">
 	<nav
@@ -565,18 +583,20 @@
 			<div class="text-neutral-500">/</div>
 			<div class="text-neutral-500">Editor</div>
 			<div class="flex h-full w-48 items-center text-white">
-				<Popover.Root bind:open let:ids>
-					<Popover.Trigger asChild let:builder>
-						<Button
-							builders={[builder]}
-							variant="outline"
-							role="combobox"
-							aria-expanded={open}
-							class="h-10 w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
-						>
-							{selectedLayout}
-							<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-						</Button>
+				<Popover.Root bind:open>
+					<Popover.Trigger bind:ref={triggerRef}>
+						{#snippet child({ props }: any)}
+							<Button
+								variant="outline"
+								class="h-10 w-48 justify-between border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
+								{...props}
+								role="combobox"
+								aria-expanded={open}
+							>
+								{selectedLayout}
+								<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+							</Button>
+						{/snippet}
 					</Popover.Trigger>
 					<Popover.Content class="w-48 border-none bg-transparent p-0">
 						<Command.Root class="bg-svelted-gray-700 text-neutral-400">
@@ -592,14 +612,13 @@
 									<Command.Item
 										class="rounded-none bg-svelted-gray-700 text-neutral-500"
 										value={layout.value}
-										onSelect={(currentValue) => {
-											value = currentValue;
+										onSelect={() => {
+											value = layout.value;
 											changeEditorPage(layout.route);
-											closeAndFocusTrigger(ids.trigger);
+											closeAndFocusTrigger();
 										}}
 									>
-										<svelte:component
-											this={icons.Check}
+										<icons.Check
 											class={cn('mr-2 h-8 w-4', value !== layout.value && 'text-transparent')}
 										/>
 										{layout.label}
@@ -612,50 +631,40 @@
 			</div>
 			<div class="flex">
 				<button
-					on:click={() => changeSidebarPage('left', 'add-components')}
+					onclick={() => changeSidebarPage('left', 'add-components')}
 					class="toolbar-item my-auto flex h-10 w-10 items-center justify-center rounded-l-sm bg-svelted-gray-700 text-neutral-600 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 				>
-					<svelte:component
-						this={icons.PlusSquare}
-						class="h-7 w-7 fill-[currentcolor]"
-						weight="fill"
-					/>
+					<icons.PlusSquare class="h-7 w-7 fill-[currentcolor]" weight="fill" />
 				</button>
 				<button
-					on:click={undo}
+					onclick={undo}
 					class="toolbar-item my-auto flex h-10 w-10 items-center justify-center bg-svelted-gray-700 text-neutral-600 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 				>
-					<svelte:component
-						this={icons.ArrowCounterClockwise}
-						class="h-6 w-6 fill-[currentcolor]"
-						weight="bold"
-					/>
+					<icons.ArrowCounterClockwise class="h-6 w-6 fill-[currentcolor]" weight="bold" />
 				</button>
 				<button
-					on:click={redo}
+					onclick={redo}
 					class="toolbar-item my-auto flex h-10 w-10 items-center justify-center rounded-r-sm bg-svelted-gray-700 text-neutral-600 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 				>
-					<svelte:component
-						this={icons.ArrowClockwise}
-						class="h-6 w-6 fill-[currentcolor]"
-						weight="bold"
-					/>
+					<icons.ArrowClockwise class="h-6 w-6 fill-[currentcolor]" weight="bold" />
 				</button>
 			</div>
 		</div>
 		<div class="flex h-full">
-			<Popover.Root bind:open={scaleSwitchOpen} let:ids>
-				<Popover.Trigger asChild let:builder>
-					<Button
-						builders={[builder]}
-						variant="outline"
-						role="combobox"
-						aria-expanded={scaleSwitchOpen}
-						class="my-auto h-10 w-48 justify-between rounded-md border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
-					>
-						Scale {selectedScale}
-						<svelte:component this={icons.CaretDown} class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-					</Button>
+			<Popover.Root bind:open={scaleSwitchOpen}>
+				<Popover.Trigger bind:ref={triggerRefScale}>
+					{#snippet child({ props }: any)}
+						<Button
+							{...props}
+							variant="outline"
+							role="combobox"
+							aria-expanded={scaleSwitchOpen}
+							class="my-auto h-10 w-48 justify-between rounded-md border-none bg-svelted-gray-700 text-neutral-500 outline-none hover:bg-svelted-primary-700"
+						>
+							Scale {selectedScale}
+							<icons.CaretDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						</Button>
+					{/snippet}
 				</Popover.Trigger>
 				<Popover.Content class="w-48 border-none bg-transparent p-0">
 					<Command.Root class="bg-svelted-gray-700 text-neutral-400">
@@ -671,14 +680,13 @@
 								<Command.Item
 									class="rounded-none bg-svelted-gray-700 text-neutral-500"
 									value={scale.value}
-									onSelect={(currentValue) => {
-										value = currentValue;
-										closeAndFocusTriggerScale(ids.trigger);
-										setEditorScale(Number(currentValue));
+									onSelect={() => {
+										value = scale.value;
+										closeAndFocusTrigger();
+										setEditorScale(Number(scale.value));
 									}}
 								>
-									<svelte:component
-										this={icons.Check}
+									<icons.Check
 										class={cn('mr-2 h-8 w-4', value !== scale.value && 'text-transparent')}
 									/>
 									{scale.label}
@@ -691,7 +699,7 @@
 		</div>
 		<div class="flex h-full items-center gap-3">
 			<button
-				on:click={() => saveData(JSON.stringify(layout_blocks), client.layout, selectedLayout)}
+				onclick={() => saveData(JSON.stringify(layout_blocks), client.layout, selectedLayout)}
 				class="font-regular mr-3 flex h-10 w-36 items-center justify-center rounded-md border border-svelted-primary-500 bg-[#0a2620] text-lg text-svelted-primary-500 outline-none transition-all hover:bg-svelted-primary-500 hover:font-medium hover:text-white focus:bg-svelted-primary-500 focus:font-medium focus:text-white"
 				class:bg-slate-700={client.isSaving}
 				class:text-slate-300={client.isSaving}
@@ -712,14 +720,13 @@
 					<div class="w-[18rem] min-w-[18rem]">
 						<div>
 							<button
-								on:click={() => (sidebar.left.expanded = false)}
+								onclick={() => (sidebar.left.expanded = false)}
 								class="flex w-full items-center p-2"
 							>
 								<div
 									class="flex w-full items-center gap-2 rounded-sm bg-svelted-gray-700 px-4 py-4 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 								>
-									<svelte:component this={icons.ArrowLeft} class="h-5 w-5 fill-[currentcolor]"
-									></svelte:component>
+									<icons.ArrowLeft class="h-5 w-5 fill-[currentcolor]"></icons.ArrowLeft>
 									<h1>Overview</h1>
 								</div>
 							</button>
@@ -741,27 +748,18 @@
 									animate:flip={{ duration: 300 }}
 									id={`${index}`}
 									draggable="true"
-									on:dragstart={dragStart}
-									on:drag={drag}
-									on:dragend={dragEnd}
+									ondragstart={dragStart}
+									ondrag={drag}
+									ondragend={dragEnd}
 								>
 									<div
 										class="relative flex h-10 min-h-10 w-full cursor-move items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-svelted-primary-500 hover:bg-neutral-900"
 									>
 										{#if component.icon}
-											<svelte:component
-												this={displayIcon(component.icon)}
-												class="fill-[currentcolor]"
-												weight="fill"
-												size={24}
-											/>
+											{@const SvelteComponent_1 = displayIcon(component.icon)}
+											<SvelteComponent_1 class="fill-[currentcolor]" weight="fill" size={24} />
 										{:else}
-											<svelte:component
-												this={icons.Cube}
-												class="fill-[currentcolor]"
-												weight="fill"
-												size={24}
-											/>
+											<icons.Cube class="fill-[currentcolor]" weight="fill" size={24} />
 										{/if}
 										<span class="text-neutral-500">{component.name}</span>
 									</div>
@@ -785,14 +783,13 @@
 					<div class="w-[18rem] min-w-[18rem]">
 						<div>
 							<button
-								on:click={() => (sidebar.left.expanded = false)}
+								onclick={() => (sidebar.left.expanded = false)}
 								class="flex w-full items-center p-2"
 							>
 								<div
 									class="flex w-full items-center gap-2 rounded-sm bg-svelted-gray-700 px-4 py-4 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 								>
-									<svelte:component this={icons.ArrowLeft} class="h-5 w-5 fill-[currentcolor]"
-									></svelte:component>
+									<icons.ArrowLeft class="h-5 w-5 fill-[currentcolor]"></icons.ArrowLeft>
 									<h1>Overview</h1>
 								</div>
 							</button>
@@ -809,19 +806,10 @@
 											class="relative flex h-10 min-h-10 w-full cursor-grab items-center justify-between rounded-sm border-2 border-svelted-gray-700 bg-svelted-gray-700 pl-2 pr-4 text-neutral-500 !opacity-100 transition-all hover:border-svelted-primary-500 hover:bg-neutral-900 focus:cursor-grabbing"
 										>
 											{#if block.icon}
-												<svelte:component
-													this={displayIcon(block.icon)}
-													class="fill-[currentcolor]"
-													weight="fill"
-													size={24}
-												/>
+												{@const SvelteComponent_2 = displayIcon(block.icon)}
+												<SvelteComponent_2 class="fill-[currentcolor]" weight="fill" size={24} />
 											{:else}
-												<svelte:component
-													this={icons.Cube}
-													class=" fill-[currentcolor]"
-													weight="fill"
-													size={24}
-												/>
+												<icons.Cube class=" fill-[currentcolor]" weight="fill" size={24} />
 											{/if}
 											{block.name}
 										</div>
@@ -835,19 +823,10 @@
 														class="relative flex h-10 min-h-10 w-full items-center gap-1 border bg-neutral-100 pl-2 pr-4 !opacity-100 transition-all hover:border-neutral-500 hover:bg-neutral-200 focus:cursor-grabbing"
 													>
 														{#if subComponent.icon}
-															<svelte:component
-																this={displayIcon(subComponent.icon)}
-																class=" fill-slate-900"
-																weight="fill"
-																size={24}
-															/>
+															{@const SvelteComponent_3 = displayIcon(subComponent.icon)}
+															<SvelteComponent_3 class=" fill-slate-900" weight="fill" size={24} />
 														{:else}
-															<svelte:component
-																this={icons.Cube}
-																class=" fill-slate-900"
-																weight="fill"
-																size={24}
-															/>
+															<icons.Cube class=" fill-slate-900" weight="fill" size={24} />
 														{/if}
 														{subComponent.name}
 													</div>
@@ -868,34 +847,30 @@
 			{:else}
 				<div class="flex flex-col">
 					<button
-						on:click={() => changeSidebarPage('left', 'add-components')}
+						onclick={() => changeSidebarPage('left', 'add-components')}
 						class="grid aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
-						<svelte:component this={icons.Plus} class="h-6 w-6 fill-[currentcolor]"
-						></svelte:component>
+						<icons.Plus class="h-6 w-6 fill-[currentcolor]"></icons.Plus>
 					</button>
 					<button
-						on:click={() => changeSidebarPage('left', 'list-components')}
+						onclick={() => changeSidebarPage('left', 'list-components')}
 						class="grid aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
-						<svelte:component this={icons.Stack} class="h-6 w-6 fill-[currentcolor]"
-						></svelte:component>
+						<icons.Stack class="h-6 w-6 fill-[currentcolor]"></icons.Stack>
 					</button>
 				</div>
 				<div class="flex flex-col">
 					<button
-						on:click={() => changeSidebarPage('left', 'add-components')}
+						onclick={() => changeSidebarPage('left', 'add-components')}
 						class="grid aspect-square w-12 items-center justify-center rounded-t-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
-						<svelte:component this={icons.Plus} class="h-6 w-6 fill-[currentcolor]"
-						></svelte:component>
+						<icons.Plus class="h-6 w-6 fill-[currentcolor]"></icons.Plus>
 					</button>
 					<button
-						on:click={() => changeSidebarPage('left', 'list-components')}
+						onclick={() => changeSidebarPage('left', 'list-components')}
 						class="grid aspect-square w-12 items-center justify-center rounded-b-sm bg-svelted-gray-700 p-1 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white focus:z-10"
 					>
-						<svelte:component this={icons.Stack} class="h-6 w-6 fill-[currentcolor]"
-						></svelte:component>
+						<icons.Stack class="h-6 w-6 fill-[currentcolor]"></icons.Stack>
 					</button>
 				</div>
 			{/if}
@@ -908,13 +883,13 @@
 					class="resize-item absolute bottom-0 left-0 top-0 z-20 grid w-1 cursor-w-resize items-center hover:bg-green-400"
 					id="resize-left"
 				>
-					<div class="h-full max-h-32 w-2 -translate-x-1 rounded-full bg-gray-500" />
+					<div class="h-full max-h-32 w-2 -translate-x-1 rounded-full bg-gray-500"></div>
 				</div>
 				<div
 					class="resize-item absolute bottom-0 right-0 top-0 z-20 grid w-1 cursor-e-resize items-center hover:bg-green-400"
 					id="resize-right"
 				>
-					<div class="h-full max-h-32 w-2 rounded-full bg-gray-500" />
+					<div class="h-full max-h-32 w-2 rounded-full bg-gray-500"></div>
 				</div>
 
 				<div
@@ -926,10 +901,10 @@
 						<li class="single-component relative w-full">
 							<div
 								class="add-content my-0 flex w-full items-center"
-								on:drop={placeComponent}
-								on:dragenter={(e) => enterPlaceRegion(e, 0)}
-								on:dragleave={(e) => leavePlaceRegion(e, 0)}
-								on:dragover={dragOver}
+								ondrop={placeComponent}
+								ondragenter={(e) => enterPlaceRegion(e, 0)}
+								ondragleave={(e) => leavePlaceRegion(e, 0)}
+								ondragover={dragOver}
 								role="listitem"
 							>
 								<button
@@ -956,16 +931,17 @@
 							</div>
 						</li>
 						{#each layout_blocks as block, index}
+							{@const SvelteComponent_4 = components[block.component]}
 							<li class="single-component relative w-full">
 								<button id={`${index + 1}`} class="w-full">
-									<svelte:component this={components[block.component]} bind:data={block.data} />
+									<SvelteComponent_4 bind:data={block.data} />
 								</button>
 								<div
 									class="add-content my-0 flex w-full items-center"
-									on:drop={placeComponent}
-									on:dragenter={(e) => enterPlaceRegion(e, index + 1)}
-									on:dragleave={(e) => leavePlaceRegion(e, index + 1)}
-									on:dragover={dragOver}
+									ondrop={placeComponent}
+									ondragenter={(e) => enterPlaceRegion(e, index + 1)}
+									ondragleave={(e) => leavePlaceRegion(e, index + 1)}
+									ondragover={dragOver}
 									role="listitem"
 								>
 									<button
@@ -994,11 +970,11 @@
 										</span>
 									</button>
 								</div>
-								<div class="component-outline pointer-events-none" />
+								<div class="component-outline pointer-events-none"></div>
 								<div
 									class="component-settings -bottom-7 -left-0.5 z-50 flex w-fit gap-1 bg-svelted-primary-500 p-1 pb-1.5 pt-0.5 outline-2 outline-svelted-primary-500"
 								>
-									<button on:click={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
+									<button onclick={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											class="fill-white hover:fill-white"
@@ -1011,7 +987,7 @@
 											></path></svg
 										>
 									</button>
-									<button on:click={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
+									<button onclick={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											class="fill-white hover:fill-white"
@@ -1025,7 +1001,7 @@
 										>
 									</button>
 									<button
-										on:click={(e) => deleteComponent(e, index)}
+										onclick={(e) => deleteComponent(e, index)}
 										class="h-5 min-w-5 rounded-md p-0.5"
 									>
 										<svg
@@ -1040,7 +1016,7 @@
 											></path></svg
 										>
 									</button>
-									<button on:click={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
+									<button onclick={(e) => e} class="h-5 min-w-5 rounded-md p-0.5">
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											class="fill-white hover:fill-white"

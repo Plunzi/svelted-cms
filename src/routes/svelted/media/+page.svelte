@@ -12,13 +12,11 @@
 		Trash,
 		Star
 	} from 'phosphor-svelte';
-	import { writable } from 'svelte/store';
 	import formatTime from '$svelted/functions/format/time';
 	import getFileIcons from '$svelted/functions/format/fileicon';
-	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
-	import { Toaster } from '$lib/internal/shadcn/ui/sonner';
+	import Checkbox from '$shadcn/components/ui/checkbox/checkbox.svelte';
+	import { Toaster } from '$shadcn/components/ui/sonner';
 	import { toast } from 'svelte-sonner';
-	import * as Tooltip from '$lib/internal/shadcn/ui/tooltip';
 	import { flip } from 'svelte/animate';
 	import AlertDialog from '$svelted/overlays/AlertDialog.svelte';
 	import { closeModal, openModal } from '$svelted/overlays/AlertDialogControls.js';
@@ -27,21 +25,22 @@
 	const fileIcons = getFileIcons();
 
 	function getSvgPath(extension: string): string {
-		const svgPath = fileIcons[extension];
+		const svgPath = '/sv-content/public' + fileIcons[extension];
 		if (!svgPath) {
 			return '/file-icons/unknown';
 		}
+
 		return svgPath;
 	}
 
-	export let data;
+	interface Props {
+		data: any;
+	}
+
+	let { data }: Props = $props();
 	const tree = data.media;
 
-	let searchTerm = '';
-
-	interface Client {
-		sidebar: boolean;
-	}
+	let searchTerm = $state('');
 
 	const hoverOver = function (element: string | undefined) {
 		client.hoverOver = element;
@@ -115,17 +114,22 @@
 		closeModal();
 	};
 
-	const checkAllFiles = function () {
-		if (files.length == selectedFiles.length) {
+	const checkAllFiles = function (e: Event) {
+		e.preventDefault();
+
+		const visibleFiles = files.filter((file) =>
+			file.name.toLowerCase().includes(searchTerm.toLowerCase())
+		);
+		if (selectedFiles.length === visibleFiles.length) {
 			selectedFiles = [];
 		} else {
-			selectedFiles = files.map((file) => {
-				return file.path;
-			});
+			selectedFiles = visibleFiles.map((file) => file.path);
 		}
 	};
 
-	const checkAllFolders = function () {
+	const checkAllFolders = function (e: Event) {
+		e.preventDefault();
+
 		if (folders.length == selectedFolders.length) {
 			selectedFolders = [];
 		} else {
@@ -200,10 +204,10 @@
 				hoverOver(undefined);
 			}
 
-			const indexToRemove = items.findIndex((item) => item.route === deleteRoute);
+			const indexToRemove = files.findIndex((item: any) => item.route === deleteRoute);
 			if (indexToRemove !== -1) {
-				items.splice(indexToRemove, 1);
-				sortItems.set(items.slice());
+				files.splice(indexToRemove, 1);
+				sortItems = files.slice();
 			}
 
 			let result = await response.text();
@@ -241,10 +245,10 @@
 		};
 	}
 
-	let selectedFiles: string[] = [];
-	let selectedFolders: string[] = [];
+	let selectedFiles: string[] = $state([]);
+	let selectedFolders: string[] = $state([]);
 
-	let client: Client = {
+	let client: Client = $state({
 		hoverOver: undefined,
 		sidebar: true,
 		display: 'tables',
@@ -268,7 +272,7 @@
 				value: 'none'
 			}
 		}
-	};
+	});
 
 	interface Folder {
 		path: string;
@@ -366,50 +370,48 @@
 		}
 	];
 
-	let currentAction = deleteMedia;
+	let currentAction = $state(deleteMedia);
 
-	const sortKey = writable('name');
-	const sortDirection = writable(1);
-	const sortItems = writable(files.slice());
+	let sortKey = $state('name');
+	let sortDirection = $state(1);
 
-	const sortTable = (key) => {
-		if ($sortKey === key) {
-			sortDirection.update((val) => -val);
+	const sortTable = (key: string) => {
+		if (sortKey === key) {
+			sortDirection = -sortDirection;
 		} else {
-			sortKey.set(key);
-			sortDirection.set(1);
+			sortKey = key;
+			sortDirection = 1;
 		}
 	};
 
-	$: {
-		const key = $sortKey;
-		const direction = $sortDirection;
-		sortItems.set(
-			files
-				.slice()
-				.filter((file) => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
-				.sort((a, b) => {
-					switch (key) {
-						case 'name':
-							return direction * a.name.localeCompare(b.name);
-						case 'extension':
-							return direction * a.extension.localeCompare(b.extension);
-						case 'author':
-							return direction * a.author.localeCompare(b.author);
-						case 'size':
-							return direction * (a.size - b.size);
-						case 'created':
-							return direction * (a.created - b.created);
-						case 'modified':
-							return direction * (a.modified - b.modified);
-						default:
-							break;
-					}
-					// If contents are the same, maintain relative order
-					return 0;
-				})
-		);
-	}
+	let key = $derived(sortKey);
+	let direction = $derived(sortDirection);
+
+	let sortItems = $derived(
+		files
+			.slice()
+			.filter((file) => file.name.toLowerCase().includes(searchTerm.toLowerCase()))
+			.sort((a, b) => {
+				switch (key) {
+					case 'name':
+						return direction * a.name.localeCompare(b.name);
+					case 'extension':
+						return direction * a.extension.localeCompare(b.extension);
+					case 'author':
+						return direction * a.author.localeCompare(b.author);
+					case 'size':
+						return direction * (a.size - b.size);
+					case 'created':
+						return direction * (a.created - b.created);
+					case 'modified':
+						return direction * (a.modified - b.modified);
+					default:
+						break;
+				}
+				// If contents are the same, maintain relative order
+				return 0;
+			})
+	);
 </script>
 
 <Navigation overflow={false} site={['Media & Files']} activepage="Media & Files">
@@ -438,9 +440,9 @@
 					</p>
 					<button
 						class:!bg-neutral-800={client.display == 'tables'}
-						on:click={() => (client.display = 'tables')}
-						on:mouseenter={() => hoverOver('display-tables')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.display = 'tables')}
+						onmouseenter={() => hoverOver('display-tables')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 					>
 						{#if client.hoverOver == 'display-tables'}
@@ -451,9 +453,9 @@
 					</button>
 					<button
 						class:!bg-neutral-800={client.display == 'cards'}
-						on:click={() => (client.display = 'cards')}
-						on:mouseenter={() => hoverOver('display-cards')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.display = 'cards')}
+						onmouseenter={() => hoverOver('display-cards')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
 					>
 						{#if client.hoverOver == 'display-cards'}
@@ -465,11 +467,11 @@
 					{#if client.sidebar === false}
 						<button
 							class:!bg-neutral-800={client.display == 'cards'}
-							on:click={() => (client.sidebar = !client.sidebar)}
-							on:mouseenter={() => {
+							onclick={() => (client.sidebar = !client.sidebar)}
+							onmouseenter={() => {
 								hoverOver('show-sidebar');
 							}}
-							on:mouseleave={() => hoverOver(undefined)}
+							onmouseleave={() => hoverOver(undefined)}
 							class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-500 hover:text-white"
 						>
 							{#if client.hoverOver == 'show-sidebar'}
@@ -483,8 +485,8 @@
 			</div>
 			<nav class="flex gap-2">
 				<button
-					on:mouseenter={() => hoverOver('create-layout')}
-					on:mouseleave={() => hoverOver(undefined)}
+					onmouseenter={() => hoverOver('create-layout')}
+					onmouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 				>
 					{#if client.hoverOver == 'create-layout'}
@@ -494,9 +496,9 @@
 					{/if}
 				</button>
 				<button
-					on:click={deleteStackModal}
-					on:mouseenter={() => hoverOver('delete-stack')}
-					on:mouseleave={() => hoverOver(undefined)}
+					onclick={deleteStackModal}
+					onmouseenter={() => hoverOver('delete-stack')}
+					onmouseleave={() => hoverOver(undefined)}
 					class="flex h-10 w-10 items-center justify-center rounded-lg bg-svelted-gray-700 text-neutral-500 hover:bg-red-500 hover:text-white"
 				>
 					{#if client.hoverOver == 'delete-stack'}
@@ -507,8 +509,8 @@
 				</button>
 				<div class="flex-grow">
 					<button
-						on:mouseenter={() => hoverOver('filter')}
-						on:mouseleave={() => hoverOver(undefined)}
+						onmouseenter={() => hoverOver('filter')}
+						onmouseleave={() => hoverOver(undefined)}
 						class="contens absolute rounded-l-sm text-neutral-500 hover:text-white focus:bg-[#2da05a] focus:text-white focus:outline-none"
 					>
 						{#if client.hoverOver == 'filter'}
@@ -550,7 +552,7 @@
 									<th>
 										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 											<Checkbox
-												on:click={checkAllFolders}
+												onclick={checkAllFolders}
 												checked={selectedFolders.length === folders.length}
 												class="border-[currentcolor]"
 											/>
@@ -558,7 +560,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -572,7 +574,7 @@
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 											<Checkbox
-												on:click={() => toggleCheckboxFolders(folder.path)}
+												onclick={(e: Event) => {e.preventDefault(); toggleCheckboxFolders(folder.path)}}
 												checked={selectedFolders.includes(folder.path)}
 												class="border-neutral-800"
 											/>
@@ -585,7 +587,7 @@
 												<div class="flex gap-2">
 													<img
 														class="h-6 w-6"
-														src={'/file-icons/folder_dark.svg'}
+														src={'/sv-content/public/file-icons/folder_dark.svg'}
 														alt={'file-icon-preview'}
 													/>
 													{folder.name}<span class="text-neutral-700"> ― {folder.path}</span>
@@ -596,8 +598,8 @@
 											<div class="flex gap-2">
 												<a
 													href={`/svelted/media${folder.path}`}
-													on:mouseenter={() => hoverOver(`folder-edit-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onmouseenter={() => hoverOver(`folder-edit-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 												>
 													{#if client.hoverOver == `folder-edit-${index}`}
@@ -607,9 +609,9 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteModal(folder.path, index)}
-													on:mouseenter={() => hoverOver(`folder-delete-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onclick={() => deleteModal(folder.path, index)}
+													onmouseenter={() => hoverOver(`folder-delete-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 												>
 													{#if client.hoverOver == `folder-delete-${index}`}
@@ -643,15 +645,15 @@
 											class="mb-2 grid h-8 min-w-10 max-w-10 items-center justify-center text-left"
 										>
 											<Checkbox
-												on:click={checkAllFiles}
-												checked={selectedFiles.length === files.length}
+												onclick={checkAllFiles}
+												checked={selectedFiles.length === sortItems.length}
 												class="border-[currentcolor]"
 											/>
 										</div>
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -660,7 +662,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('extension')}
+											onclick={() => sortTable('extension')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Extension</p>
@@ -669,7 +671,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('author')}
+											onclick={() => sortTable('author')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Author</p>
@@ -678,7 +680,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('modified')}
+											onclick={() => sortTable('modified')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Modified</p>
@@ -687,7 +689,7 @@
 									</div>
 									<div class="w-full">
 										<button
-											on:click={() => sortTable('created')}
+											onclick={() => sortTable('created')}
 											class="mb-2 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Created</p>
@@ -697,7 +699,7 @@
 								</div>
 							</div>
 							<div class="grid grid-cols-2 gap-2 text-neutral-500">
-								{#each $sortItems as file, index (file)}
+								{#each sortItems as file, index (file)}
 									<div
 										animate:flip={{ duration: 500 }}
 										class="card rounded-md bg-neutral-950 p-2 hover:!bg-[#0a2620] hover:text-neutral-300 hover:outline hover:outline-svelted-primary-700"
@@ -708,7 +710,7 @@
 													class="grid min-w-[34px] items-center justify-center border-r border-r-neutral-800 !px-1 text-neutral-800"
 												>
 													<Checkbox
-														on:click={() => toggleCheckboxFiles(file.path)}
+														onclick={(e: Event) => {e.preventDefault(); toggleCheckboxFiles(file.path)}}
 														checked={selectedFiles.includes(file.path)}
 														class="border-neutral-800"
 													/>
@@ -731,8 +733,8 @@
 													<p class="px-2 py-2">{file.extension}</p>
 													<a
 														href={`/svelted/media${file.path}`}
-														on:mouseenter={() => hoverOver(`file-edit-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
+														onmouseenter={() => hoverOver(`file-edit-${index}`)}
+														onmouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-svelted-primary-700 hover:text-neutral-300"
 													>
 														{#if client.hoverOver == `file-edit-${index}`}
@@ -742,9 +744,9 @@
 														{/if}
 													</a>
 													<button
-														on:click={() => deleteModal(file.name, index)}
-														on:mouseenter={() => hoverOver(`file-delete-${index}`)}
-														on:mouseleave={() => hoverOver(undefined)}
+														onclick={() => deleteModal(file.name, index)}
+														onmouseenter={() => hoverOver(`file-delete-${index}`)}
+														onmouseleave={() => hoverOver(undefined)}
 														class="grid max-h-9 min-w-9 items-center justify-center rounded-sm bg-neutral-800 text-neutral-500 hover:bg-red-500 hover:text-white"
 													>
 														{#if client.hoverOver == `file-delete-${index}`}
@@ -780,7 +782,7 @@
 									<th>
 										<div class="my-1 grid h-8 max-w-10 items-center justify-center text-left">
 											<Checkbox
-												on:click={checkAllFiles}
+												onclick={checkAllFiles}
 												checked={selectedFiles.length === files.length}
 												class="border-[currentcolor]"
 											/>
@@ -788,7 +790,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('name')}
+											onclick={() => sortTable('name')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Name</p>
@@ -797,7 +799,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('extension')}
+											onclick={() => sortTable('extension')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Extension</p>
@@ -806,7 +808,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('author')}
+											onclick={() => sortTable('author')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Author</p>
@@ -815,7 +817,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('modified')}
+											onclick={() => sortTable('modified')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Modified</p>
@@ -824,7 +826,7 @@
 									</th>
 									<th>
 										<button
-											on:click={() => sortTable('created')}
+											onclick={() => sortTable('created')}
 											class="my-1 flex h-8 w-full items-center justify-between rounded-sm px-2 text-left hover:bg-svelted-primary-700 hover:text-white"
 										>
 											<p>Created</p>
@@ -834,11 +836,11 @@
 								</tr>
 							</thead>
 							<tbody class="text-neutral-500">
-								{#each $sortItems as file, index (file)}
+								{#each sortItems as file, index (file)}
 									<tr class="hover:!bg-[#0a2620] hover:text-white" animate:flip={{ duration: 500 }}>
 										<td class="w-[10px] border-r border-r-neutral-800 !px-3 !py-2">
 											<Checkbox
-												on:click={() => toggleCheckboxFiles(file.path)}
+												onclick={(e: Event) => {e.preventDefault(); toggleCheckboxFiles(file.path)}}
 												checked={selectedFiles.includes(file.path)}
 												class="border-neutral-800"
 											/>
@@ -894,8 +896,8 @@
 											<div class="flex gap-2">
 												<a
 													href={`/svelted/media${file.path}`}
-													on:mouseenter={() => hoverOver(`pages-edit-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onmouseenter={() => hoverOver(`pages-edit-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-svelted-primary-700 hover:text-white"
 												>
 													{#if client.hoverOver == `pages-edit-${index}`}
@@ -905,9 +907,9 @@
 													{/if}
 												</a>
 												<button
-													on:click={() => deleteModal(file.name, index)}
-													on:mouseenter={() => hoverOver(`layouts-delete-${index}`)}
-													on:mouseleave={() => hoverOver(undefined)}
+													onclick={() => deleteModal(file.name, index)}
+													onmouseenter={() => hoverOver(`layouts-delete-${index}`)}
+													onmouseleave={() => hoverOver(undefined)}
 													class="rounded-sm bg-neutral-800 p-2 text-neutral-500 hover:bg-red-500 hover:text-white"
 												>
 													{#if client.hoverOver == `layouts-delete-${index}`}
@@ -933,9 +935,9 @@
 				<div>
 					<button
 						class="btn flex aspect-square h-12 w-full items-center gap-4 rounded-sm bg-[#161616] p-1 px-2 hover:bg-[#278c4c] focus:outline-none"
-						on:mouseenter={() => hoverOver('users')}
-						on:mouseleave={() => hoverOver(undefined)}
-						on:click={() => (client.sidebar = !client.sidebar)}
+						onmouseenter={() => hoverOver('users')}
+						onmouseleave={() => hoverOver(undefined)}
+						onclick={() => (client.sidebar = !client.sidebar)}
 					>
 						{#if client.hoverOver == 'users'}
 							<Tree class="mx-1 my-auto min-h-6 min-w-6 fill-neutral-200" weight="fill" />

@@ -2,10 +2,13 @@
 	import { Render } from '@jill64/svelte-sanitize'
 	import { closeModal } from './AlertDialogControls';
 
-	export let action;
-	export let title: string = 'Are you absolutely sure?';
-	export let description: string =
-		"This action cannot be undone. This will permanently delete this route and remove it's data from your servers.";
+	interface Props {
+		action: any;
+		title?: string;
+		description?: string;
+	}
+
+	let { action, title = 'Are you absolutely sure?', description = "This action cannot be undone. This will permanently delete this route and remove it's data from your servers." }: Props = $props();
 </script>
 
 <div id="popup-modal" class="absolute bottom-0 left-0 right-0 top-0 z-10 hidden opacity-0">
@@ -23,13 +26,13 @@
 		</div>
 		<div class="ml-auto flex gap-2">
 			<button
-				on:click={closeModal}
+				onclick={closeModal}
 				class="bg-svelted-gray-800 h-10 rounded-sm border px-4 hover:bg-svelted-gray-700"
 			>
 				Cancel
 			</button>
 			<button
-				on:click={action}
+				onclick={action}
 				class="h-10 rounded-sm bg-svelted-primary-700 px-4 hover:bg-svelted-primary-500"
 			>
 				Continue

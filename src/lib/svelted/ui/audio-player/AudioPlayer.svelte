@@ -1,18 +1,24 @@
 <script lang="ts">
-	import { onMount, afterUpdate } from 'svelte';
+	import { onMount, } from 'svelte';
 	import { setAudioContext } from './context';
 	import { derived, writable, type Writable } from 'svelte/store';
 
-	/**
+	
+
+	interface Props {
+		/**
 	 * Props
 	 */
+		src: string;
+		children?: import('svelte').Snippet;
+	}
 
-	export let src: string;
+	let { src, children }: Props = $props();
 	/**
 	 * States
 	 */
 
-	let prevSrc: undefined | string = undefined;
+	let prevSrc: undefined | string = $state(undefined);
 
 	let duration = writable(Infinity);
 	let currentTime = writable(0);
@@ -24,13 +30,13 @@
 	let paused = writable(true);
 	let playing = derived(paused, ($paused) => !$paused);
 
-	let audio: HTMLAudioElement | undefined;
+	let audio: HTMLAudioElement | undefined = $state();
 
 	/**
 	 * Reactives
 	 */
 
-	$: {
+	$effect(() => {
 		if (prevSrc !== src) {
 			// fix $paused store not sync with audio.paused on src props change
 			setTimeout(() => {
@@ -43,7 +49,7 @@
 		}
 
 		prevSrc = src;
-	}
+	});
 
 	async function fetchFullAudio(url: string) {
 		try {
@@ -109,7 +115,7 @@
 <div>
 	<audio
 		id="audioplayer-element"
-		on:canplaythrough={handleNewDuration}
+		oncanplaythrough={handleNewDuration}
 		bind:volume={$volume}
 		bind:duration={$duration}
 		bind:currentTime={$currentTime}
@@ -121,7 +127,7 @@
 		bind:this={audio}
 		{src}
 		style="display: none;"
-	/>
+	></audio>
 
-	<slot />
+	{@render children?.()}
 </div>

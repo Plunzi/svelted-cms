@@ -3,7 +3,11 @@
 		class: string | undefined;
 		content: {};
 	}
-	export let data: ComponentData;
+	interface Props {
+		data: ComponentData;
+	}
+
+	let { data = $bindable() }: Props = $props();
 
 	if (data == undefined) {
 		data = {
