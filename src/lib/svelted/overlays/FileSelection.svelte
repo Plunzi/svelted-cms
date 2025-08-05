@@ -15,7 +15,7 @@
 	} from 'phosphor-svelte';
 	import formatTime from '$svelted/functions/format/time';
 	import AlertDialog from './AlertDialog.svelte';
-	import Checkbox from '$lib/internal/shadcn/ui/checkbox/checkbox.svelte';
+	import Checkbox from '$lib/internal/shadcn/components/ui/checkbox/checkbox.svelte';
 	import { writable } from 'svelte/store';
 	import { flip } from 'svelte/animate';
 	import getFileIcons from '$svelted/functions/format/fileicon';
@@ -183,6 +183,16 @@
 				return file.path;
 			});
 		}
+	};
+
+	const deleteModal = function (route: string, id: number) {
+		// currentAction = deleteFile;
+		client.delete.id = id;
+		client.delete.route = route;
+		client.modal.title = `Confirm Deletion <span class="text-svelted-primary-500">${route}</span> Page?`;
+		client.modal.description =
+			'This action cannot be undone. It will permanently delete the specified page and remove its associated data from your servers.';
+		openModal();
 	};
 
 	export const closeModal = () => {

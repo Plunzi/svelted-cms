@@ -12,9 +12,9 @@
 	import * as icons from 'phosphor-svelte';
 
 	// shadcn ui imports
-	import * as Command from '$lib/internal/shadcn/ui/command/index.js';
-	import * as Popover from '$lib/internal/shadcn/ui/popover/index.js';
-	import { Button } from '$lib/internal/shadcn/ui/button/index.js';
+	import * as Command from '$lib/internal/shadcn/components/ui/command/index.js';
+	import * as Popover from '$lib/internal/shadcn/components/ui/popover/index.js';
+	import { Button } from '$lib/internal/shadcn/components/ui/button/index.js';
 	import { cn } from '$lib/internal/shadcn/utils.js';
 
 	// layout component imports
